@@ -5,7 +5,7 @@ LT_PREREQ([2.4.6])
 LT_INIT([disable-static])
 LT_LANG([C++])
 
-AM_INIT_AUTOMAKE([-Wall -Werror])
+AM_INIT_AUTOMAKE([-Wall])
 AC_CONFIG_SRCDIR([src/main.cxx])
 
 # check for C++11
