@@ -16,8 +16,6 @@ print_version (const gchar    *option_name,
 	return true;
 }
 
-static const char *plugin = "default";
-
 GOptionEntry mutter_options[] = {
   { NULL }
 };
