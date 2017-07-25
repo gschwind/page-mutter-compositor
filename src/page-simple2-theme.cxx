@@ -13,13 +13,10 @@
 #include <iostream>
 
 #include "page-renderable-solid.hxx"
-#include "page-renderable-pixmap.hxx"
 #include "page-simple2-theme.hxx"
 #include "page-box.hxx"
 #include "page-color.hxx"
-#include "page-pixmap.hxx"
 #include "page-utils.hxx"
-#include "page-display.hxx"
 
 #include "page-blur-image-surface.hxx"
 
@@ -81,7 +78,9 @@ rect simple2_theme_t::compute_notebook_menu_position(
 }
 
 
-simple2_theme_t::simple2_theme_t(display_t * cnx, config_handler_t & conf) {
+simple2_theme_t::simple2_theme_t(config_handler_t & conf)
+{
+	backgroun_px = nullptr;
 
 	notebook.margin.top = 4;
 	notebook.margin.bottom = 4;
@@ -120,8 +119,6 @@ simple2_theme_t::simple2_theme_t(display_t * cnx, config_handler_t & conf) {
 	split.margin.left = 0;
 	split.margin.right = 0;
 	split.width = 10;
-
-	_cnx = cnx;
 
 	std::string conf_img_dir = conf.get_string("default", "theme_dir");
 
@@ -240,7 +237,7 @@ simple2_theme_t::simple2_theme_t(display_t * cnx, config_handler_t & conf) {
 	if(conf.has_key("simple_theme", "scale_mode"))
 		scale_mode = conf.get_string("simple_theme", "scale_mode");
 
-	create_background_img();
+	create_background_img(1, 1);
 
 	/* open icons */
 	if (hsplit_button_s == nullptr) {
@@ -438,7 +435,7 @@ void simple2_theme_t::render_notebook(cairo_t * cr, theme_notebook_t const * n) 
 		cairo_clip(cr, n->allocation);
 		cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
 		if (backgroun_px != nullptr) {
-			CHECK_CAIRO(cairo_set_source_surface(cr, backgroun_px->get_cairo_surface(), -n->root_x, -n->root_y));
+			CHECK_CAIRO(cairo_set_source_surface(cr, backgroun_px, -n->root_x, -n->root_y));
 		} else {
 			CHECK_CAIRO(cairo_set_source_color_alpha(cr, default_background_color));
 		}
@@ -471,7 +468,7 @@ void simple2_theme_t::render_notebook(cairo_t * cr, theme_notebook_t const * n) 
 				CHECK_CAIRO(cairo_save(cr)); // store #1
 				cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
 				if (backgroun_px != nullptr) {
-					CHECK_CAIRO(cairo_set_source_surface(cr, backgroun_px->get_cairo_surface(), -n->root_x, -n->root_y));
+					CHECK_CAIRO(cairo_set_source_surface(cr, backgroun_px, -n->root_x, -n->root_y));
 				} else {
 					CHECK_CAIRO(cairo_set_source_color_alpha(cr, default_background_color));
 				}
@@ -1009,7 +1006,7 @@ void simple2_theme_t::render_split(cairo_t * cr,
 
 	rect sarea = s->allocation;
 	if (backgroun_px != nullptr) {
-		CHECK_CAIRO(cairo_set_source_surface(cr, backgroun_px->get_cairo_surface(), -s->root_x, -s->root_y));
+		CHECK_CAIRO(cairo_set_source_surface(cr, backgroun_px, -s->root_x, -s->root_y));
 	} else {
 		CHECK_CAIRO(cairo_set_source_color_alpha(cr, default_background_color));
 	}
@@ -1067,7 +1064,7 @@ void simple2_theme_t::render_empty(cairo_t * cr, rect const & area) const {
 	cairo_clip(cr, area);
 	cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
 	if (backgroun_px != nullptr) {
-		CHECK_CAIRO(cairo_set_source_surface(cr, backgroun_px->get_cairo_surface(), 0.0, 0.0));
+		CHECK_CAIRO(cairo_set_source_surface(cr, backgroun_px, 0.0, 0.0));
 	} else {
 		CHECK_CAIRO(cairo_set_source_color_alpha(cr, default_background_color));
 	}
@@ -1077,69 +1074,69 @@ void simple2_theme_t::render_empty(cairo_t * cr, rect const & area) const {
 
 void simple2_theme_t::render_thumbnail(cairo_t * cr, rect position, theme_thumbnail_t const & t) const {
 
-	double y_text_offset = 0;
-
-	if (t.pix != nullptr) {
-		cairo_surface_t * src = t.pix->get_cairo_surface();
-		cairo_save(cr);
-
-		cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
-		cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
-
-		rect thumbnail_pos = position;
-		thumbnail_pos.h -= 20;
-
-		double src_width = t.pix->witdh();
-		double src_height = t.pix->height();
-
-		double x_ratio = thumbnail_pos.w / src_width;
-		double y_ratio = thumbnail_pos.h / src_height;
-
-		double x_offset, y_offset;
-
-		if (x_ratio < y_ratio) {
-
-			double yp = thumbnail_pos.h / x_ratio;
-
-			x_offset = 0;
-			y_offset = floor((yp - src_height) / 2.0);
-
-			cairo_translate(cr, thumbnail_pos.x, thumbnail_pos.y);
-			cairo_scale(cr, x_ratio, x_ratio);
-			cairo_set_source_surface(cr, src, x_offset, y_offset);
-			cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_NEAREST);
-			cairo_paint(cr);
-
-			y_text_offset = src_height * x_ratio + (thumbnail_pos.h - (src_height * x_ratio)) / 2.0;
-
-		} else {
-			double xp = thumbnail_pos.w / y_ratio;
-
-			y_offset = 0;
-			x_offset = floor((xp - src_width) / 2.0);
-			cairo_translate(cr, thumbnail_pos.x, thumbnail_pos.y);
-			cairo_scale(cr, y_ratio, y_ratio);
-			cairo_set_source_surface(cr, src, x_offset, y_offset);
-			cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_NEAREST);
-			cairo_paint(cr);
-
-			y_text_offset = src_height * y_ratio + (thumbnail_pos.h - (src_height * y_ratio)) / 2.0;
-		}
-
-		cairo_restore(cr);
-	} else {
-		y_text_offset = position.h - 20;
-	}
-
-	rect btext = position;
-	btext.y += y_text_offset;
-	btext.h = 20;
-
-	cairo_save(cr);
-	cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
-	cairo_set_source_surface(cr, t.title->get_cairo_surface(), btext.x, btext.y);
-	cairo_paint(cr);
-	cairo_restore(cr);
+//	double y_text_offset = 0;
+//
+//	if (t.pix != nullptr) {
+//		cairo_surface_t * src = t.pix->get_cairo_surface();
+//		cairo_save(cr);
+//
+//		cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+//		cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
+//
+//		rect thumbnail_pos = position;
+//		thumbnail_pos.h -= 20;
+//
+//		double src_width = t.pix->witdh();
+//		double src_height = t.pix->height();
+//
+//		double x_ratio = thumbnail_pos.w / src_width;
+//		double y_ratio = thumbnail_pos.h / src_height;
+//
+//		double x_offset, y_offset;
+//
+//		if (x_ratio < y_ratio) {
+//
+//			double yp = thumbnail_pos.h / x_ratio;
+//
+//			x_offset = 0;
+//			y_offset = floor((yp - src_height) / 2.0);
+//
+//			cairo_translate(cr, thumbnail_pos.x, thumbnail_pos.y);
+//			cairo_scale(cr, x_ratio, x_ratio);
+//			cairo_set_source_surface(cr, src, x_offset, y_offset);
+//			cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_NEAREST);
+//			cairo_paint(cr);
+//
+//			y_text_offset = src_height * x_ratio + (thumbnail_pos.h - (src_height * x_ratio)) / 2.0;
+//
+//		} else {
+//			double xp = thumbnail_pos.w / y_ratio;
+//
+//			y_offset = 0;
+//			x_offset = floor((xp - src_width) / 2.0);
+//			cairo_translate(cr, thumbnail_pos.x, thumbnail_pos.y);
+//			cairo_scale(cr, y_ratio, y_ratio);
+//			cairo_set_source_surface(cr, src, x_offset, y_offset);
+//			cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_NEAREST);
+//			cairo_paint(cr);
+//
+//			y_text_offset = src_height * y_ratio + (thumbnail_pos.h - (src_height * y_ratio)) / 2.0;
+//		}
+//
+//		cairo_restore(cr);
+//	} else {
+//		y_text_offset = position.h - 20;
+//	}
+//
+//	rect btext = position;
+//	btext.y += y_text_offset;
+//	btext.h = 20;
+//
+//	cairo_save(cr);
+//	cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+//	cairo_set_source_surface(cr, t.title->get_cairo_surface(), btext.x, btext.y);
+//	cairo_paint(cr);
+//	cairo_restore(cr);
 
 }
 
@@ -1567,11 +1564,11 @@ void simple2_theme_t::draw_hatched_i_rect(cairo_t * cr, int space, int x, int y,
 
 }
 
-void simple2_theme_t::update() {
-	create_background_img();
+void simple2_theme_t::update(int width, int height) {
+	create_background_img(width, height);
 }
 
-void simple2_theme_t::create_background_img() {
+void simple2_theme_t::create_background_img(int width, int height) {
 
 	if (has_background) {
 		if(not exists(background_file.c_str()))
@@ -1580,10 +1577,7 @@ void simple2_theme_t::create_background_img() {
 		cairo_surface_t * tmp = cairo_image_surface_create_from_png(
 				background_file.c_str());
 
-		xcb_get_geometry_cookie_t ck = xcb_get_geometry(_cnx->xcb(), _cnx->root());
-		xcb_get_geometry_reply_t * geometry = xcb_get_geometry_reply(_cnx->xcb(), ck, 0);
-
-		cairo_surface_t * image_background_s = cairo_image_surface_create(CAIRO_FORMAT_RGB24, geometry->width, geometry->height);
+		cairo_surface_t * image_background_s = cairo_image_surface_create(CAIRO_FORMAT_RGB24, width, height);
 
 		/**
 		 * WARNING: transform order and set_source_surface have huge
@@ -1600,11 +1594,11 @@ void simple2_theme_t::create_background_img() {
 				cairo_t * cr = cairo_create(image_background_s);
 
 				CHECK_CAIRO(::cairo_set_source_rgb(cr, 0.5, 0.5, 0.5));
-				CHECK_CAIRO(cairo_rectangle(cr, 0, 0, geometry->width, geometry->height));
+				CHECK_CAIRO(cairo_rectangle(cr, 0, 0, width, height));
 				CHECK_CAIRO(cairo_fill(cr));
 
-				double x_ratio = geometry->width / src_width;
-				double y_ratio = geometry->height / src_height;
+				double x_ratio = width / src_width;
+				double y_ratio = height / src_height;
 				CHECK_CAIRO(cairo_scale(cr, x_ratio, y_ratio));
 				CHECK_CAIRO(cairo_set_source_surface(cr, tmp, 0, 0));
 				CHECK_CAIRO(cairo_rectangle(cr, 0, 0, src_width, src_height));
@@ -1618,18 +1612,18 @@ void simple2_theme_t::create_background_img() {
 				cairo_t * cr = cairo_create(image_background_s);
 
 				CHECK_CAIRO(::cairo_set_source_rgb(cr, 0.5, 0.5, 0.5));
-				CHECK_CAIRO(cairo_rectangle(cr, 0, 0, geometry->width, geometry->height));
+				CHECK_CAIRO(cairo_rectangle(cr, 0, 0, width, height));
 				CHECK_CAIRO(cairo_fill(cr));
 
-				double x_ratio = geometry->width / (double)src_width;
-				double y_ratio = geometry->height / (double)src_height;
+				double x_ratio = width / (double)src_width;
+				double y_ratio = height / (double)src_height;
 
 				double x_offset;
 				double y_offset;
 
 				if (x_ratio > y_ratio) {
 
-					double yp = geometry->height / x_ratio;
+					double yp = height / x_ratio;
 
 					x_offset = 0;
 					y_offset = (yp - src_height) / 2.0;
@@ -1641,7 +1635,7 @@ void simple2_theme_t::create_background_img() {
 
 				} else {
 
-					double xp = geometry->width / y_ratio;
+					double xp = width / y_ratio;
 
 					x_offset = (xp - src_width) / 2.0;
 					y_offset = 0;
@@ -1660,17 +1654,17 @@ void simple2_theme_t::create_background_img() {
 				cairo_t * cr = cairo_create(image_background_s);
 
 				CHECK_CAIRO(::cairo_set_source_rgb(cr, 0.5, 0.5, 0.5));
-				CHECK_CAIRO(cairo_rectangle(cr, 0, 0, geometry->width, geometry->height));
+				CHECK_CAIRO(cairo_rectangle(cr, 0, 0, width, height));
 				CHECK_CAIRO(cairo_fill(cr));
 
-				double x_offset = (geometry->width - src_width) / 2.0;
-				double y_offset = (geometry->height - src_height) / 2.0;
+				double x_offset = (width - src_width) / 2.0;
+				double y_offset = (height - src_height) / 2.0;
 
 				CHECK_CAIRO(cairo_set_source_surface(cr, tmp, x_offset, y_offset));
 				CHECK_CAIRO(cairo_rectangle(cr, max<double>(0.0, x_offset),
 						max<double>(0.0, y_offset),
-						min<double>(src_width, geometry->width),
-						min<double>(src_height, geometry->height)));
+						min<double>(src_width, width),
+						min<double>(src_height, height)));
 				CHECK_CAIRO(cairo_fill(cr));
 
 				warn(cairo_get_reference_count(cr) == 1);
@@ -1681,17 +1675,17 @@ void simple2_theme_t::create_background_img() {
 				cairo_t * cr = cairo_create(image_background_s);
 
 				CHECK_CAIRO(::cairo_set_source_rgb(cr, 0.5, 0.5, 0.5));
-				CHECK_CAIRO(cairo_rectangle(cr, 0, 0, geometry->width, geometry->height));
+				CHECK_CAIRO(cairo_rectangle(cr, 0, 0, width, height));
 				CHECK_CAIRO(cairo_fill(cr));
 
-				double x_ratio = geometry->width / src_width;
-				double y_ratio = geometry->height / src_height;
+				double x_ratio = width / src_width;
+				double y_ratio = height / src_height;
 
 				double x_offset, y_offset;
 
 				if (x_ratio < y_ratio) {
 
-					double yp = geometry->height / x_ratio;
+					double yp = height / x_ratio;
 
 					x_offset = 0;
 					y_offset = (yp - src_height) / 2.0;
@@ -1702,7 +1696,7 @@ void simple2_theme_t::create_background_img() {
 					CHECK_CAIRO(cairo_fill(cr));
 
 				} else {
-					double xp = geometry->width / y_ratio;
+					double xp = width / y_ratio;
 
 					y_offset = 0;
 					x_offset = (xp - src_width) / 2.0;
@@ -1720,15 +1714,15 @@ void simple2_theme_t::create_background_img() {
 
 				cairo_t * cr = cairo_create(image_background_s);
 				CHECK_CAIRO(::cairo_set_source_rgb(cr, 0.5, 0.5, 0.5));
-				CHECK_CAIRO(cairo_rectangle(cr, 0, 0, geometry->width, geometry->height));
+				CHECK_CAIRO(cairo_rectangle(cr, 0, 0, width, height));
 				CHECK_CAIRO(cairo_fill(cr));
 
-				for (double x = 0; x < geometry->width; x += src_width) {
-					for (double y = 0; y < geometry->height; y += src_height) {
+				for (double x = 0; x < width; x += src_width) {
+					for (double y = 0; y < height; y += src_height) {
 						CHECK_CAIRO(cairo_identity_matrix(cr));
 						CHECK_CAIRO(cairo_translate(cr, x, y));
 						CHECK_CAIRO(cairo_set_source_surface(cr, tmp, 0, 0));
-						CHECK_CAIRO(cairo_rectangle(cr, 0, 0, geometry->width, geometry->height));
+						CHECK_CAIRO(cairo_rectangle(cr, 0, 0, width, height));
 						CHECK_CAIRO(cairo_fill(cr));
 					}
 				}
@@ -1744,17 +1738,15 @@ void simple2_theme_t::create_background_img() {
 		cairo_surface_destroy(tmp);
 
 		/* copy background to pixmap */
-		backgroun_px = make_shared<pixmap_t>(_cnx, PIXMAP_RGB, geometry->width, geometry->height);
+		backgroun_px = cairo_image_surface_create(CAIRO_FORMAT_RGB24, width, height);
 
-		cairo_t * cr = cairo_create(backgroun_px->get_cairo_surface());
+		cairo_t * cr = cairo_create(backgroun_px);
 		cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
 		cairo_set_source_surface(cr, image_background_s, 0.0, 0.0);
 		cairo_paint(cr);
 		cairo_destroy(cr);
 
 		cairo_surface_destroy(image_background_s);
-
-		free(geometry);
 
 	}
 
@@ -1906,12 +1898,11 @@ void simple2_theme_t::cairo_rounded_tab3(cairo_t * cr, double x, double y, doubl
 
 }
 
-shared_ptr<pixmap_t> simple2_theme_t::workspace_switch_popup(string const & workspace_name) const {
+auto simple2_theme_t::workspace_switch_popup(string const & workspace_name) const -> cairo_surface_t *
+{
+	cairo_surface_t * popup = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 600, 100);
 
-	std::shared_ptr<pixmap_t> popup;
-	popup = make_shared<pixmap_t>(_cnx, PIXMAP_RGBA, 600, 100);
-
-	cairo_t * cr = cairo_create(popup->get_cairo_surface());
+	cairo_t * cr = cairo_create(popup);
 	cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
 	cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 0.0);
 	cairo_paint(cr);
@@ -1965,7 +1956,7 @@ shared_ptr<pixmap_t> simple2_theme_t::workspace_switch_popup(string const & work
 
 }
 
-shared_ptr<pixmap_t> simple2_theme_t::get_background() const {
+auto simple2_theme_t::get_background() const -> cairo_surface_t * {
 	return backgroun_px;
 }
 

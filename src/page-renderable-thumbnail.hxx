@@ -9,9 +9,7 @@
 #define SRC_RENDERABLE_THUMBNAIL_HXX_
 
 #include "page-tree.hxx"
-#include "page-pixmap.hxx"
 #include "page-client-managed.hxx"
-#include "page-client-proxy.hxx"
 #include "page-page-types.hxx"
 
 namespace page {

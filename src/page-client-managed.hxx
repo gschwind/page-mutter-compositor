@@ -26,9 +26,6 @@ extern "C" {
 
 #include "page-floating-event.hxx"
 #include "page-renderable-floating-outer-gradien.hxx"
-#include "page-renderable-pixmap.hxx"
-#include "page-properties.hxx"
-#include "page-client-proxy.hxx"
 
 namespace page {
 
@@ -91,7 +88,6 @@ struct client_managed_t : public enable_shared_from_this<client_managed_t>, publ
 
 	shared_ptr<vector<int>> _net_wm_strut;
 	shared_ptr<vector<int>> _net_wm_strut_partial;
-	shared_ptr<XWMHints> _wm_hints;
 	shared_ptr<list<xcb_atom_t>> _wm_protocols;
 
 	shared_ptr<list<xcb_atom_t>> _net_wm_state;
@@ -112,7 +108,6 @@ struct client_managed_t : public enable_shared_from_this<client_managed_t>, publ
 	void update_icon();
 	void set_theme(theme_t const * theme);
 
-	xcb_atom_t A(atom_e atom);
 	void icccm_focus_unsafe(xcb_timestamp_t t);
 
 	//void net_wm_allowed_actions_add(atom_e atom);
@@ -124,7 +119,6 @@ struct client_managed_t : public enable_shared_from_this<client_managed_t>, publ
 	//void _apply_floating_hints_constraint();
 
 	xcb_atom_t net_wm_type();
-	bool get_wm_normal_hints(XSizeHints * size_hints);
 
 	void set_opaque_region(xcb_window_t w, region & region);
 	//display_t * cnx();
@@ -158,7 +152,7 @@ struct client_managed_t : public enable_shared_from_this<client_managed_t>, publ
 	void set_current_workspace(unsigned int n);
 
 	//void net_wm_state_add(atom_e atom);
-	void net_wm_state_remove(atom_e atom);
+	//void net_wm_state_remove(atom_e atom);
 	void wm_state_delete();
 	bool has_wm_state_fullscreen();
 	bool has_wm_state_stiky();
@@ -185,17 +179,11 @@ struct client_managed_t : public enable_shared_from_this<client_managed_t>, publ
 //	void print_properties();
 
 	//void process_event(xcb_configure_notify_event_t const * e);
-	auto cnx() const -> display_t *;
+	auto cnx() const -> MetaDisplay *;
 	auto transient_for() -> client_managed_p;
 	auto shape() const -> region const *;
 	auto position() -> rect;
 //	auto compute_size_with_constrain(unsigned w, unsigned h) -> dimention_t<unsigned>;
-
-	template<int const ID>
-	auto get() -> shared_ptr<typename ptype<ID>::type::cxx_type>
-	{
-		//return _client_proxy->get<ID>();
-	}
 
 	//void on_property_notify(xcb_property_notify_event_t const * e);
 	void signal_configure_request(xcb_configure_request_event_t const * e);

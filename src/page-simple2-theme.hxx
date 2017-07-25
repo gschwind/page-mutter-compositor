@@ -21,14 +21,11 @@
 #include "page-color.hxx"
 #include "page-config-handler.hxx"
 #include "page-renderable.hxx"
-#include "page-pixmap.hxx"
 
 namespace page {
 
 class simple2_theme_t : public theme_t {
 public:
-
-	display_t * _cnx;
 
 	std::string notebook_active_font_name;
 	std::string notebook_selected_font_name;
@@ -117,9 +114,9 @@ public:
 	std::string background_file;
 	std::string scale_mode;
 
-	std::shared_ptr<pixmap_t> backgroun_px;
+	cairo_surface_t * backgroun_px;
 
-	simple2_theme_t(display_t * cnx, config_handler_t & conf);
+	simple2_theme_t(config_handler_t & conf);
 
 	virtual ~simple2_theme_t();
 
@@ -150,7 +147,7 @@ public:
 	static void rounded_i_rect(cairo_t * cr, double x, double y, double w,
 			double h, double r);
 
-	void create_background_img();
+	void create_background_img(int width, int height);
 
 	virtual void render_notebook(cairo_t * cr, theme_notebook_t const * n) const;
 	virtual void render_iconic_notebook(cairo_t * cr, vector<theme_tab_t> const & tabs) const;
@@ -207,13 +204,13 @@ public:
 	void draw_hatched_i_rect(cairo_t * cr, int space, int x, int y, int w,
 			int h) const;
 
-	void update();
+	void update(int width, int height);
 
 	static void cairo_rounded_tab3(cairo_t * cr, double x, double y, double w, double h, double radius);
 
-	virtual shared_ptr<pixmap_t> workspace_switch_popup(string const & worspace_name) const;
+	virtual cairo_surface_t * workspace_switch_popup(string const & worspace_name) const;
 
-	virtual shared_ptr<pixmap_t> get_background() const;
+	virtual cairo_surface_t * get_background() const;
 
 	virtual color_t const & get_focused_color() const;
 	virtual color_t const & get_selected_color() const;

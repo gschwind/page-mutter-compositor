@@ -25,66 +25,64 @@
 
 namespace page {
 
-auto view_rebased_t::_base_frame_t::id() const -> xcb_window_t { return _window->id(); }
-
 view_rebased_t::_base_frame_t::~_base_frame_t()
 {
-	xcb_destroy_window(_ctx->_dpy->xcb(), _window->id());
-	xcb_free_colormap(_ctx->_dpy->xcb(), _colormap);
-	_ctx->_page_windows.erase(_window->id());
+//	xcb_destroy_window(_ctx->_dpy->xcb(), _window->id());
+//	xcb_free_colormap(_ctx->_dpy->xcb(), _colormap);
+//	_ctx->_page_windows.erase(_window->id());
 }
 
 
 view_rebased_t::_base_frame_t::_base_frame_t(page_t * ctx, xcb_visualid_t visual, uint8_t depth) :
 	_ctx{ctx}
 {
-
-	auto _dpy = _ctx->_dpy;
-	/**
-	 * Create the base window, window that will content managed window
-	 **/
-
-	xcb_visualid_t root_visual = _dpy->root_visual()->visual_id;
-	int root_depth = _dpy->find_visual_depth(_dpy->root_visual()->visual_id);
-
-	/**
-	 * If window visual is 32 bit (have alpha channel, and root do not
-	 * have alpha channel, use the window visual, otherwise always prefer
-	 * root visual.
-	 **/
-	if (depth == 32 and root_depth != 32) {
-		_visual = visual;
-		_depth = depth;
-	} else {
-		_visual = _dpy->default_visual_rgba()->visual_id;
-		_depth = 32;
-	}
-
-	/** if visual is 32 bits, this values are mandatory **/
-	_colormap = xcb_generate_id(_dpy->xcb());
-	xcb_create_colormap(_dpy->xcb(), XCB_COLORMAP_ALLOC_NONE, _colormap, _dpy->root(), _visual);
-
-	uint32_t value_mask = 0;
-	uint32_t value[4];
-
-	value_mask |= XCB_CW_BACK_PIXEL;
-	value[0] = _dpy->xcb_screen()->black_pixel;
-
-	value_mask |= XCB_CW_BORDER_PIXEL;
-	value[1] = _dpy->xcb_screen()->black_pixel;
-
-	value_mask |= XCB_CW_OVERRIDE_REDIRECT;
-	value[2] = True;
-
-	value_mask |= XCB_CW_COLORMAP;
-	value[3] = _colormap;
-
-	xcb_window_t base = xcb_generate_id(_dpy->xcb());
-	_ctx->_page_windows.insert(base);
-	xcb_create_window(_dpy->xcb(), _depth, base, _dpy->root(), -10, -10,
-			1, 1, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT, _visual, value_mask,
-			value);
-	_window = _dpy->ensure_client_proxy(base);
+//
+//	auto _dpy = _ctx->_dpy;
+//	/**
+//	 * Create the base window, window that will content managed window
+//	 **/
+//
+//	xcb_visualid_t root_visual = _dpy->root_visual()->visual_id;
+//	int root_depth = _dpy->find_visual_depth(_dpy->root_visual()->visual_id);
+//
+//	/**
+//	 * If window visual is 32 bit (have alpha channel, and root do not
+//	 * have alpha channel, use the window visual, otherwise always prefer
+//	 * root visual.
+//	 **/
+//	if (depth == 32 and root_depth != 32) {
+//		_visual = visual;
+//		_depth = depth;
+//	} else {
+//		_visual = _dpy->default_visual_rgba()->visual_id;
+//		_depth = 32;
+//	}
+//
+//	/** if visual is 32 bits, this values are mandatory **/
+//	_colormap = xcb_generate_id(_dpy->xcb());
+//	xcb_create_colormap(_dpy->xcb(), XCB_COLORMAP_ALLOC_NONE, _colormap, _dpy->root(), _visual);
+//
+//	uint32_t value_mask = 0;
+//	uint32_t value[4];
+//
+//	value_mask |= XCB_CW_BACK_PIXEL;
+//	value[0] = _dpy->xcb_screen()->black_pixel;
+//
+//	value_mask |= XCB_CW_BORDER_PIXEL;
+//	value[1] = _dpy->xcb_screen()->black_pixel;
+//
+//	value_mask |= XCB_CW_OVERRIDE_REDIRECT;
+//	value[2] = True;
+//
+//	value_mask |= XCB_CW_COLORMAP;
+//	value[3] = _colormap;
+//
+//	xcb_window_t base = xcb_generate_id(_dpy->xcb());
+//	_ctx->_page_windows.insert(base);
+//	xcb_create_window(_dpy->xcb(), _depth, base, _dpy->root(), -10, -10,
+//			1, 1, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT, _visual, value_mask,
+//			value);
+//	_window = _dpy->ensure_client_proxy(base);
 }
 
 
@@ -122,12 +120,12 @@ void view_rebased_t::_reconfigure_windows()
 	auto _ctx = _root->_ctx;
 	auto _dpy = _ctx->_dpy;
 
-	if (not _root->is_enable()) {
-		_client_view = nullptr;
-		if (_client->current_owner_view() == static_cast<view_t*>(this))
-			_base->_window->unmap();
-		return;
-	}
+//	if (not _root->is_enable()) {
+//		_client_view = nullptr;
+//		if (_client->current_owner_view() == static_cast<view_t*>(this))
+//			_base->_window->unmap();
+//		return;
+//	}
 
 	if (_is_visible) {
 //		_client->_client_proxy->set_wm_state(NormalState);
@@ -276,11 +274,11 @@ void view_rebased_t::update_layout(time64_t const time)
 	if (not _is_visible)
 		return;
 
-	/** update damage_cache **/
-	region dmg = _client_view->get_damaged();
-	dmg.translate(_base_position.x, _base_position.y);
-	_damage_cache += dmg;
-	_client_view->clear_damaged();
+//	/** update damage_cache **/
+//	region dmg = _client_view->get_damaged();
+//	dmg.translate(_base_position.x, _base_position.y);
+//	_damage_cache += dmg;
+//	_client_view->clear_damaged();
 }
 
 void view_rebased_t::render(cairo_t * cr, region const & area)
@@ -307,7 +305,7 @@ void view_rebased_t::on_workspace_enable()
 	auto _ctx = _root->_ctx;
 	auto _dpy = _root->_ctx->dpy();
 	acquire_client();
-	_base->_window->xmap();
+	//_base->_window->xmap();
 	reconfigure();
 	_grab_button_unsafe();
 }
@@ -317,13 +315,13 @@ void view_rebased_t::on_workspace_disable()
 	auto _ctx = _root->_ctx;
 	auto _dpy = _root->_ctx->dpy();
 	release_client();
-	if (_client->current_owner_view() == static_cast<view_t*>(this))
-		_base->_window->unmap();
+//	if (_client->current_owner_view() == static_cast<view_t*>(this))
+//		_base->_window->unmap();
 }
 
 auto view_rebased_t::get_toplevel_xid() const -> xcb_window_t
 {
-	return _base->id();
+	return 0;
 }
 
 } /* namespace page */

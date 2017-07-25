@@ -10,22 +10,14 @@ page_mutter_compositor_SOURCES = \
 	page-client-managed.cxx \
 	page-dropdown-menu.hxx \
 	page-dropdown-menu.cxx \
-	page-compositor-overlay.hxx \
-	page-compositor-overlay.cxx \
 	page-popup-notebook0.hxx \
 	page-popup-notebook0.cxx \
 	page-popup-split.hxx \
 	page-popup-split.cxx \
 	page-renderable-thumbnail.hxx \
 	page-renderable-thumbnail.cxx \
-	page-renderable-fadeout-pixmap.hxx \
-	page-renderable-fadeout-pixmap.cxx \
 	page-renderable-floating-outer-gradien.hxx \
 	page-renderable-floating-outer-gradien.cxx \
-	page-renderable-notebook-fading.hxx \
-	page-renderable-notebook-fading.cxx \
-	page-renderable-pixmap.hxx \
-	page-renderable-pixmap.cxx \
 	page-renderable-solid.hxx \
 	page-renderable-solid.cxx \
 	page-view.hxx \
@@ -47,26 +39,21 @@ page_mutter_compositor_SOURCES = \
 	page-icon-handler.hxx \
 	page-icon-handler.cxx \
 	page-utils.cxx \
-	page-pixmap.cxx \
 	page-tree.cxx \
 	page-grab-handlers.cxx \
 	page-notebook.cxx \
 	page-split.cxx \
 	page-viewport.cxx \
 	page-workspace.cxx \
-	page-display.cxx \
-	page-compositor.cxx \
 	page-simple2-theme.cxx \
 	page-tiny-theme.cxx \
 	page-config-handler.cxx \
-	page-client-proxy.cxx \
 	page-popup-alt-tab.cxx \
 	page-blur-image-surface.cxx \
 	page-tree.hxx \
 	page-blur-image-surface.hxx \
 	page-notebook.hxx \
 	page-compositor.hxx \
-	page-client-proxy.hxx \
 	page-config-handler.hxx \
 	page-workspace.hxx \
 	page-split.hxx \
@@ -74,7 +61,6 @@ page_mutter_compositor_SOURCES = \
 	page-grab-handlers.hxx \
 	page-client-not-managed.hxx \
 	page-client-base.hxx \
-	page-display.hxx \
 	page-mainloop.hxx \
 	page-page.hxx \
 	page-page.cxx \

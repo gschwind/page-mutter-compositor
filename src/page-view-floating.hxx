@@ -35,12 +35,6 @@ struct view_floating_t : public view_rebased_t {
 	// the output surface (i.e. surface where we write things)
 	cairo_surface_t * _surf;
 
-	// border surface of floating window
-	shared_ptr<pixmap_t> _top_buffer;
-	shared_ptr<pixmap_t> _bottom_buffer;
-	shared_ptr<pixmap_t> _left_buffer;
-	shared_ptr<pixmap_t> _right_buffer;
-
 	xcb_window_t _input_top;
 	xcb_window_t _input_left;
 	xcb_window_t _input_right;

@@ -42,7 +42,7 @@ client_managed_t::client_managed_t(page_t * ctx, MetaWindow * proxy) :
 
 	//printf("window default position = %s\n", pos.to_string().c_str());
 
-	if(_net_wm_type == A(_NET_WM_WINDOW_TYPE_DOCK))
+	if(_net_wm_type == META_WINDOW_DOCK)
 		_managed_type = MANAGED_DOCK;
 
 	_floating_wished_position = pos;
@@ -292,10 +292,6 @@ shared_ptr<icon16> client_managed_t::icon() const {
 
 void client_managed_t::update_icon() {
 	_icon = make_shared<icon16>(this);
-}
-
-xcb_atom_t client_managed_t::A(atom_e atom) {
-	return cnx()->A(atom);
 }
 
 void client_managed_t::set_current_workspace(unsigned int n) {

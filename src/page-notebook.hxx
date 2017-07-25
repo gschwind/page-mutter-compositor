@@ -16,9 +16,6 @@
 #include <memory>
 
 #include "page-theme.hxx"
-#include "page-pixmap.hxx"
-#include "page-renderable-notebook-fading.hxx"
-#include "page-renderable-pixmap.hxx"
 #include "page-renderable-empty.hxx"
 
 #include "page-page-component.hxx"
@@ -45,7 +42,6 @@ class notebook_t : public page_component_t {
 	time64_t _swap_start;
 
 	shared_ptr<renderable_thumbnail_t> tooltips;
-	shared_ptr<renderable_notebook_fading_t> fading_notebook;
 	vector<renderable_thumbnail_p> _exposay_thumbnail;
 
 	tree_p _notebook_view_layer;
@@ -58,9 +54,6 @@ class notebook_t : public page_component_t {
 	int _theme_client_tabs_offset;
 	vector<theme_tab_t> _theme_client_tabs;
 	rect _theme_client_tabs_area;
-
-
-	shared_ptr<timeout_t> _fading_timeout;
 
 	bool _is_default;
 	bool _exposay;
@@ -176,8 +169,6 @@ class notebook_t : public page_component_t {
 	void activate(view_notebook_p c, xcb_timestamp_t time);
 
 	auto shared_from_this() -> notebook_p;
-
-	shared_ptr<pixmap_t> _render_to_pixmap();
 
 public:
 

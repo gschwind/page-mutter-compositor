@@ -55,11 +55,6 @@ void workspace_t::_fix_view_floating_position()
 	}
 }
 
-xcb_atom_t workspace_t::A(atom_e atom)
-{
-	return _ctx->_dpy->A(atom);
-}
-
 workspace_t::workspace_t(page_t * ctx, unsigned id) :
 	tree_t{this},
 	_ctx{ctx},
@@ -68,7 +63,6 @@ workspace_t::workspace_t(page_t * ctx, unsigned id) :
 	_workarea{},
 	_primary_viewport{},
 	_id{id},
-	_switch_renderable{nullptr},
 	_switch_direction{WORKSPACE_SWITCH_LEFT},
 	_is_enable{false}
 {
@@ -282,41 +276,41 @@ bool workspace_t::is_enable()
 
 void workspace_t::insert_as_popup(client_managed_p c, xcb_timestamp_t time)
 {
-	//printf("call %s\n", __PRETTY_FUNCTION__);
-	c->set_managed_type(MANAGED_POPUP);
-
-	auto wid = c->ensure_workspace();
-	if (wid != ALL_DESKTOP) {
-		//c->set_net_wm_desktop(_id);
-	}
-
-	auto fv = make_shared<view_popup_t>(this, c);
-	if (is_enable())
-		fv->acquire_client();
-
-	view_p v;
-	auto transient_for = dynamic_pointer_cast<client_managed_t>(_ctx->get_transient_for(c));
-	if (transient_for != nullptr)
-		v = lookup_view_for(transient_for);
-
-	if (v != nullptr) {
-		v->add_popup(fv);
-	} else {
-		if (c->wm_type() == A(_NET_WM_WINDOW_TYPE_TOOLTIP)) {
-			add_tooltips(fv);
-		} else if (c->wm_type() == A(_NET_WM_WINDOW_TYPE_NOTIFICATION)) {
-			add_notification(fv);
-		} else {
-			add_unknown(fv);
-		}
-	}
-
-	_ctx->_need_restack = true;
-	fv->raise();
-	fv->show();
-
-	_ctx->add_global_damage(fv->get_visible_region());
-	_ctx->schedule_repaint(0L);
+//	//printf("call %s\n", __PRETTY_FUNCTION__);
+//	c->set_managed_type(MANAGED_POPUP);
+//
+//	auto wid = c->ensure_workspace();
+//	if (wid != ALL_DESKTOP) {
+//		//c->set_net_wm_desktop(_id);
+//	}
+//
+//	auto fv = make_shared<view_popup_t>(this, c);
+//	if (is_enable())
+//		fv->acquire_client();
+//
+//	view_p v;
+//	auto transient_for = dynamic_pointer_cast<client_managed_t>(_ctx->get_transient_for(c));
+//	if (transient_for != nullptr)
+//		v = lookup_view_for(transient_for);
+//
+//	if (v != nullptr) {
+//		v->add_popup(fv);
+//	} else {
+//		if (c->wm_type() == META_WINDOW_TOOLTIP) {
+//			add_tooltips(fv);
+//		} else if (c->wm_type() == META_WINDOW_NOTIFICATION) {
+//			add_notification(fv);
+//		} else {
+//			add_unknown(fv);
+//		}
+//	}
+//
+//	_ctx->_need_restack = true;
+//	fv->raise();
+//	fv->show();
+//
+//	_ctx->add_global_damage(fv->get_visible_region());
+//	_ctx->schedule_repaint(0L);
 
 }
 
@@ -370,18 +364,18 @@ void workspace_t::insert_as_notebook(client_managed_p mw, xcb_timestamp_t time)
 	 * first try if previous vm has put this window in IconicState, then
 	 * Check if the client have a preferred initial state.
 	 **/
-	if (mw->get<p_wm_state>() != nullptr) {
-		if (mw->get<p_wm_state>()->state == IconicState) {
-			activate = false;
-		}
-	} else {
-		if (mw->_wm_hints != nullptr) {
-			if ((mw->_wm_hints->flags & StateHint)
-					and (mw->_wm_hints->initial_state == IconicState)) {
-				activate = false;
-			}
-		}
-	}
+//	if (mw->get<p_wm_state>() != nullptr) {
+//		if (mw->get<p_wm_state>()->state == IconicState) {
+//			activate = false;
+//		}
+//	} else {
+//		if (mw->_wm_hints != nullptr) {
+//			if ((mw->_wm_hints->flags & StateHint)
+//					and (mw->_wm_hints->initial_state == IconicState)) {
+//				activate = false;
+//			}
+//		}
+//	}
 
 	if(activate and time == XCB_CURRENT_TIME) {
 		_ctx->get_safe_net_wm_user_time(mw, time);
@@ -519,7 +513,7 @@ void workspace_t::switch_fullscreen_to_floating(view_fullscreen_p view, xcb_time
 		view->_viewport.lock()->show();
 	}
 
-	view->_client->net_wm_state_remove(_NET_WM_STATE_FULLSCREEN);
+	meta_window_unmake_fullscreen(view->_client->_meta_client);
 	auto fv = make_shared<view_floating_t>(view.get());
 	_insert_view_floating(fv, time);
 }
@@ -537,7 +531,7 @@ void workspace_t::switch_fullscreen_to_notebook(view_fullscreen_p view, xcb_time
 		n = view->revert_notebook.lock();
 	}
 
-	view->_client->net_wm_state_remove(_NET_WM_STATE_FULLSCREEN);
+	meta_window_unmake_fullscreen(view->_client->_meta_client);
 	view->_client->set_managed_type(MANAGED_NOTEBOOK);
 	n->add_client_from_view(view, time);
 	_ctx->_need_restack = true;
@@ -560,11 +554,11 @@ void workspace_t::switch_fullscreen_to_prefered_view_mode(view_fullscreen_p view
 		if(not view->revert_notebook.expired()) {
 			n = view->revert_notebook.lock();
 		}
-		view->_client->net_wm_state_remove(_NET_WM_STATE_FULLSCREEN);
+		meta_window_unmake_fullscreen(view->_client->_meta_client);
 		view->_client->set_managed_type(MANAGED_NOTEBOOK);
 		n->add_client_from_view(view, time);
 	} else {
-		view->_client->net_wm_state_remove(_NET_WM_STATE_FULLSCREEN);
+		meta_window_unmake_fullscreen(view->_client->_meta_client);
 		auto vf = make_shared<view_floating_t>(view.get());
 		_insert_view_floating(vf, time);
 	}
@@ -645,24 +639,22 @@ int workspace_t::id() {
 }
 
 void workspace_t::start_switch(workspace_switch_direction_e direction) {
-	if(_ctx->cmp() == nullptr)
-		return;
 
-	if(_switch_renderable != nullptr) {
-		remove(_switch_renderable);
-		_switch_renderable = nullptr;
-	}
-
-	_switch_direction = direction;
-	_switch_start_time.update_to_current_time();
-	//_switch_screenshot = _ctx->cmp()->create_screenshot();
-	_switch_screenshot = _ctx->theme()->workspace_switch_popup(_name);
-	_switch_renderable = make_shared<renderable_pixmap_t>(this,
-			_switch_screenshot,
-			(_ctx->left_most_border() - _switch_screenshot->witdh()) / 2.0,
-			_ctx->top_most_border());
-	push_back(_switch_renderable);
-	_switch_renderable->show();
+//	if(_switch_renderable != nullptr) {
+//		remove(_switch_renderable);
+//		_switch_renderable = nullptr;
+//	}
+//
+//	_switch_direction = direction;
+//	_switch_start_time.update_to_current_time();
+//	//_switch_screenshot = _ctx->cmp()->create_screenshot();
+//	_switch_screenshot = _ctx->theme()->workspace_switch_popup(_name);
+//	_switch_renderable = make_shared<renderable_pixmap_t>(this,
+//			_switch_screenshot,
+//			(_ctx->left_most_border() - _switch_screenshot->witdh()) / 2.0,
+//			_ctx->top_most_border());
+//	push_back(_switch_renderable);
+//	_switch_renderable->show();
 }
 
 auto workspace_t::get_visible_region() -> region {
@@ -796,32 +788,32 @@ void workspace_t::_insert_view_fullscreen(view_fullscreen_p vf, xcb_timestamp_t 
 
 void workspace_t::_insert_view_floating(view_floating_p fv, xcb_timestamp_t time)
 {
-	auto c = fv->_client;
-	c->set_managed_type(MANAGED_FLOATING);
-
-	auto wid = c->ensure_workspace();
-	if (wid != ALL_DESKTOP) {
-		//c->set_net_wm_desktop(_id);
-	}
-
-	if (is_enable())
-		fv->acquire_client();
-
-	view_p v;
-	auto transient_for = dynamic_pointer_cast<client_managed_t>(_ctx->get_transient_for(c));
-	if (transient_for != nullptr)
-		v = lookup_view_for(transient_for);
-
-	if (v != nullptr) {
-		v->add_transient(fv);
-	} else {
-		add_floating(fv);
-	}
-
-	fv->raise();
-	fv->show();
-	set_focus(fv, time);
-	_ctx->_need_restack = true;
+//	auto c = fv->_client;
+//	c->set_managed_type(MANAGED_FLOATING);
+//
+//	auto wid = c->ensure_workspace();
+//	if (wid != ALL_DESKTOP) {
+//		//c->set_net_wm_desktop(_id);
+//	}
+//
+//	if (is_enable())
+//		fv->acquire_client();
+//
+//	view_p v;
+//	auto transient_for = dynamic_pointer_cast<client_managed_t>(_ctx->get_transient_for(c));
+//	if (transient_for != nullptr)
+//		v = lookup_view_for(transient_for);
+//
+//	if (v != nullptr) {
+//		v->add_transient(fv);
+//	} else {
+//		add_floating(fv);
+//	}
+//
+//	fv->raise();
+//	fv->show();
+//	set_focus(fv, time);
+//	_ctx->_need_restack = true;
 }
 
 }

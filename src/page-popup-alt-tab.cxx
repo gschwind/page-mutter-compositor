@@ -35,7 +35,6 @@ popup_alt_tab_t::popup_alt_tab_t(tree_t * ref, list<view_p> client_list, viewpor
 	}
 
 	_create_composite_window();
-	_ctx->dpy()->map(_wid);
 
 	for(auto const & c: client_list) {
 		cycle_window_entry_t entry;
@@ -119,30 +118,29 @@ void popup_alt_tab_t::_reconfigure() {
 }
 
 popup_alt_tab_t::~popup_alt_tab_t() {
-	xcb_destroy_window(_ctx->dpy()->xcb(), _wid);
-	_root->_ctx->_page_windows.erase(_wid);
-	_client_list.clear();
-	_selected = _client_list.end();
+//	xcb_destroy_window(_ctx->dpy()->xcb(), _wid);
+//	_root->_ctx->_page_windows.erase(_wid);
+//	_client_list.clear();
+//	_selected = _client_list.end();
 }
 
 void popup_alt_tab_t::_create_composite_window() {
-		uint32_t value_mask = 0;
-		uint32_t value[2];
-		value_mask |= XCB_CW_OVERRIDE_REDIRECT;
-		value[0] = True;
-		value_mask |= XCB_CW_EVENT_MASK;
-		value[1] = XCB_EVENT_MASK_BUTTON_MOTION | XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
-		_wid = xcb_generate_id(_ctx->dpy()->xcb());
-		_root->_ctx->_page_windows.insert(_wid);
-		xcb_create_window(_ctx->dpy()->xcb(), 0, _wid, _ctx->dpy()->root(),
-				_position_intern.x, _position_intern.y, _position_intern.w, _position_intern.h, 0,
-				XCB_WINDOW_CLASS_INPUT_ONLY, _ctx->dpy()->root_visual()->visual_id,
-				value_mask, value);
+//		uint32_t value_mask = 0;
+//		uint32_t value[2];
+//		value_mask |= XCB_CW_OVERRIDE_REDIRECT;
+//		value[0] = True;
+//		value_mask |= XCB_CW_EVENT_MASK;
+//		value[1] = XCB_EVENT_MASK_BUTTON_MOTION | XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
+//		_wid = xcb_generate_id(_ctx->dpy()->xcb());
+//		_root->_ctx->_page_windows.insert(_wid);
+//		xcb_create_window(_ctx->dpy()->xcb(), 0, _wid, _ctx->dpy()->root(),
+//				_position_intern.x, _position_intern.y, _position_intern.w, _position_intern.h, 0,
+//				XCB_WINDOW_CLASS_INPUT_ONLY, _ctx->dpy()->root_visual()->visual_id,
+//				value_mask, value);
 }
 
 void popup_alt_tab_t::show() {
 	tree_t::show();
-	_ctx->dpy()->map(_wid);
 }
 
 void popup_alt_tab_t::_init() {
@@ -155,7 +153,6 @@ void popup_alt_tab_t::_init() {
 }
 
 void popup_alt_tab_t::hide() {
-	_ctx->dpy()->unmap(_wid);
 	tree_t::hide();
 }
 

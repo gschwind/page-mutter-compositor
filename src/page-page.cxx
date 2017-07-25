@@ -29,11 +29,11 @@
 #include <typeinfo>
 #include <memory>
 
+#include "page-plugin.hxx"
 #include "page-utils.hxx"
 
 #include "page-page-types.hxx"
 #include "page-renderable.hxx"
-#include "page-renderable-fadeout-pixmap.hxx"
 #include "page-key-desc.hxx"
 #include "page-time.hxx"
 #include "page-atoms.hxx"
@@ -67,8 +67,9 @@ time64_t const page_t::default_wait{1000000000L / 120L};
 bool mainloop_t::got_sigterm = false;
 
 
-page_t::page_t(int argc, char ** argv)
+page_t::page_t(MetaPlugin * cnx)
 {
+	_plugin = cnx;
 	frame_alarm = 0;
 	_current_workspace = 0;
 	_grab_handler = nullptr;
@@ -87,20 +88,18 @@ page_t::page_t(int argc, char ** argv)
 
 	/** parse command line **/
 
-	int k = 1;
-	while(k < argc) {
-		string x = argv[k];
-		if(x == "--replace") {
-			configuration._replace_wm = true;
-		} else {
-			conf_file_name = argv[k];
-		}
-		++k;
-	}
+//	int k = 1;
+//	while(k < argc) {
+//		string x = argv[k];
+//		if(x == "--replace") {
+//			configuration._replace_wm = true;
+//		} else {
+//			conf_file_name = argv[k];
+//		}
+//		++k;
+//	}
 
-	_keymap = nullptr;
 	_dpy = nullptr;
-	_compositor = nullptr;
 
 	/* load configurations, from lower priority to high one */
 
@@ -205,186 +204,341 @@ page_t::~page_t() {
 	//cairo_debug_reset_static_data();
 }
 
-void page_t::run() {
+void page_t::run()
+{
+//
+//	_dpy = nullptr;
+//
+//	/* check for required page extension */
+//	_dpy->check_x11_extension();
+//
+//	{ // check for sync system counters
+//		xcb_generic_error_t * e;
+//		auto ck = xcb_sync_list_system_counters(_dpy->xcb());
+//		auto r = xcb_sync_list_system_counters_reply(_dpy->xcb(), ck, &e);
+//		//printf("counter length %u\n", r->counters_len);
+//		if (r != nullptr) {
+//			// the first item is correctly computed by libxcb but I can extract it
+//			// without xcb_sync_list_system_counters_counters_iterator, thus
+//			// extract it manually.
+//			fixed_xcb_sync_systemcounter_t * item =
+//					(fixed_xcb_sync_systemcounter_t*) (r + 1);
+//			for (int i = 0; i < r->counters_len; ++i) {
+//				char * name = xcb_sync_system_counter_dup_name(item);
+//				//printf("COUNTER_NAME %d = %s, id = %u, resolution = %lu\n", i, name,
+//				//		item->counter, xcb_sync_system_counter_int64_swap(&item->resolution));
+//
+//				if(strcmp("SERVERTIME", name) == 0) {
+//					printf("found SERVERTIME\n");
+//					/* about 30 fps */
+//					frame_alarm = _dpy->create_alarm_delay(item->counter, 32);
+//				}
+//
+//				free(name);
+//				/* next item */
+//				item = (struct fixed_xcb_sync_systemcounter_t*) (((char*) item)
+//						+ xcb_sync_system_counter_sizeof_item(item));
+//			}
+//			free(r);
+//		}
+//
+//	}
+//
+//	{
+//		xcb_generic_error_t * e;
+//		auto ck = xcb_sync_get_priority(_dpy->xcb(), frame_alarm);
+//		auto r = xcb_sync_get_priority_reply(_dpy->xcb(), ck, &e);
+//		if (r != nullptr) {
+//			//printf("priority is %d\n", r->priority);
+//		}
+//		free(r);
+//
+//		xcb_sync_set_priority(_dpy->xcb(), frame_alarm, 16);
+//
+//	}
+//
+//	/** Initialize theme **/
+//
+//	if(_theme_engine == "tiny") {
+//		cout << "using tiny theme engine" << endl;
+//		_theme = new tiny_theme_t{_dpy, _conf};
+//	} else {
+//		/* The default theme engine */
+//		cout << "using simple theme engine" << endl;
+//		_theme = new simple2_theme_t{_dpy, _conf};
+//	}
+//
+//	/* Before doing anything, trying to register wm and cm */
+//	create_identity_window();
+//	register_wm();
+//
+//	/** initialize the empty workspace **/
+//
+//	/* start the compositor once the window manager is fully started */
+//	start_compositor();
+//
+//	_dpy->grab();
+//	_dpy->change_property(_dpy->root(), _NET_SUPPORTING_WM_CHECK,
+//			WINDOW, 32, &identity_window, 1);
+//
+//	_bind_all_default_event();
+//
+//	{
+//		/** check for number of workspace and create them **/
+//		net_number_of_desktops_t number_of_workspace;
+//		auto nd = number_of_workspace.read(_dpy->xcb(), _dpy->_A, _dpy->root());
+//		int n = 1;
+//		if(nd != nullptr and *nd != 0)
+//			n = *nd;
+//		update_number_of_workspace(n);
+//		number_of_workspace.release(_dpy->xcb());
+//	}
+//
+//	/* start listen root event before anything, each event will be stored to be processed later */
+//	_dpy->select_input(_dpy->root(), ROOT_EVENT_MASK);
+//
+//	/**
+//	 * listen RRCrtcChangeNotifyMask for possible change in screen layout.
+//	 **/
+//	xcb_randr_select_input(_dpy->xcb(), _dpy->root(), XCB_RANDR_NOTIFY_MASK_CRTC_CHANGE);
+//
+//	update_viewport_layout();
+//
+//	_dpy->load_cursors();
+//	_dpy->set_window_cursor(_dpy->root(), _dpy->xc_left_ptr);
+//
+//	update_net_supported();
+//
+//	{
+//		/* page does not have showing workspace mode */
+//		uint32_t showing_workspace = 0;
+//		_dpy->change_property(_dpy->root(), _NET_SHOWING_DESKTOP, CARDINAL, 32,
+//				&showing_workspace, 1);
+//	}
+//
+//	{
+//		wm_icon_size_t icon_size{16,16,16,16,16,16};
+//		_dpy->change_property(_dpy->root(), WM_ICON_SIZE, CARDINAL, 32,
+//				&icon_size, 6);
+//
+//	}
+//
+//	//scan();
+//
+//	/* setup _NET_ACTIVE_WINDOW */
+//	_dpy->set_input_focus(identity_window, XCB_INPUT_FOCUS_PARENT, XCB_CURRENT_TIME);
+//	_dpy->set_net_active_window(XCB_WINDOW_NONE);
+//
+//	update_keymap();
+//	update_grabkey();
+//
+//	update_windows_stack();
+//	xcb_flush(_dpy->xcb());
+//
+//	_dpy->ungrab();
+//
+//	/** switch back to the first workspace by default */
+//	switch_to_workspace(0, XCB_CURRENT_TIME);
+//	update_windows_stack();
+//	xcb_flush(_dpy->xcb());
+//
+//	/* process messages as soon as we get messages, or every 1/60 of seconds */
+//	_mainloop.add_poll(_dpy->fd(), POLLIN|POLLPRI|POLLERR,
+//		[this](struct pollfd const & x) -> void {
+//			this->process_pending_events();
+//		});
+//
+//	_mainloop.run();
+//
+//	cout << "Page END" << endl;
+//
+//	_mainloop.remove_poll(_dpy->fd());
+//
+//	_dpy->unload_cursors();
+//
+//	for (auto & i : net_client_list()) {
+//		//_dpy->reparentwindow(i->_client_proxy->id(), _dpy->root(), 0, 0);
+//		//detach(i);
+//	}
+//
+//	_workspace_list.clear();
+//
+//	delete _keymap; _keymap = nullptr;
+//	delete _theme; _theme = nullptr;
+//	delete _compositor; _compositor = nullptr;
+//
+//	if(_dpy != nullptr) {
+//		/** clean up properties defined by Window Manager **/
+//		_dpy->delete_property(_dpy->root(), _NET_SUPPORTED);
+//		_dpy->delete_property(_dpy->root(), _NET_CLIENT_LIST);
+//		_dpy->delete_property(_dpy->root(), _NET_CLIENT_LIST_STACKING);
+//		_dpy->delete_property(_dpy->root(), _NET_ACTIVE_WINDOW);
+//		_dpy->delete_property(_dpy->root(), _NET_NUMBER_OF_DESKTOPS);
+//		_dpy->delete_property(_dpy->root(), _NET_DESKTOP_GEOMETRY);
+//		_dpy->delete_property(_dpy->root(), _NET_DESKTOP_VIEWPORT);
+//		_dpy->delete_property(_dpy->root(), _NET_CURRENT_DESKTOP);
+//		_dpy->delete_property(_dpy->root(), _NET_DESKTOP_NAMES);
+//		_dpy->delete_property(_dpy->root(), _NET_WORKAREA);
+//		_dpy->delete_property(_dpy->root(), _NET_SUPPORTING_WM_CHECK);
+//		_dpy->delete_property(_dpy->root(), _NET_SHOWING_DESKTOP);
+//
+//		delete _dpy; _dpy = nullptr;
+//	}
 
-	_dpy = new display_t;
+}
 
-	/* check for required page extension */
-	_dpy->check_x11_extension();
 
-	{ // check for sync system counters
-		xcb_generic_error_t * e;
-		auto ck = xcb_sync_list_system_counters(_dpy->xcb());
-		auto r = xcb_sync_list_system_counters_reply(_dpy->xcb(), ck, &e);
-		//printf("counter length %u\n", r->counters_len);
-		if (r != nullptr) {
-			// the first item is correctly computed by libxcb but I can extract it
-			// without xcb_sync_list_system_counters_counters_iterator, thus
-			// extract it manually.
-			fixed_xcb_sync_systemcounter_t * item =
-					(fixed_xcb_sync_systemcounter_t*) (r + 1);
-			for (int i = 0; i < r->counters_len; ++i) {
-				char * name = xcb_sync_system_counter_dup_name(item);
-				//printf("COUNTER_NAME %d = %s, id = %u, resolution = %lu\n", i, name,
-				//		item->counter, xcb_sync_system_counter_int64_swap(&item->resolution));
+void page_t::start()
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	MetaScreen * screen = meta_plugin_get_screen(_plugin);
+	auto stage = meta_get_stage_for_screen(screen);
 
-				if(strcmp("SERVERTIME", name) == 0) {
-					printf("found SERVERTIME\n");
-					/* about 30 fps */
-					frame_alarm = _dpy->create_alarm_delay(item->counter, 32);
-				}
+	ClutterColor actor_color = { 0, 255, 0, 255 };
+	auto rect = clutter_actor_new();
+	clutter_actor_set_background_color(rect, &actor_color);
+	clutter_actor_set_size(rect, 100, 100);
+	clutter_actor_set_position(rect, 100, 100);
+	clutter_actor_add_child(stage, rect);
+	clutter_actor_show(rect);
+	clutter_actor_set_rotation_angle(rect, CLUTTER_Z_AXIS, 60);
+	clutter_actor_set_reactive(rect, TRUE);
 
-				free(name);
-				/* next item */
-				item = (struct fixed_xcb_sync_systemcounter_t*) (((char*) item)
-						+ xcb_sync_system_counter_sizeof_item(item));
-			}
-			free(r);
-		}
+//	g_signal_connect(rect, "enter-event", G_CALLBACK(on_rect_enter), NULL);
+//	g_signal_connect(rect, "leave-event", G_CALLBACK(on_rect_leave), NULL);
+//	g_signal_connect(rect, "button-press-event", G_CALLBACK(on_button_press_event), NULL);
+//	g_signal_connect(rect, "button-release-event", G_CALLBACK(on_button_release_event), NULL);
 
+	clutter_actor_show(stage);
+}
+
+void page_t::minimize(MetaWindowActor * actor)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::unminimize(MetaWindowActor * actor)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::size_change(MetaWindowActor * window_actor, MetaSizeChange which_change, MetaRectangle * old_frame_rect, MetaRectangle * old_buffer_rect)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	auto meta_window = meta_window_actor_get_meta_window(window_actor);
+	auto screen = meta_plugin_get_screen(_plugin);
+	auto main_actor = meta_get_stage_for_screen(screen);
+
+	printf("olf_frame_rect x=%d, y=%d, w=%d, h=%d\n", old_frame_rect->x, old_frame_rect->y, old_frame_rect->width, old_frame_rect->height);
+	printf("old_buffer_rect x=%d, y=%d, w=%d, h=%d\n", old_buffer_rect->x, old_buffer_rect->y, old_buffer_rect->width, old_buffer_rect->height);
+
+	switch(which_change) {
+	case META_SIZE_CHANGE_MAXIMIZE:
+		printf("maximize\n");
+		meta_window_move_resize_frame(meta_window, FALSE, 0, 0, 400, 400);
+		clutter_actor_add_child(main_actor, CLUTTER_ACTOR(window_actor));
+		clutter_actor_show(CLUTTER_ACTOR(window_actor));
+		break;
+	default:
+		break;
 	}
 
-	{
-		xcb_generic_error_t * e;
-		auto ck = xcb_sync_get_priority(_dpy->xcb(), frame_alarm);
-		auto r = xcb_sync_get_priority_reply(_dpy->xcb(), ck, &e);
-		if (r != nullptr) {
-			//printf("priority is %d\n", r->priority);
-		}
-		free(r);
+	meta_plugin_size_change_completed(_plugin, window_actor);
+}
 
-		xcb_sync_set_priority(_dpy->xcb(), frame_alarm, 16);
+void page_t::on_position_changed(MetaWindow * w, guint user_data)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	meta_window_move_resize_frame(w, FALSE, 0, 0, 400, 400);
+}
 
-	}
+void page_t::xmap(MetaWindowActor * window_actor)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	MetaWindowType type;
+	ClutterActor * actor = CLUTTER_ACTOR(window_actor);
+	MetaWindow *meta_window = meta_window_actor_get_meta_window(window_actor);
 
-	/** Initialize theme **/
+	auto screen = meta_plugin_get_screen(_plugin);
+	auto main_actor = meta_get_stage_for_screen(screen);
 
-	if(_theme_engine == "tiny") {
-		cout << "using tiny theme engine" << endl;
-		_theme = new tiny_theme_t{_dpy, _conf};
-	} else {
-		/* The default theme engine */
-		cout << "using simple theme engine" << endl;
-		_theme = new simple2_theme_t{_dpy, _conf};
-	}
+	type = meta_window_get_window_type(meta_window);
 
-	/* Before doing anything, trying to register wm and cm */
-	create_identity_window();
-	register_wm();
+	if (type == META_WINDOW_NORMAL) {
+		printf("normal window\n");
 
-	/** initialize the empty workspace **/
+		//g_signal_connect(meta_window, "position-changed", G_CALLBACK(on_position_changed), NULL);
 
-	/* start the compositor once the window manager is fully started */
-	start_compositor();
+		//meta_window_maximize(meta_window, META_MAXIMIZE_BOTH);
+		meta_window_move_resize_frame(meta_window, FALSE, 0, 0, 400, 400);
+		meta_plugin_map_completed(_plugin, window_actor);
+	} else
+		meta_plugin_map_completed(_plugin, window_actor);
+}
 
-	_dpy->grab();
-	_dpy->change_property(_dpy->root(), _NET_SUPPORTING_WM_CHECK,
-			WINDOW, 32, &identity_window, 1);
+void page_t::destroy(MetaWindowActor * actor)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	meta_plugin_destroy_completed(_plugin, actor);
+}
 
-	_bind_all_default_event();
+void page_t::switch_workspace(gint from, gint to, MetaMotionDirection direction)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
 
-	{
-		/** check for number of workspace and create them **/
-		net_number_of_desktops_t number_of_workspace;
-		auto nd = number_of_workspace.read(_dpy->xcb(), _dpy->_A, _dpy->root());
-		int n = 1;
-		if(nd != nullptr and *nd != 0)
-			n = *nd;
-		update_number_of_workspace(n);
-		number_of_workspace.release(_dpy->xcb());
-	}
+void page_t::show_tile_preview(MetaWindow * window, MetaRectangle *tile_rect, int tile_monitor_number)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
 
-	/* start listen root event before anything, each event will be stored to be processed later */
-	_dpy->select_input(_dpy->root(), ROOT_EVENT_MASK);
+void page_t::hide_tile_preview()
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
 
-	/**
-	 * listen RRCrtcChangeNotifyMask for possible change in screen layout.
-	 **/
-	xcb_randr_select_input(_dpy->xcb(), _dpy->root(), XCB_RANDR_NOTIFY_MASK_CRTC_CHANGE);
+void page_t::show_window_menu(MetaWindow * window, MetaWindowMenuType menu, int x, int y)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
 
-	update_viewport_layout();
+void page_t::show_window_menu_for_rect(MetaWindow * window, MetaWindowMenuType menu, MetaRectangle * rect)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
 
-	_dpy->load_cursors();
-	_dpy->set_window_cursor(_dpy->root(), _dpy->xc_left_ptr);
+void page_t::kill_window_effects(MetaWindowActor * actor)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
 
-	update_net_supported();
+void page_t::kill_switch_workspace()
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
 
-	{
-		/* page does not have showing workspace mode */
-		uint32_t showing_workspace = 0;
-		_dpy->change_property(_dpy->root(), _NET_SHOWING_DESKTOP, CARDINAL, 32,
-				&showing_workspace, 1);
-	}
+auto page_t::xevent_filter(XEvent * event) -> gboolean
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	return FALSE;
+}
 
-	{
-		wm_icon_size_t icon_size{16,16,16,16,16,16};
-		_dpy->change_property(_dpy->root(), WM_ICON_SIZE, CARDINAL, 32,
-				&icon_size, 6);
+auto page_t::keybinding_filter(MetaKeyBinding * binding) -> gboolean
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	return FALSE;
+}
 
-	}
+void page_t::confirm_display_change()
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
 
-	//scan();
-
-	/* setup _NET_ACTIVE_WINDOW */
-	_dpy->set_input_focus(identity_window, XCB_INPUT_FOCUS_PARENT, XCB_CURRENT_TIME);
-	_dpy->set_net_active_window(XCB_WINDOW_NONE);
-
-	update_keymap();
-	update_grabkey();
-
-	update_windows_stack();
-	xcb_flush(_dpy->xcb());
-
-	_dpy->ungrab();
-
-	/** switch back to the first workspace by default */
-	switch_to_workspace(0, XCB_CURRENT_TIME);
-	update_windows_stack();
-	xcb_flush(_dpy->xcb());
-
-	/* process messages as soon as we get messages, or every 1/60 of seconds */
-	_mainloop.add_poll(_dpy->fd(), POLLIN|POLLPRI|POLLERR,
-		[this](struct pollfd const & x) -> void {
-			this->process_pending_events();
-		});
-
-	_mainloop.run();
-
-	cout << "Page END" << endl;
-
-	_mainloop.remove_poll(_dpy->fd());
-
-	_dpy->unload_cursors();
-
-	for (auto & i : net_client_list()) {
-		//_dpy->reparentwindow(i->_client_proxy->id(), _dpy->root(), 0, 0);
-		//detach(i);
-	}
-
-	_workspace_list.clear();
-
-	delete _keymap; _keymap = nullptr;
-	delete _theme; _theme = nullptr;
-	delete _compositor; _compositor = nullptr;
-
-	if(_dpy != nullptr) {
-		/** clean up properties defined by Window Manager **/
-		_dpy->delete_property(_dpy->root(), _NET_SUPPORTED);
-		_dpy->delete_property(_dpy->root(), _NET_CLIENT_LIST);
-		_dpy->delete_property(_dpy->root(), _NET_CLIENT_LIST_STACKING);
-		_dpy->delete_property(_dpy->root(), _NET_ACTIVE_WINDOW);
-		_dpy->delete_property(_dpy->root(), _NET_NUMBER_OF_DESKTOPS);
-		_dpy->delete_property(_dpy->root(), _NET_DESKTOP_GEOMETRY);
-		_dpy->delete_property(_dpy->root(), _NET_DESKTOP_VIEWPORT);
-		_dpy->delete_property(_dpy->root(), _NET_CURRENT_DESKTOP);
-		_dpy->delete_property(_dpy->root(), _NET_DESKTOP_NAMES);
-		_dpy->delete_property(_dpy->root(), _NET_WORKAREA);
-		_dpy->delete_property(_dpy->root(), _NET_SUPPORTING_WM_CHECK);
-		_dpy->delete_property(_dpy->root(), _NET_SHOWING_DESKTOP);
-
-		delete _dpy; _dpy = nullptr;
-	}
-
+auto page_t::plugin_info() -> MetaPluginInfo const *
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	PagePluginPrivate *priv = PAGE_PLUGIN(_plugin)->priv;
+	return &priv->info;
 }
 
 void page_t::unmanage(client_managed_p mw)
@@ -461,66 +615,6 @@ void page_t::unmanage(client_managed_p mw)
 //	//print_state();
 //
 //}
-
-void page_t::update_net_supported() {
-	vector<xcb_atom_t> supported_list;
-
-	supported_list.push_back(A(_NET_WM_NAME));
-	supported_list.push_back(A(_NET_WM_USER_TIME));
-	supported_list.push_back(A(_NET_WM_USER_TIME_WINDOW));
-	supported_list.push_back(A(_NET_CLIENT_LIST));
-	supported_list.push_back(A(_NET_CLIENT_LIST_STACKING));
-	supported_list.push_back(A(_NET_WM_STRUT_PARTIAL));
-	supported_list.push_back(A(_NET_NUMBER_OF_DESKTOPS));
-	supported_list.push_back(A(_NET_DESKTOP_GEOMETRY));
-	supported_list.push_back(A(_NET_DESKTOP_VIEWPORT));
-	supported_list.push_back(A(_NET_CURRENT_DESKTOP));
-	supported_list.push_back(A(_NET_WM_DESKTOP));
-	supported_list.push_back(A(_NET_ACTIVE_WINDOW));
-	supported_list.push_back(A(_NET_WM_STATE_FULLSCREEN));
-	supported_list.push_back(A(_NET_WM_STATE_FOCUSED));
-	supported_list.push_back(A(_NET_WM_STATE_DEMANDS_ATTENTION));
-	supported_list.push_back(A(_NET_WM_STATE_HIDDEN));
-	supported_list.push_back(A(_NET_REQUEST_FRAME_EXTENTS));
-	supported_list.push_back(A(_NET_FRAME_EXTENTS));
-	supported_list.push_back(A(_NET_WM_OPAQUE_REGION));
-
-	supported_list.push_back(A(_NET_WM_ALLOWED_ACTIONS));
-	supported_list.push_back(A(_NET_WM_ACTION_FULLSCREEN));
-	supported_list.push_back(A(_NET_WM_ACTION_ABOVE));
-	supported_list.push_back(A(_NET_WM_ACTION_BELOW));
-	supported_list.push_back(A(_NET_WM_ACTION_CHANGE_DESKTOP));
-	supported_list.push_back(A(_NET_WM_ACTION_CLOSE));
-	supported_list.push_back(A(_NET_WM_ACTION_MAXIMIZE_HORZ));
-	supported_list.push_back(A(_NET_WM_ACTION_MAXIMIZE_VERT));
-	supported_list.push_back(A(_NET_WM_ACTION_MINIMIZE));
-	supported_list.push_back(A(_NET_WM_ACTION_MOVE));
-	supported_list.push_back(A(_NET_WM_ACTION_RESIZE));
-	supported_list.push_back(A(_NET_WM_ACTION_SHADE));
-	supported_list.push_back(A(_NET_WM_ACTION_STICK));
-
-	supported_list.push_back(A(_NET_WM_WINDOW_TYPE));
-	supported_list.push_back(A(_NET_WM_WINDOW_TYPE_COMBO));
-	supported_list.push_back(A(_NET_WM_WINDOW_TYPE_DESKTOP));
-	supported_list.push_back(A(_NET_WM_WINDOW_TYPE_DIALOG));
-	supported_list.push_back(A(_NET_WM_WINDOW_TYPE_DND));
-	supported_list.push_back(A(_NET_WM_WINDOW_TYPE_DOCK));
-	supported_list.push_back(A(_NET_WM_WINDOW_TYPE_DROPDOWN_MENU));
-	supported_list.push_back(A(_NET_WM_WINDOW_TYPE_MENU));
-	supported_list.push_back(A(_NET_WM_WINDOW_TYPE_NORMAL));
-	supported_list.push_back(A(_NET_WM_WINDOW_TYPE_NOTIFICATION));
-	supported_list.push_back(A(_NET_WM_WINDOW_TYPE_POPUP_MENU));
-	supported_list.push_back(A(_NET_WM_WINDOW_TYPE_SPLASH));
-	supported_list.push_back(A(_NET_WM_WINDOW_TYPE_TOOLBAR));
-	supported_list.push_back(A(_NET_WM_WINDOW_TYPE_TOOLTIP));
-	supported_list.push_back(A(_NET_WM_WINDOW_TYPE_UTILITY));
-
-	supported_list.push_back(A(_NET_SUPPORTING_WM_CHECK));
-
-	_dpy->change_property(_dpy->root(), _NET_SUPPORTED, ATOM, 32, &supported_list[0],
-			supported_list.size());
-
-}
 
 //void page_t::update_client_list() {
 //	_net_client_list.remove_if([](client_managed_w const & w) { return w.expired(); });
@@ -1421,45 +1515,45 @@ void page_t::insert_window_in_notebook(
 
 /* update _viewport and childs allocation */
 void page_t::update_workarea() {
-	for (auto d : _workspace_list) {
-		for (auto v : d->get_viewports()) {
-			compute_viewport_allocation(d, v);
-		}
-		//d->set_workarea(d->primary_viewport()->allocation());
-		d->set_workarea(_root_position);
-	}
-
-	std::vector<uint32_t> workarea_data(_workspace_list.size()*4);
-	for(unsigned k = 0; k < _workspace_list.size(); ++k) {
-		workarea_data[k*4+0] = _workspace_list[k]->workarea().x;
-		workarea_data[k*4+1] = _workspace_list[k]->workarea().y;
-		workarea_data[k*4+2] = _workspace_list[k]->workarea().w;
-		workarea_data[k*4+3] = _workspace_list[k]->workarea().h;
-	}
-
-	_dpy->change_property(_dpy->root(), _NET_WORKAREA, CARDINAL, 32,
-			&workarea_data[0], workarea_data.size());
+//	for (auto d : _workspace_list) {
+//		for (auto v : d->get_viewports()) {
+//			compute_viewport_allocation(d, v);
+//		}
+//		//d->set_workarea(d->primary_viewport()->allocation());
+//		d->set_workarea(_root_position);
+//	}
+//
+//	std::vector<uint32_t> workarea_data(_workspace_list.size()*4);
+//	for(unsigned k = 0; k < _workspace_list.size(); ++k) {
+//		workarea_data[k*4+0] = _workspace_list[k]->workarea().x;
+//		workarea_data[k*4+1] = _workspace_list[k]->workarea().y;
+//		workarea_data[k*4+2] = _workspace_list[k]->workarea().w;
+//		workarea_data[k*4+3] = _workspace_list[k]->workarea().h;
+//	}
+//
+//	_dpy->change_property(_dpy->root(), _NET_WORKAREA, CARDINAL, 32,
+//			&workarea_data[0], workarea_data.size());
 
 }
 
 void page_t::apply_focus(xcb_timestamp_t time) {
-	if(time == XCB_CURRENT_TIME) {
-		//printf("invalid focus time\n");
-		return;
-	}
-
-	auto w = get_current_workspace();
-	if(w->_net_active_window.expired()) {
-		//printf("apply focus NONE at %d\n", time);
-		_dpy->set_input_focus(identity_window, XCB_INPUT_FOCUS_PARENT, time);
-		_dpy->set_net_active_window(XCB_WINDOW_NONE);
-	} else {
-		auto focus = w->_net_active_window.lock();
-		//printf("apply focus %d at %d\n", focus->_client->_client_proxy->id(), time);
-		//_dpy->set_net_active_window(focus->_client->_client_proxy->id());
-		focus->focus(time);
-		xcb_flush(_dpy->xcb());
-	}
+//	if(time == XCB_CURRENT_TIME) {
+//		//printf("invalid focus time\n");
+//		return;
+//	}
+//
+//	auto w = get_current_workspace();
+//	if(w->_net_active_window.expired()) {
+//		//printf("apply focus NONE at %d\n", time);
+//		_dpy->set_input_focus(identity_window, XCB_INPUT_FOCUS_PARENT, time);
+//		_dpy->set_net_active_window(XCB_WINDOW_NONE);
+//	} else {
+//		auto focus = w->_net_active_window.lock();
+//		//printf("apply focus %d at %d\n", focus->_client->_client_proxy->id(), time);
+//		//_dpy->set_net_active_window(focus->_client->_client_proxy->id());
+//		focus->focus(time);
+//		xcb_flush(_dpy->xcb());
+//	}
 }
 
 void page_t::split_left(notebook_p nbk, view_p c, xcb_timestamp_t time) {
@@ -1818,56 +1912,56 @@ shared_ptr<workspace_t> page_t::find_workspace_of(shared_ptr<tree_t> n) {
 
 void page_t::update_windows_stack() {
 
-	auto tree = get_current_workspace()->get_all_children();
-
-	{
-		int k = 0;
-		for (int i = 0; i < tree.size(); ++i) {
-			if(tree[i]->get_toplevel_xid() != XCB_WINDOW_NONE) {
-				tree[k++] = tree[i];
-			}
-		}
-		tree.resize(k);
-	}
-
-	reverse(tree.begin(), tree.end());
-	vector<xcb_window_t> stack;
-
-	if (_compositor != nullptr)
-		stack.push_back(_compositor->get_composite_overlay());
-
-	for (auto i : tree) {
-		stack.push_back(i->get_toplevel_xid());
-	}
-
-	unsigned k = 0;
-
-	/* place the first one on top */
-	if (stack.size() > k) {
-		uint32_t value[1];
-		uint32_t mask{0};
-		value[0] = XCB_STACK_MODE_ABOVE;
-		mask |= XCB_CONFIG_WINDOW_STACK_MODE;
-		xcb_configure_window(_dpy->xcb(),
-				stack[k], mask, value);
-		++k;
-	}
-
-	/* place following windows bellow */
-	while (stack.size() > k) {
-		uint32_t value[2];
-		uint32_t mask { 0 };
-
-		value[0] = stack[k-1];
-		mask |= XCB_CONFIG_WINDOW_SIBLING;
-
-		value[1] = XCB_STACK_MODE_BELOW;
-		mask |= XCB_CONFIG_WINDOW_STACK_MODE;
-
-		xcb_configure_window(_dpy->xcb(), stack[k], mask,
-				value);
-		++k;
-	}
+//	auto tree = get_current_workspace()->get_all_children();
+//
+//	{
+//		int k = 0;
+//		for (int i = 0; i < tree.size(); ++i) {
+//			if(tree[i]->get_toplevel_xid() != XCB_WINDOW_NONE) {
+//				tree[k++] = tree[i];
+//			}
+//		}
+//		tree.resize(k);
+//	}
+//
+//	reverse(tree.begin(), tree.end());
+//	vector<xcb_window_t> stack;
+//
+////	if (_compositor != nullptr)
+////		stack.push_back(_compositor->get_composite_overlay());
+//
+//	for (auto i : tree) {
+//		stack.push_back(i->get_toplevel_xid());
+//	}
+//
+//	unsigned k = 0;
+//
+//	/* place the first one on top */
+//	if (stack.size() > k) {
+//		uint32_t value[1];
+//		uint32_t mask{0};
+//		value[0] = XCB_STACK_MODE_ABOVE;
+//		mask |= XCB_CONFIG_WINDOW_STACK_MODE;
+//		xcb_configure_window(_dpy->xcb(),
+//				stack[k], mask, value);
+//		++k;
+//	}
+//
+//	/* place following windows bellow */
+//	while (stack.size() > k) {
+//		uint32_t value[2];
+//		uint32_t mask { 0 };
+//
+//		value[0] = stack[k-1];
+//		mask |= XCB_CONFIG_WINDOW_SIBLING;
+//
+//		value[1] = XCB_STACK_MODE_BELOW;
+//		mask |= XCB_CONFIG_WINDOW_STACK_MODE;
+//
+//		xcb_configure_window(_dpy->xcb(), stack[k], mask,
+//				value);
+//		++k;
+//	}
 
 }
 
@@ -1879,99 +1973,99 @@ void page_t::update_windows_stack() {
  * sub-rectangle that do not overlap previous allocated area.
  **/
 void page_t::update_viewport_layout() {
-	_left_most_border = std::numeric_limits<int>::max();
-	_top_most_border = std::numeric_limits<int>::max();
-
-	/** update root size infos **/
-	xcb_get_geometry_cookie_t ck0 = xcb_get_geometry(_dpy->xcb(), _dpy->root());
-	xcb_randr_get_screen_resources_cookie_t ck1 = xcb_randr_get_screen_resources(_dpy->xcb(), _dpy->root());
-
-	xcb_get_geometry_reply_t * geometry = xcb_get_geometry_reply(_dpy->xcb(), ck0, nullptr);
-	xcb_randr_get_screen_resources_reply_t * randr_resources = xcb_randr_get_screen_resources_reply(_dpy->xcb(), ck1, 0);
-
-	if(geometry == nullptr or randr_resources == nullptr) {
-		throw exception_t("FATAL: cannot read root window attributes");
-	}
-
-	_root_position = rect{geometry->x, geometry->y, geometry->width, geometry->height};
-	set_workspace_geometry(_root_position.w, _root_position.h);
-
-	map<xcb_randr_crtc_t, xcb_randr_get_crtc_info_reply_t *> crtc_info;
-
-	vector<xcb_randr_get_crtc_info_cookie_t> ckx(xcb_randr_get_screen_resources_crtcs_length(randr_resources));
-	xcb_randr_crtc_t * crtc_list = xcb_randr_get_screen_resources_crtcs(randr_resources);
-	for (unsigned k = 0; k < xcb_randr_get_screen_resources_crtcs_length(randr_resources); ++k) {
-		ckx[k] = xcb_randr_get_crtc_info(_dpy->xcb(), crtc_list[k], XCB_CURRENT_TIME);
-	}
-
-	for (unsigned k = 0; k < xcb_randr_get_screen_resources_crtcs_length(randr_resources); ++k) {
-		xcb_randr_get_crtc_info_reply_t * r = xcb_randr_get_crtc_info_reply(_dpy->xcb(), ckx[k], 0);
-		if(r != nullptr) {
-			crtc_info[crtc_list[k]] = r;
-		}
-
-		// keep left more screen to move iconnified window there
-		if(r->x < _left_most_border) {
-			_left_most_border = r->x;
-		}
-
-		if(r->y < _top_most_border) {
-			_top_most_border = r->y;
-		}
-
-	}
-
-	// compute all viewport that does not overlap and cover the full area of
-	// crts
-	vector<rect> viewport_allocation; // the list of _viewport locations.
-	region already_allocated;
-	for (auto crtc: crtc_info) {
-		if (crtc.second->num_outputs <= 0)
-			continue;
-
-		/* the location of crts */
-		region location{crtc.second->x, crtc.second->y, crtc.second->width,
-			crtc.second->height};
-		location -= already_allocated;
-		for (auto & b: location.rects()) {
-			viewport_allocation.push_back(b);
-		}
-		already_allocated += location;
-	}
-
-	if (viewport_allocation.size() < 1) {
-		viewport_allocation.push_back(_root_position);
-	}
-
-	for(auto d: _workspace_list) {
-		d->update_viewports_layout(viewport_allocation);
-	}
-
-	for(auto i: crtc_info) {
-		if(i.second != nullptr)
-			free(i.second);
-	}
-
-	if(geometry != nullptr) {
-		free(geometry);
-	}
-
-	if(randr_resources != nullptr) {
-		free(randr_resources);
-	}
-
-	update_workspace_visibility(XCB_CURRENT_TIME);
-
-	/* set _viewport */
-	std::vector<uint32_t> viewport(_workspace_list.size()*2);
-	std::fill_n(viewport.begin(), _workspace_list.size()*2, 0);
-	_dpy->change_property(_dpy->root(), _NET_DESKTOP_VIEWPORT,
-			CARDINAL, 32, &viewport[0], _workspace_list.size()*2);
-
-	/* define workspace geometry */
-	set_workspace_geometry(_root_position.w, _root_position.h);
-
-	update_workarea();
+//	_left_most_border = std::numeric_limits<int>::max();
+//	_top_most_border = std::numeric_limits<int>::max();
+//
+//	/** update root size infos **/
+//	xcb_get_geometry_cookie_t ck0 = xcb_get_geometry(_dpy->xcb(), _dpy->root());
+//	xcb_randr_get_screen_resources_cookie_t ck1 = xcb_randr_get_screen_resources(_dpy->xcb(), _dpy->root());
+//
+//	xcb_get_geometry_reply_t * geometry = xcb_get_geometry_reply(_dpy->xcb(), ck0, nullptr);
+//	xcb_randr_get_screen_resources_reply_t * randr_resources = xcb_randr_get_screen_resources_reply(_dpy->xcb(), ck1, 0);
+//
+//	if(geometry == nullptr or randr_resources == nullptr) {
+//		throw exception_t("FATAL: cannot read root window attributes");
+//	}
+//
+//	_root_position = rect{geometry->x, geometry->y, geometry->width, geometry->height};
+//	set_workspace_geometry(_root_position.w, _root_position.h);
+//
+//	map<xcb_randr_crtc_t, xcb_randr_get_crtc_info_reply_t *> crtc_info;
+//
+//	vector<xcb_randr_get_crtc_info_cookie_t> ckx(xcb_randr_get_screen_resources_crtcs_length(randr_resources));
+//	xcb_randr_crtc_t * crtc_list = xcb_randr_get_screen_resources_crtcs(randr_resources);
+//	for (unsigned k = 0; k < xcb_randr_get_screen_resources_crtcs_length(randr_resources); ++k) {
+//		ckx[k] = xcb_randr_get_crtc_info(_dpy->xcb(), crtc_list[k], XCB_CURRENT_TIME);
+//	}
+//
+//	for (unsigned k = 0; k < xcb_randr_get_screen_resources_crtcs_length(randr_resources); ++k) {
+//		xcb_randr_get_crtc_info_reply_t * r = xcb_randr_get_crtc_info_reply(_dpy->xcb(), ckx[k], 0);
+//		if(r != nullptr) {
+//			crtc_info[crtc_list[k]] = r;
+//		}
+//
+//		// keep left more screen to move iconnified window there
+//		if(r->x < _left_most_border) {
+//			_left_most_border = r->x;
+//		}
+//
+//		if(r->y < _top_most_border) {
+//			_top_most_border = r->y;
+//		}
+//
+//	}
+//
+//	// compute all viewport that does not overlap and cover the full area of
+//	// crts
+//	vector<rect> viewport_allocation; // the list of _viewport locations.
+//	region already_allocated;
+//	for (auto crtc: crtc_info) {
+//		if (crtc.second->num_outputs <= 0)
+//			continue;
+//
+//		/* the location of crts */
+//		region location{crtc.second->x, crtc.second->y, crtc.second->width,
+//			crtc.second->height};
+//		location -= already_allocated;
+//		for (auto & b: location.rects()) {
+//			viewport_allocation.push_back(b);
+//		}
+//		already_allocated += location;
+//	}
+//
+//	if (viewport_allocation.size() < 1) {
+//		viewport_allocation.push_back(_root_position);
+//	}
+//
+//	for(auto d: _workspace_list) {
+//		d->update_viewports_layout(viewport_allocation);
+//	}
+//
+//	for(auto i: crtc_info) {
+//		if(i.second != nullptr)
+//			free(i.second);
+//	}
+//
+//	if(geometry != nullptr) {
+//		free(geometry);
+//	}
+//
+//	if(randr_resources != nullptr) {
+//		free(randr_resources);
+//	}
+//
+//	update_workspace_visibility(XCB_CURRENT_TIME);
+//
+//	/* set _viewport */
+//	std::vector<uint32_t> viewport(_workspace_list.size()*2);
+//	std::fill_n(viewport.begin(), _workspace_list.size()*2, 0);
+//	_dpy->change_property(_dpy->root(), _NET_DESKTOP_VIEWPORT,
+//			CARDINAL, 32, &viewport[0], _workspace_list.size()*2);
+//
+//	/* define workspace geometry */
+//	set_workspace_geometry(_root_position.w, _root_position.h);
+//
+//	update_workarea();
 
 }
 
@@ -2116,65 +2210,65 @@ void page_t::remove_viewport(shared_ptr<workspace_t> d, shared_ptr<viewport_t> v
 
 void page_t::manage_client(MetaWindow * window) {
 
-	auto mw = make_shared<client_managed_t>(this, window);
-
-	if(not mw->skip_task_bar()) {
-		_need_update_client_list = true;
-		_need_restack = true;
-	}
-
-	/* find the workspace for this window */
-	{
-		auto final_workspace = mw->ensure_workspace();
-		if(final_workspace == ALL_DESKTOP) {
-			//printf("final workspace = %u\n", final_workspace);
-			//mw->net_wm_state_add(_NET_WM_STATE_STICKY);
-			//mw->show();
-		} else {
-			//printf("final workspace = %u\n", final_workspace);
-			if(_current_workspace == final_workspace) {
-				//mw->show();
-			} else {
-				//mw->hide();
-			}
-		}
-	}
-
-	/* HACK OLD FASHION FULLSCREEN */
-	auto wm_normal_hints = mw->get<p_wm_normal_hints>();
-	if (wm_normal_hints != nullptr and mw->wm_type() == A(_NET_WM_WINDOW_TYPE_NORMAL)) {
-		auto size_hints = wm_normal_hints;
-		if ((size_hints->flags & PMaxSize)
-				and (size_hints->flags & PMinSize)) {
-			if (size_hints->min_width == _root_position.w
-					and size_hints->min_height == _root_position.h
-					and size_hints->max_width == _root_position.w
-					and size_hints->max_height == _root_position.h) {
-				//mw->net_wm_state_add(_NET_WM_STATE_FULLSCREEN);
-			}
-		}
-	}
-
-	bool _has_net_wm_state_above = false;
-	if(mw->_net_wm_state) {
-		_has_net_wm_state_above = has_key(*mw->_net_wm_state, A(_NET_WM_STATE_ABOVE));
-	}
-
-	auto type = mw->wm_type();
-
-	if (mw->has_wm_state_fullscreen()) {
-		insert_as_fullscreen(mw);
-	} else if (((type == META_WINDOW_NORMAL)
-			and get_transient_for(mw) == nullptr
-			and not mw->has_wm_state_modal()
-			and not _has_net_wm_state_above)
-			or type == META_WINDOW_DESKTOP) {
-		insert_as_notebook(mw);
-	} else if (type == META_WINDOW_DOCK) {
-		insert_as_dock(mw);
-	} else {
-		insert_as_floating(mw);
-	}
+//	auto mw = make_shared<client_managed_t>(this, window);
+//
+//	if(not mw->skip_task_bar()) {
+//		_need_update_client_list = true;
+//		_need_restack = true;
+//	}
+//
+//	/* find the workspace for this window */
+//	{
+//		auto final_workspace = mw->ensure_workspace();
+//		if(final_workspace == ALL_DESKTOP) {
+//			//printf("final workspace = %u\n", final_workspace);
+//			//mw->net_wm_state_add(_NET_WM_STATE_STICKY);
+//			//mw->show();
+//		} else {
+//			//printf("final workspace = %u\n", final_workspace);
+//			if(_current_workspace == final_workspace) {
+//				//mw->show();
+//			} else {
+//				//mw->hide();
+//			}
+//		}
+//	}
+//
+//	/* HACK OLD FASHION FULLSCREEN */
+//	auto wm_normal_hints = mw->get<p_wm_normal_hints>();
+//	if (wm_normal_hints != nullptr and mw->wm_type() == A(_NET_WM_WINDOW_TYPE_NORMAL)) {
+//		auto size_hints = wm_normal_hints;
+//		if ((size_hints->flags & PMaxSize)
+//				and (size_hints->flags & PMinSize)) {
+//			if (size_hints->min_width == _root_position.w
+//					and size_hints->min_height == _root_position.h
+//					and size_hints->max_width == _root_position.w
+//					and size_hints->max_height == _root_position.h) {
+//				//mw->net_wm_state_add(_NET_WM_STATE_FULLSCREEN);
+//			}
+//		}
+//	}
+//
+//	bool _has_net_wm_state_above = false;
+//	if(mw->_net_wm_state) {
+//		_has_net_wm_state_above = has_key(*mw->_net_wm_state, A(_NET_WM_STATE_ABOVE));
+//	}
+//
+//	auto type = mw->wm_type();
+//
+//	if (mw->has_wm_state_fullscreen()) {
+//		insert_as_fullscreen(mw);
+//	} else if (((type == META_WINDOW_NORMAL)
+//			and get_transient_for(mw) == nullptr
+//			and not mw->has_wm_state_modal()
+//			and not _has_net_wm_state_above)
+//			or type == META_WINDOW_DESKTOP) {
+//		insert_as_notebook(mw);
+//	} else if (type == META_WINDOW_DOCK) {
+//		insert_as_dock(mw);
+//	} else {
+//		insert_as_floating(mw);
+//	}
 }
 
 //void page_t::create_unmanaged_window(client_proxy_p proxy) {
@@ -2303,14 +2397,14 @@ void page_t::insert_as_floating(client_managed_p c, xcb_timestamp_t time) {
 	_need_restack = true;
 }
 
-void page_t::set_workspace_geometry(long width, long height) {
-	/* define workspace geometry */
-	uint32_t workspace_geometry[2];
-	workspace_geometry[0] = width;
-	workspace_geometry[1] = height;
-	_dpy->change_property(_dpy->root(), _NET_DESKTOP_GEOMETRY,
-			CARDINAL, 32, workspace_geometry, 2);
-}
+//void page_t::set_workspace_geometry(long width, long height) {
+//	/* define workspace geometry */
+//	uint32_t workspace_geometry[2];
+//	workspace_geometry[0] = width;
+//	workspace_geometry[1] = height;
+//	_dpy->change_property(_dpy->root(), _NET_DESKTOP_GEOMETRY,
+//			CARDINAL, 32, workspace_geometry, 2);
+//}
 
 auto page_t::find_client_managed_with(xcb_window_t w) -> client_managed_p
 {
@@ -2334,14 +2428,14 @@ auto page_t::lookup_client_managed_with_orig_window(xcb_window_t w) const -> cli
 
 auto page_t::lookup_client_managed_with_base_window(xcb_window_t w) const -> client_managed_p
 {
-	auto views = get_current_workspace()->gather_children_root_first<view_rebased_t>();
-	for(auto v: views) {
-		if (v->_base != nullptr) {
-			if (v->_base->_window->id() == w) {
-				return v->_client;
-			}
-		}
-	}
+//	auto views = get_current_workspace()->gather_children_root_first<view_rebased_t>();
+//	for(auto v: views) {
+//		if (v->_base != nullptr) {
+//			if (v->_base->_window->id() == w) {
+//				return v->_client;
+//			}
+//		}
+//	}
 	return nullptr;
 }
 
@@ -2351,113 +2445,113 @@ void replace(shared_ptr<page_component_t> const & src, shared_ptr<page_component
 }
 
 void page_t::create_identity_window() {
-	/* create an invisible window to identify page */
-	uint32_t pid = getpid();
-	uint32_t attrs[2];
-
-	/* OVERRIDE_REDIRECT */
-	attrs[0] = 1;
-	/* EVENT_MASK */
-	attrs[1] = XCB_EVENT_MASK_STRUCTURE_NOTIFY|XCB_EVENT_MASK_PROPERTY_CHANGE;
-
-	uint32_t attrs_mask = XCB_CW_OVERRIDE_REDIRECT|XCB_CW_EVENT_MASK;
-
-	/* Warning: This window must be focusable, thus it MUST be an INPUT_OUTPUT window */
-	identity_window = xcb_generate_id(_dpy->xcb());
-	_page_windows.insert(identity_window);
-	xcb_void_cookie_t ck = xcb_create_window(_dpy->xcb(), XCB_COPY_FROM_PARENT, identity_window,
-			_dpy->root(), -100, -100, 1, 1, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
-			XCB_COPY_FROM_PARENT, attrs_mask, attrs);
-
-	std::string name{"page"};
-	_dpy->change_property(identity_window, _NET_WM_NAME, UTF8_STRING, 8, name.c_str(),
-			name.length() + 1);
-	_dpy->change_property(identity_window, _NET_SUPPORTING_WM_CHECK, WINDOW, 32,
-			&identity_window, 1);
-	_dpy->change_property(identity_window, _NET_WM_PID, CARDINAL, 32, &pid, 1);
-	_dpy->map(identity_window);
+//	/* create an invisible window to identify page */
+//	uint32_t pid = getpid();
+//	uint32_t attrs[2];
+//
+//	/* OVERRIDE_REDIRECT */
+//	attrs[0] = 1;
+//	/* EVENT_MASK */
+//	attrs[1] = XCB_EVENT_MASK_STRUCTURE_NOTIFY|XCB_EVENT_MASK_PROPERTY_CHANGE;
+//
+//	uint32_t attrs_mask = XCB_CW_OVERRIDE_REDIRECT|XCB_CW_EVENT_MASK;
+//
+//	/* Warning: This window must be focusable, thus it MUST be an INPUT_OUTPUT window */
+//	identity_window = xcb_generate_id(_dpy->xcb());
+//	_page_windows.insert(identity_window);
+//	xcb_void_cookie_t ck = xcb_create_window(_dpy->xcb(), XCB_COPY_FROM_PARENT, identity_window,
+//			_dpy->root(), -100, -100, 1, 1, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
+//			XCB_COPY_FROM_PARENT, attrs_mask, attrs);
+//
+//	std::string name{"page"};
+//	_dpy->change_property(identity_window, _NET_WM_NAME, UTF8_STRING, 8, name.c_str(),
+//			name.length() + 1);
+//	_dpy->change_property(identity_window, _NET_SUPPORTING_WM_CHECK, WINDOW, 32,
+//			&identity_window, 1);
+//	_dpy->change_property(identity_window, _NET_WM_PID, CARDINAL, 32, &pid, 1);
+//	_dpy->map(identity_window);
 }
 
-void page_t::register_wm() {
-	if (!_dpy->register_wm(identity_window, configuration._replace_wm)) {
-		throw exception_t("Cannot register window manager");
-	}
-}
+//void page_t::register_wm() {
+//	if (!_dpy->register_wm(identity_window, configuration._replace_wm)) {
+//		throw exception_t("Cannot register window manager");
+//	}
+//}
+//
+//void page_t::register_cm() {
+//	if (!_dpy->register_cm(identity_window)) {
+//		throw exception_t("Cannot register composite manager");
+//	}
+//}
 
-void page_t::register_cm() {
-	if (!_dpy->register_cm(identity_window)) {
-		throw exception_t("Cannot register composite manager");
-	}
-}
-
-inline void grab_key(xcb_connection_t * xcb, xcb_window_t w, key_desc_t & key, keymap_t * _keymap) {
-	int kc = 0;
-	if ((kc = _keymap->find_keysim(key.ks))) {
-		xcb_grab_key(xcb, true, w, key.mod, kc, XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_SYNC);
-		if(_keymap->numlock_mod_mask() != 0) {
-			xcb_grab_key(xcb, true, w, key.mod|_keymap->numlock_mod_mask(), kc, XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_SYNC);
-		}
-	}
-}
+//inline void grab_key(xcb_connection_t * xcb, xcb_window_t w, key_desc_t & key, keymap_t * _keymap) {
+//	int kc = 0;
+//	if ((kc = _keymap->find_keysim(key.ks))) {
+//		xcb_grab_key(xcb, true, w, key.mod, kc, XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_SYNC);
+//		if(_keymap->numlock_mod_mask() != 0) {
+//			xcb_grab_key(xcb, true, w, key.mod|_keymap->numlock_mod_mask(), kc, XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_SYNC);
+//		}
+//	}
+//}
 
 /**
  * Update grab keys aware of current _keymap
  */
 void page_t::update_grabkey() {
 
-	assert(_keymap != nullptr);
-
-	/** ungrab all previews key **/
-	xcb_ungrab_key(_dpy->xcb(), XCB_GRAB_ANY, _dpy->root(), XCB_MOD_MASK_ANY);
-
-	int kc = 0;
-
-	grab_key(_dpy->xcb(), _dpy->root(), bind_debug_1, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_debug_2, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_debug_3, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_debug_4, _keymap);
-
-	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[0].key, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[1].key, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[2].key, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[3].key, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[4].key, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[5].key, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[6].key, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[7].key, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[8].key, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[9].key, _keymap);
-
-	grab_key(_dpy->xcb(), _dpy->root(), bind_page_quit, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_close, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_exposay_all, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_toggle_fullscreen, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_toggle_compositor, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_right_workspace, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_left_workspace, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_bind_window, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_fullscreen_window, _keymap);
-	grab_key(_dpy->xcb(), _dpy->root(), bind_float_window, _keymap);
-
-	/* Alt-Tab */
-	if ((kc = _keymap->find_keysim(XK_Tab))) {
-		xcb_grab_key(_dpy->xcb(), true, _dpy->root(), XCB_MOD_MASK_1, kc,
-				XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_SYNC);
-		if (_keymap->numlock_mod_mask() != 0) {
-			xcb_grab_key(_dpy->xcb(), true, _dpy->root(),
-					XCB_MOD_MASK_1 | _keymap->numlock_mod_mask(), kc,
-					XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_SYNC);
-		}
-	}
+//	assert(_keymap != nullptr);
+//
+//	/** ungrab all previews key **/
+//	xcb_ungrab_key(_dpy->xcb(), XCB_GRAB_ANY, _dpy->root(), XCB_MOD_MASK_ANY);
+//
+//	int kc = 0;
+//
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_debug_1, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_debug_2, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_debug_3, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_debug_4, _keymap);
+//
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[0].key, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[1].key, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[2].key, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[3].key, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[4].key, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[5].key, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[6].key, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[7].key, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[8].key, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_cmd[9].key, _keymap);
+//
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_page_quit, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_close, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_exposay_all, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_toggle_fullscreen, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_toggle_compositor, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_right_workspace, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_left_workspace, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_bind_window, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_fullscreen_window, _keymap);
+//	grab_key(_dpy->xcb(), _dpy->root(), bind_float_window, _keymap);
+//
+//	/* Alt-Tab */
+//	if ((kc = _keymap->find_keysim(XK_Tab))) {
+//		xcb_grab_key(_dpy->xcb(), true, _dpy->root(), XCB_MOD_MASK_1, kc,
+//				XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_SYNC);
+//		if (_keymap->numlock_mod_mask() != 0) {
+//			xcb_grab_key(_dpy->xcb(), true, _dpy->root(),
+//					XCB_MOD_MASK_1 | _keymap->numlock_mod_mask(), kc,
+//					XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_SYNC);
+//		}
+//	}
 
 }
 
-void page_t::update_keymap() {
-	if(_keymap != nullptr) {
-		delete _keymap;
-	}
-	_keymap = new keymap_t{_dpy->xcb()};
-}
+//void page_t::update_keymap() {
+//	if(_keymap != nullptr) {
+//		delete _keymap;
+//	}
+//	_keymap = new keymap_t{_dpy->xcb()};
+//}
 
 /** debug function that try to print the state of page in stdout **/
 void page_t::print_state() const {
@@ -2472,36 +2566,36 @@ void page_t::print_state() const {
 
 }
 
-void page_t::update_current_workspace() const {
-	/* set current workspace */
-	uint32_t current_workspace = _current_workspace;
-	_dpy->change_property(_dpy->root(), _NET_CURRENT_DESKTOP, CARDINAL,
-			32, &current_workspace, 1);
-}
+//void page_t::update_current_workspace() const {
+//	/* set current workspace */
+//	uint32_t current_workspace = _current_workspace;
+//	_dpy->change_property(_dpy->root(), _NET_CURRENT_DESKTOP, CARDINAL,
+//			32, &current_workspace, 1);
+//}
 
 void page_t::switch_to_workspace(unsigned int workspace, xcb_timestamp_t time) {
-	assert(workspace < _workspace_list.size());
-	if (workspace != _current_workspace and workspace != ALL_DESKTOP) {
-		//std::cout << "switch to workspace #" << workspace << std::endl;
-		start_switch_to_workspace_animation(workspace);
-		_current_workspace = workspace;
-		update_current_workspace();
-		update_workspace_visibility(time);
-	}
+//	assert(workspace < _workspace_list.size());
+//	if (workspace != _current_workspace and workspace != ALL_DESKTOP) {
+//		//std::cout << "switch to workspace #" << workspace << std::endl;
+//		start_switch_to_workspace_animation(workspace);
+//		_current_workspace = workspace;
+//		update_current_workspace();
+//		update_workspace_visibility(time);
+//	}
 }
 
 void page_t::start_switch_to_workspace_animation(unsigned int workspace) {
-	auto new_workspace = _workspace_list[workspace];
-
-	for(auto const & v : new_workspace->get_viewports()) {
-		auto pix = theme()->workspace_switch_popup(new_workspace->name());
-		auto loc = v->allocation();
-		auto rnd = make_shared<renderable_fadeout_pixmap_t>(new_workspace.get(), pix, loc.x + (loc.w-pix->witdh())/2.0, loc.y + (loc.h-pix->height())/2.0);
-		new_workspace->add_overlay(rnd);
-		rnd->show();
-	}
-
-	schedule_repaint();
+//	auto new_workspace = _workspace_list[workspace];
+//
+//	for(auto const & v : new_workspace->get_viewports()) {
+//		auto pix = theme()->workspace_switch_popup(new_workspace->name());
+//		auto loc = v->allocation();
+//		auto rnd = make_shared<renderable_fadeout_pixmap_t>(new_workspace.get(), pix, loc.x + (loc.w-pix->witdh())/2.0, loc.y + (loc.h-pix->height())/2.0);
+//		new_workspace->add_overlay(rnd);
+//		rnd->show();
+//	}
+//
+//	schedule_repaint();
 
 }
 
@@ -2826,38 +2920,38 @@ void page_t::_bind_all_default_event() {
 //		get_current_workspace()->broadcast_button_release(e);
 //	}
 //}
-
-void page_t::start_compositor() {
-	if (_dpy->has_composite) {
-		try {
-			register_cm();
-		} catch (std::exception & e) {
-			std::cout << e.what() << std::endl;
-			return;
-		}
-		_compositor = new compositor_t{_dpy};
-		_dpy->enable();
-	}
-}
-
-void page_t::stop_compositor() {
-	if (_dpy->has_composite) {
-		_dpy->unregister_cm();
-		_dpy->disable();
-		delete _compositor;
-		_compositor = nullptr;
-	}
-}
+//
+//void page_t::start_compositor() {
+//	if (_dpy->has_composite) {
+//		try {
+//			register_cm();
+//		} catch (std::exception & e) {
+//			std::cout << e.what() << std::endl;
+//			return;
+//		}
+//		_compositor = new compositor_t{_dpy};
+//		_dpy->enable();
+//	}
+//}
+//
+//void page_t::stop_compositor() {
+//	if (_dpy->has_composite) {
+//		_dpy->unregister_cm();
+//		_dpy->disable();
+//		delete _compositor;
+//		_compositor = nullptr;
+//	}
+//}
 //
 //void page_t::process_expose_event(xcb_generic_event_t const * _e) {
 //	auto e = reinterpret_cast<xcb_expose_event_t const *>(_e);
 //	get_current_workspace()->broadcast_expose(e);
 //}
-
-void page_t::process_error(xcb_generic_event_t const * _e) {
-	auto e = reinterpret_cast<xcb_generic_error_t const *>(_e);
-	_dpy->print_error(e);
-}
+//
+//void page_t::process_error(xcb_generic_event_t const * _e) {
+//	auto e = reinterpret_cast<xcb_generic_error_t const *>(_e);
+//	_dpy->print_error(e);
+//}
 
 
 /* Inspired from openbox */
@@ -2906,42 +3000,42 @@ void page_t::run_cmd(std::string const & cmd_with_args)
 }
 
 void page_t::update_workspace_names() {
-	net_desktop_names_t workspace_names;
-	auto names = workspace_names.read(_dpy->xcb(), _dpy->_A, _dpy->root());
-	if(names != nullptr) {
-		for(int k = 0; k < _workspace_list.size() and k < names->size(); ++k) {
-			_workspace_list[k]->set_name((*names)[k]);
-		}
-	}
-	workspace_names.release(_dpy->xcb());
+//	net_desktop_names_t workspace_names;
+//	auto names = workspace_names.read(_dpy->xcb(), _dpy->_A, _dpy->root());
+//	if(names != nullptr) {
+//		for(int k = 0; k < _workspace_list.size() and k < names->size(); ++k) {
+//			_workspace_list[k]->set_name((*names)[k]);
+//		}
+//	}
+//	workspace_names.release(_dpy->xcb());
 }
 
 void page_t::update_number_of_workspace(int n) {
-	/* only add ne workspace, ignore request for reducing workspace numbers */
-	for(int i = _workspace_list.size(); i < n; ++i) {
-		auto d = make_shared<workspace_t>(this, i);
-		_workspace_list.push_back(d);
-		d->disable();
-		d->show();
-	}
-	update_workspace_names();
-
-	{ // update the _NET_DESKTOP_NAMES property.
-		vector<char> names_list;
-		for (unsigned k = 0; k < _workspace_list.size(); ++k) {
-			std::string s { get_workspace(k)->name() };
-			names_list.insert(names_list.end(), s.begin(), s.end());
-			/* end of string */
-			names_list.push_back(0);
-		}
-		_dpy->change_property(_dpy->root(), _NET_DESKTOP_NAMES, UTF8_STRING, 8,
-				&names_list[0], names_list.size());
-	}
-
-	/* update number of workspace */
-	uint32_t number_of_workspace = _workspace_list.size();
-	_dpy->change_property(_dpy->root(), _NET_NUMBER_OF_DESKTOPS,
-			CARDINAL, 32, &number_of_workspace, 1);
+//	/* only add ne workspace, ignore request for reducing workspace numbers */
+//	for(int i = _workspace_list.size(); i < n; ++i) {
+//		auto d = make_shared<workspace_t>(this, i);
+//		_workspace_list.push_back(d);
+//		d->disable();
+//		d->show();
+//	}
+//	update_workspace_names();
+//
+//	{ // update the _NET_DESKTOP_NAMES property.
+//		vector<char> names_list;
+//		for (unsigned k = 0; k < _workspace_list.size(); ++k) {
+//			std::string s { get_workspace(k)->name() };
+//			names_list.insert(names_list.end(), s.begin(), s.end());
+//			/* end of string */
+//			names_list.push_back(0);
+//		}
+//		_dpy->change_property(_dpy->root(), _NET_DESKTOP_NAMES, UTF8_STRING, 8,
+//				&names_list[0], names_list.size());
+//	}
+//
+//	/* update number of workspace */
+//	uint32_t number_of_workspace = _workspace_list.size();
+//	_dpy->change_property(_dpy->root(), _NET_NUMBER_OF_DESKTOPS,
+//			CARDINAL, 32, &number_of_workspace, 1);
 
 }
 
@@ -3016,79 +3110,76 @@ theme_t const * page_t::theme() const {
 	return _theme;
 }
 
-display_t * page_t::dpy() const {
+auto page_t::dpy() const -> MetaDisplay *
+{
 	return _dpy;
 }
 
-compositor_t * page_t::cmp() const {
-	return _compositor;
-}
-
 void page_t::grab_start(shared_ptr<grab_handler_t> handler, xcb_timestamp_t time) {
-	assert(_grab_handler == nullptr);
-
-	_dpy->grab();
-
-	auto ck0 = xcb_grab_pointer(_dpy->xcb(), false, _dpy->root(),
-			DEFAULT_BUTTON_EVENT_MASK,
-			XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC,
-			XCB_NONE, XCB_NONE, time);
-
-	auto ck1 = xcb_grab_keyboard(_dpy->xcb(), false, _dpy->root(),
-			time, XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC);
-
-	xcb_generic_error_t * e;
-	bool has_pointer_grab = false;
-	bool has_keyboard_grab = false;
-
-	auto r0 = xcb_grab_pointer_reply(_dpy->xcb(), ck0, &e);
-	auto r1 = xcb_grab_keyboard_reply(_dpy->xcb(), ck1, &e);
-
-	if (r0 != nullptr) {
-		if (r0->status == XCB_GRAB_STATUS_SUCCESS) {
-			has_pointer_grab = true;
-		} else {
-			printf("grab pointer failed with status %d", r0->status);
-		}
-		free(r0);
-	} else {
-		printf("grab pointer failed with error");
-	}
-
-	if (r1 != nullptr) {
-		if (r1->status == XCB_GRAB_STATUS_SUCCESS) {
-			has_keyboard_grab = true;
-		} else {
-			printf("grab keyboard failed with status %d", r0->status);
-		}
-		free(r1);
-	} else {
-		printf("grab keyboard failed with error");
-	}
-
-	if (has_pointer_grab and has_keyboard_grab) {
-		_grab_handler = handler;
-	} else {
-		xcb_ungrab_pointer(_dpy->xcb(), XCB_CURRENT_TIME);
-		xcb_ungrab_keyboard(_dpy->xcb(), XCB_CURRENT_TIME);
-	}
-
-	_dpy->ungrab();
+//	assert(_grab_handler == nullptr);
+//
+//	_dpy->grab();
+//
+//	auto ck0 = xcb_grab_pointer(_dpy->xcb(), false, _dpy->root(),
+//			DEFAULT_BUTTON_EVENT_MASK,
+//			XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC,
+//			XCB_NONE, XCB_NONE, time);
+//
+//	auto ck1 = xcb_grab_keyboard(_dpy->xcb(), false, _dpy->root(),
+//			time, XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC);
+//
+//	xcb_generic_error_t * e;
+//	bool has_pointer_grab = false;
+//	bool has_keyboard_grab = false;
+//
+//	auto r0 = xcb_grab_pointer_reply(_dpy->xcb(), ck0, &e);
+//	auto r1 = xcb_grab_keyboard_reply(_dpy->xcb(), ck1, &e);
+//
+//	if (r0 != nullptr) {
+//		if (r0->status == XCB_GRAB_STATUS_SUCCESS) {
+//			has_pointer_grab = true;
+//		} else {
+//			printf("grab pointer failed with status %d", r0->status);
+//		}
+//		free(r0);
+//	} else {
+//		printf("grab pointer failed with error");
+//	}
+//
+//	if (r1 != nullptr) {
+//		if (r1->status == XCB_GRAB_STATUS_SUCCESS) {
+//			has_keyboard_grab = true;
+//		} else {
+//			printf("grab keyboard failed with status %d", r0->status);
+//		}
+//		free(r1);
+//	} else {
+//		printf("grab keyboard failed with error");
+//	}
+//
+//	if (has_pointer_grab and has_keyboard_grab) {
+//		_grab_handler = handler;
+//	} else {
+//		xcb_ungrab_pointer(_dpy->xcb(), XCB_CURRENT_TIME);
+//		xcb_ungrab_keyboard(_dpy->xcb(), XCB_CURRENT_TIME);
+//	}
+//
+//	_dpy->ungrab();
 
 }
 
 void page_t::grab_stop(xcb_timestamp_t time) {
-	assert(_grab_handler != nullptr);
-	assert(time != XCB_CURRENT_TIME);
-	_grab_handler = nullptr;
-	xcb_ungrab_keyboard(_dpy->xcb(), time);
-	xcb_ungrab_pointer(_dpy->xcb(), time);
-	xcb_flush(_dpy->xcb());
-	/* apply regular keyboard focus */
-	view_p focused;
-	if (get_current_workspace()->client_focus_history_front(focused)) {
-		focused->focus(time);
-	}
+//	assert(_grab_handler != nullptr);
+//	assert(time != XCB_CURRENT_TIME);
+//	_grab_handler = nullptr;
+//	xcb_ungrab_keyboard(_dpy->xcb(), time);
+//	xcb_ungrab_pointer(_dpy->xcb(), time);
+//	xcb_flush(_dpy->xcb());
+//	/* apply regular keyboard focus */
+//	view_p focused;
+//	if (get_current_workspace()->client_focus_history_front(focused)) {
+//		focused->focus(time);
+//	}
 }
 
 void page_t::overlay_add(shared_ptr<tree_t> x) {
@@ -3096,9 +3187,6 @@ void page_t::overlay_add(shared_ptr<tree_t> x) {
 }
 
 void page_t::add_global_damage(region const & r) {
-	if(_compositor != nullptr) {
-		_compositor->add_damaged(r);
-	}
 	schedule_repaint();
 }
 
@@ -3144,9 +3232,9 @@ int page_t::create_workspace() {
 	update_workarea();
 	/* update number of workspace */
 	uint32_t number_of_workspace = _workspace_list.size();
-	_dpy->change_property(_dpy->root(), _NET_NUMBER_OF_DESKTOPS,
-			CARDINAL, 32, &number_of_workspace, 1);
-	update_current_workspace();
+//	_dpy->change_property(_dpy->root(), _NET_NUMBER_OF_DESKTOPS,
+//			CARDINAL, 32, &number_of_workspace, 1);
+//	update_current_workspace();
 	return d->id();
 }
 
@@ -3155,14 +3243,6 @@ int page_t::left_most_border() {
 }
 int page_t::top_most_border() {
 	return _top_most_border;
-}
-
-keymap_t const * page_t::keymap() const {
-	return _keymap;
-}
-
-xcb_atom_t page_t::A(atom_e atom) {
-	return _dpy->A(atom);
 }
 
 list<view_w> page_t::global_client_focus_history() {
@@ -3214,13 +3294,13 @@ auto page_t::conf() const -> page_configuration_t const & {
 	return configuration;
 }
 
-auto page_t::create_view(xcb_window_t w) -> shared_ptr<client_view_t> {
-	return _dpy->create_view(w);
-}
-
-void page_t::make_surface_stats(int & size, int & count) {
-	_dpy->make_surface_stats(size, count);
-}
+//auto page_t::create_view(xcb_window_t w) -> shared_ptr<client_view_t> {
+//	return _dpy->create_view(w);
+//}
+//
+//void page_t::make_surface_stats(int & size, int & count) {
+//	_dpy->make_surface_stats(size, count);
+//}
 
 auto page_t::net_client_list() -> list<client_managed_p> const &
 {
@@ -3233,11 +3313,15 @@ auto page_t::mainloop() -> mainloop_t * {
 
 void page_t::schedule_repaint(int64_t timeout)
 {
-	if (not _schedule_repaint) {
-		_schedule_repaint = true;
-		/* about 30 fps max for schedule repaint */
-		_dpy->change_alarm_delay(frame_alarm, 32);
-	}
+//	if (not _schedule_repaint) {
+//		_schedule_repaint = true;
+//		/* about 30 fps max for schedule repaint */
+//		_dpy->change_alarm_delay(frame_alarm, 32);
+//	}
+
+	auto screen = meta_plugin_get_screen(_plugin);
+	auto stage = meta_get_stage_for_screen(screen);
+	clutter_actor_queue_redraw(stage);
 }
 
 void page_t::damage_all() {

@@ -54,47 +54,47 @@ dropdown_menu_overlay_t::dropdown_menu_overlay_t(tree_t * ref, rect position) :
 {
 	_is_durty = true;
 
-	xcb_colormap_t cmap = xcb_generate_id(_ctx->dpy()->xcb());
-	xcb_create_colormap(_ctx->dpy()->xcb(), XCB_COLORMAP_ALLOC_NONE, cmap, _ctx->dpy()->root(), _ctx->dpy()->root_visual()->visual_id);
-
-	uint32_t value_mask = 0;
-	uint32_t value[5];
-
-	value_mask |= XCB_CW_BACK_PIXEL;
-	value[0] = _ctx->dpy()->xcb_screen()->black_pixel;
-
-	value_mask |= XCB_CW_BORDER_PIXEL;
-	value[1] = _ctx->dpy()->xcb_screen()->black_pixel;
-
-	value_mask |= XCB_CW_OVERRIDE_REDIRECT;
-	value[2] = True;
-
-	value_mask |= XCB_CW_EVENT_MASK;
-	value[3] = XCB_EVENT_MASK_EXPOSURE;
-
-	value_mask |= XCB_CW_COLORMAP;
-	value[4] = cmap;
-
-	_wid = xcb_generate_id(_ctx->dpy()->xcb());
-	xcb_create_window(_ctx->dpy()->xcb(), _ctx->dpy()->root_depth(), _wid, _ctx->dpy()->root(), _position.x, _position.y, _position.w, _position.h, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT, _ctx->dpy()->root_visual()->visual_id, value_mask, value);
-
-
-	_pix = xcb_generate_id(_ctx->dpy()->xcb());
-	xcb_create_pixmap(_ctx->dpy()->xcb(), _ctx->dpy()->root_depth(), _pix, _wid, _position.w, _position.h);
-	_surf = cairo_xcb_surface_create(_ctx->dpy()->xcb(), _pix, _ctx->dpy()->root_visual(), _position.w, _position.h);
+//	xcb_colormap_t cmap = xcb_generate_id(_ctx->dpy()->xcb());
+//	xcb_create_colormap(_ctx->dpy()->xcb(), XCB_COLORMAP_ALLOC_NONE, cmap, _ctx->dpy()->root(), _ctx->dpy()->root_visual()->visual_id);
+//
+//	uint32_t value_mask = 0;
+//	uint32_t value[5];
+//
+//	value_mask |= XCB_CW_BACK_PIXEL;
+//	value[0] = _ctx->dpy()->xcb_screen()->black_pixel;
+//
+//	value_mask |= XCB_CW_BORDER_PIXEL;
+//	value[1] = _ctx->dpy()->xcb_screen()->black_pixel;
+//
+//	value_mask |= XCB_CW_OVERRIDE_REDIRECT;
+//	value[2] = True;
+//
+//	value_mask |= XCB_CW_EVENT_MASK;
+//	value[3] = XCB_EVENT_MASK_EXPOSURE;
+//
+//	value_mask |= XCB_CW_COLORMAP;
+//	value[4] = cmap;
+//
+//	_wid = xcb_generate_id(_ctx->dpy()->xcb());
+//	xcb_create_window(_ctx->dpy()->xcb(), _ctx->dpy()->root_depth(), _wid, _ctx->dpy()->root(), _position.x, _position.y, _position.w, _position.h, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT, _ctx->dpy()->root_visual()->visual_id, value_mask, value);
+//
+//
+//	_pix = xcb_generate_id(_ctx->dpy()->xcb());
+//	xcb_create_pixmap(_ctx->dpy()->xcb(), _ctx->dpy()->root_depth(), _pix, _wid, _position.w, _position.h);
+//	_surf = cairo_xcb_surface_create(_ctx->dpy()->xcb(), _pix, _ctx->dpy()->root_visual(), _position.w, _position.h);
 
 }
 
 dropdown_menu_overlay_t::~dropdown_menu_overlay_t()
 {
-	cairo_surface_destroy(_surf);
-	xcb_free_pixmap(_ctx->dpy()->xcb(), _pix);
-	xcb_destroy_window(_ctx->dpy()->xcb(), _wid);
+//	cairo_surface_destroy(_surf);
+//	xcb_free_pixmap(_ctx->dpy()->xcb(), _pix);
+//	xcb_destroy_window(_ctx->dpy()->xcb(), _wid);
 }
 
 void dropdown_menu_overlay_t::map()
 {
-	_ctx->dpy()->map(_wid);
+	//_ctx->dpy()->map(_wid);
 }
 
 rect const & dropdown_menu_overlay_t::position()
@@ -109,29 +109,29 @@ xcb_window_t dropdown_menu_overlay_t::id() const
 
 void dropdown_menu_overlay_t::expose()
 {
-	cairo_surface_t * surf = cairo_xcb_surface_create(_ctx->dpy()->xcb(),
-			_wid, _ctx->dpy()->root_visual(), _position.w, _position.h);
-	cairo_t * cr = cairo_create(surf);
-	cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
-	cairo_set_source_surface(cr, _surf, 0.0, 0.0);
-	cairo_rectangle(cr, 0, 0, _position.w, _position.h);
-	cairo_fill(cr);
-	cairo_destroy(cr);
-	cairo_surface_destroy(surf);
+//	cairo_surface_t * surf = cairo_xcb_surface_create(_ctx->dpy()->xcb(),
+//			_wid, _ctx->dpy()->root_visual(), _position.w, _position.h);
+//	cairo_t * cr = cairo_create(surf);
+//	cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+//	cairo_set_source_surface(cr, _surf, 0.0, 0.0);
+//	cairo_rectangle(cr, 0, 0, _position.w, _position.h);
+//	cairo_fill(cr);
+//	cairo_destroy(cr);
+//	cairo_surface_destroy(surf);
 }
 
 void dropdown_menu_overlay_t::expose(region const & r)
 {
-	cairo_surface_t * surf = cairo_xcb_surface_create(_ctx->dpy()->xcb(), _wid, _ctx->dpy()->root_visual(), _position.w, _position.h);
-	cairo_t * cr = cairo_create(surf);
-	for(auto a: r.rects()) {
-		cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
-		cairo_set_source_surface(cr, _surf, 0.0, 0.0);
-		cairo_rectangle(cr, a.x, a.y, a.w, a.h);
-		cairo_fill(cr);
-	}
-	cairo_destroy(cr);
-	cairo_surface_destroy(surf);
+//	cairo_surface_t * surf = cairo_xcb_surface_create(_ctx->dpy()->xcb(), _wid, _ctx->dpy()->root_visual(), _position.w, _position.h);
+//	cairo_t * cr = cairo_create(surf);
+//	for(auto a: r.rects()) {
+//		cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+//		cairo_set_source_surface(cr, _surf, 0.0, 0.0);
+//		cairo_rectangle(cr, a.x, a.y, a.w, a.h);
+//		cairo_fill(cr);
+//	}
+//	cairo_destroy(cr);
+//	cairo_surface_destroy(surf);
 }
 
 /**

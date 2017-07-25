@@ -95,8 +95,6 @@ class client_proxy_t;
 class workspace_t;
 class mainloop_t;
 
-class pixmap_t;
-
 class view_fullscreen_t;
 
 

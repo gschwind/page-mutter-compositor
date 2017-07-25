@@ -34,13 +34,12 @@ class viewport_t: public page_component_t {
 
 	region _damaged;
 
-	xcb_window_t _win;
-
 	bool _is_durty;
 	bool _exposed;
 
 	/** rendering tabs is time consuming, thus use back buffer **/
-	shared_ptr<pixmap_t> _back_surf;
+	ClutterContent * _canvas;
+	ClutterActor * _default_view;
 
 	/** area without considering dock windows **/
 	rect _raw_aera;
@@ -58,11 +57,12 @@ class viewport_t: public page_component_t {
 	void set_effective_area(rect const & area);
 	auto page_area() const -> rect const &;
 
-	void destroy_renderable();
 	void update_renderable();
-	void create_window();
 	void _redraw_back_buffer();
+	void draw(cairo_t * cr, int width, int height);
 	void paint_expose();
+
+	static gboolean wrapper_draw_callback(ClutterCanvas *canvas, cairo_t *cr, int width, int height, gpointer user_data);
 
 public:
 
@@ -82,7 +82,7 @@ public:
 	virtual void remove(tree_p t) override;
 
 	virtual void update_layout(time64_t const time);
-	virtual void render(cairo_t * cr, region const & area);
+	//virtual void render(cairo_t * cr, region const & area);
 	virtual void render_finished();
 	virtual void reconfigure() override;
 	virtual void on_workspace_enable() override;

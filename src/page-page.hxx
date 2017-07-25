@@ -18,13 +18,10 @@
 #include <array>
 
 #include "page-time.hxx"
-#include "page-display.hxx"
-#include "page-compositor.hxx"
 
 #include "page-config-handler.hxx"
 
 #include "page-key-desc.hxx"
-#include "page-keymap.hxx"
 
 #include "page-theme.hxx"
 
@@ -41,7 +38,6 @@
 #include "page-split.hxx"
 #include "page-viewport.hxx"
 #include "page-workspace.hxx"
-#include "page-compositor-overlay.hxx"
 
 #include "page-page-event.hxx"
 
@@ -99,8 +95,6 @@ class page_t : public connectable_t {
 
 	mainloop_t _mainloop;
 
-	shared_ptr<compositor_overlay_t> _fps_overlay;
-
 	unsigned int _current_workspace;
 	vector<shared_ptr<workspace_t>> _workspace_list;
 
@@ -124,8 +118,8 @@ public:
 	/** window that handle page identity for others clients */
 	xcb_window_t identity_window;
 
-	display_t * _dpy;
-	compositor_t * _compositor;
+	MetaPlugin * _plugin;
+	MetaDisplay * _dpy;
 	theme_t * _theme;
 
 	page_configuration_t configuration;
@@ -153,8 +147,6 @@ public:
 	key_desc_t bind_bind_window;
 	key_desc_t bind_fullscreen_window;
 	key_desc_t bind_float_window;
-
-	keymap_t * _keymap;
 
 	key_desc_t bind_debug_1;
 	key_desc_t bind_debug_2;
@@ -184,20 +176,37 @@ private:
 	page_t(page_t const &);
 	page_t &operator=(page_t const &);
 
-	/** short cut **/
-	xcb_atom_t A(atom_e atom);
-
 public:
-	page_t(int argc, char ** argv);
+	page_t(MetaPlugin * cnx);
 	virtual ~page_t();
 
 	void set_default_pop(shared_ptr<notebook_t> x);
-	compositor_t * get_render_context();
-	display_t * get_xconnection();
-
 
 	/* run page main loop */
 	void run();
+
+
+	// Plugin API
+
+	void start();
+	void minimize(MetaWindowActor * actor);
+	void unminimize(MetaWindowActor * actor);
+	void size_change(MetaWindowActor * window_actor, MetaSizeChange which_change, MetaRectangle * old_frame_rect, MetaRectangle * old_buffer_rect);
+	void on_position_changed(MetaWindow * w, guint user_data);
+	void xmap(MetaWindowActor * window_actor);
+	void destroy(MetaWindowActor * actor);
+	void switch_workspace(gint from, gint to, MetaMotionDirection direction);
+	void show_tile_preview(MetaWindow * window, MetaRectangle *tile_rect, int tile_monitor_number);
+	void hide_tile_preview();
+	void show_window_menu(MetaWindow * window, MetaWindowMenuType menu, int x, int y);
+	void show_window_menu_for_rect(MetaWindow * window, MetaWindowMenuType menu, MetaRectangle * rect);
+	void kill_window_effects(MetaWindowActor * actor);
+	void kill_switch_workspace();
+	auto xevent_filter(XEvent * event) -> gboolean;
+	auto keybinding_filter(MetaKeyBinding * binding) -> gboolean;
+	void confirm_display_change();
+	auto plugin_info() -> MetaPluginInfo const *;
+
 
 	/* scan current root window status, finding mapped windows */
 //	void scan();
@@ -254,7 +263,6 @@ public:
 	//void update_client_list_stacking();
 
 	/* update _NET_SUPPORTED */
-	void update_net_supported();
 
 	/* unmanage a managed window */
 	void unmanage(client_managed_p mw);
@@ -382,8 +390,7 @@ public:
 
 	auto conf() const -> page_configuration_t const &;
 	auto theme() const -> theme_t const *;
-	auto dpy() const -> display_t *;
-	auto cmp() const -> compositor_t *;
+	auto dpy() const -> MetaDisplay *;
 	void overlay_add(shared_ptr<tree_t> x);
 	void add_global_damage(region const & r);
 	auto find_mouse_viewport(int x, int y) const -> shared_ptr<viewport_t>;
@@ -405,7 +412,6 @@ public:
 	int  top_most_border();
 	auto global_client_focus_history() -> list<view_w>;
 	auto net_client_list() -> list<client_managed_p> const &;
-	auto keymap() const -> keymap_t const *;
 	auto create_view(xcb_window_t w) -> shared_ptr<client_view_t>;
 	void make_surface_stats(int & size, int & count);
 	auto mainloop() -> mainloop_t *;

@@ -26,16 +26,13 @@ split_t::split_t(tree_t * ref, split_type_e type) :
 		_ctx{ref->_root->_ctx},
 		_type{type},
 		_ratio{0.5},
-		_has_mouse_over{false},
-		_wid{XCB_WINDOW_NONE}
+		_has_mouse_over{false}
 {
 
 }
 
 split_t::~split_t() {
-	if(_wid != XCB_WINDOW_NONE) {
-		xcb_destroy_window(_ctx->dpy()->xcb(), _wid);
-	}
+
 }
 
 void split_t::set_allocation(rect const & allocation) {
@@ -166,19 +163,6 @@ void split_t::update_allocation() {
 	if(_pack1 != nullptr)
 		_pack1->set_allocation(_bpack1);
 
-	if(_wid == XCB_WINDOW_NONE and get_component_xid() != XCB_WINDOW_NONE) {
-		uint32_t cursor;
-		if(_type == VERTICAL_SPLIT) {
-			cursor = _ctx->dpy()->xc_sb_h_double_arrow;
-		} else {
-			cursor = _ctx->dpy()->xc_sb_v_double_arrow;
-		}
-		_wid = _ctx->dpy()->create_input_only_window(get_component_xid(), _split_bar_area, XCB_CW_CURSOR, &cursor);
-		_ctx->dpy()->map(_wid);
-	}
-
-	_ctx->dpy()->move_resize(_wid, _split_bar_area);
-
 }
 
 void split_t::set_pack0(shared_ptr<page_component_t> x) {
@@ -255,15 +239,15 @@ rect split_t::compute_split_bar_location() const {
 
 auto split_t::button_press(xcb_button_press_event_t const * e)  -> button_action_e
 {
-	if (e->event == get_component_xid()
-			and e->child == _wid
-			and e->detail == XCB_BUTTON_INDEX_1
-			and _split_bar_area.is_inside(e->event_x, e->event_y)) {
-		_ctx->grab_start(make_shared<grab_split_t>(_ctx, shared_from_this()), e->time);
-		return BUTTON_ACTION_HAS_ACTIVE_GRAB;
-	} else {
-		return BUTTON_ACTION_CONTINUE;
-	}
+//	if (e->event == get_component_xid()
+//			and e->child == _wid
+//			and e->detail == XCB_BUTTON_INDEX_1
+//			and _split_bar_area.is_inside(e->event_x, e->event_y)) {
+//		_ctx->grab_start(make_shared<grab_split_t>(_ctx, shared_from_this()), e->time);
+//		return BUTTON_ACTION_HAS_ACTIVE_GRAB;
+//	} else {
+//		return BUTTON_ACTION_CONTINUE;
+//	}
 }
 
 shared_ptr<split_t> split_t::shared_from_this() {
@@ -351,13 +335,13 @@ bool split_t::button_motion(xcb_motion_notify_event_t const * ev) {
 		return false;
 	}
 
-	if(ev->child != _wid) {
-		if(_has_mouse_over) {
-			_has_mouse_over = false;
-			queue_redraw();
-		}
-		return false;
-	}
+//	if(ev->child != _wid) {
+//		if(_has_mouse_over) {
+//			_has_mouse_over = false;
+//			queue_redraw();
+//		}
+//		return false;
+//	}
 
 	if(_split_bar_area.is_inside(ev->event_x, ev->event_y)) {
 		if(not _has_mouse_over) {

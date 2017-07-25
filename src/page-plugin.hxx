@@ -25,6 +25,8 @@ extern "C" {
 #include <meta/meta-plugin.h>
 }
 
+#include "page-page-types.hxx"
+
 G_BEGIN_DECLS
 
 /*
@@ -59,6 +61,8 @@ struct _PagePluginClass
 struct _PagePluginPrivate
 {
   MetaPluginInfo         info;
+  page::page_t * core;
+
 };
 
 GType page_plugin_get_type(void);

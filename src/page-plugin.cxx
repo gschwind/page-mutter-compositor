@@ -20,6 +20,7 @@
 
 
 #include "page-plugin.hxx"
+#include "page-page.hxx"
 
 #include <clutter/clutter.h>
 
@@ -91,63 +92,67 @@ on_button_release_event(ClutterActor *actor,
 
 static void start(MetaPlugin * plugin)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
-	PagePlugin * self = PAGE_PLUGIN(plugin);
-	MetaScreen * screen = meta_plugin_get_screen(plugin);
-	auto stage = meta_get_stage_for_screen(screen);
+	PAGE_PLUGIN(plugin)->priv->core->start();
 
-	ClutterColor actor_color = { 0, 255, 0, 255 };
-	auto rect = clutter_actor_new();
-	clutter_actor_set_background_color(rect, &actor_color);
-	clutter_actor_set_size(rect, 100, 100);
-	clutter_actor_set_position(rect, 100, 100);
-	clutter_actor_add_child(stage, rect);
-	clutter_actor_show(rect);
-	clutter_actor_set_rotation_angle(rect, CLUTTER_Z_AXIS, 60);
-	clutter_actor_set_reactive(rect, TRUE);
-
-	g_signal_connect(rect, "enter-event", G_CALLBACK(on_rect_enter), NULL);
-	g_signal_connect(rect, "leave-event", G_CALLBACK(on_rect_leave), NULL);
-	g_signal_connect(rect, "button-press-event", G_CALLBACK(on_button_press_event), NULL);
-	g_signal_connect(rect, "button-release-event", G_CALLBACK(on_button_release_event), NULL);
-
-	clutter_actor_show(stage);
+//	printf("call %s\n", __PRETTY_FUNCTION__);
+//	PagePlugin * self = PAGE_PLUGIN(plugin);
+//	MetaScreen * screen = meta_plugin_get_screen(plugin);
+//	auto stage = meta_get_stage_for_screen(screen);
+//
+//	ClutterColor actor_color = { 0, 255, 0, 255 };
+//	auto rect = clutter_actor_new();
+//	clutter_actor_set_background_color(rect, &actor_color);
+//	clutter_actor_set_size(rect, 100, 100);
+//	clutter_actor_set_position(rect, 100, 100);
+//	clutter_actor_add_child(stage, rect);
+//	clutter_actor_show(rect);
+//	clutter_actor_set_rotation_angle(rect, CLUTTER_Z_AXIS, 60);
+//	clutter_actor_set_reactive(rect, TRUE);
+//
+//	g_signal_connect(rect, "enter-event", G_CALLBACK(on_rect_enter), NULL);
+//	g_signal_connect(rect, "leave-event", G_CALLBACK(on_rect_leave), NULL);
+//	g_signal_connect(rect, "button-press-event", G_CALLBACK(on_button_press_event), NULL);
+//	g_signal_connect(rect, "button-release-event", G_CALLBACK(on_button_release_event), NULL);
+//
+//	clutter_actor_show(stage);
 }
 
 static void minimize(MetaPlugin * plugin, MetaWindowActor * actor)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	PAGE_PLUGIN(plugin)->priv->core->minimize(actor);
 }
 
 static void unminimize(MetaPlugin * plugin, MetaWindowActor * actor)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	PAGE_PLUGIN(plugin)->priv->core->unminimize(actor);
 }
 
 static void size_change(MetaPlugin * plugin, MetaWindowActor * window_actor,
 		MetaSizeChange which_change, MetaRectangle * old_frame_rect,
 		MetaRectangle * old_buffer_rect)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
-	auto meta_window = meta_window_actor_get_meta_window(window_actor);
-	auto screen = meta_plugin_get_screen (plugin);
-	auto main_actor = meta_get_stage_for_screen(screen);
+	PAGE_PLUGIN(plugin)->priv->core->size_change(window_actor, which_change, old_frame_rect, old_buffer_rect);
 
-	printf("olf_frame_rect x=%d, y=%d, w=%d, h=%d\n", old_frame_rect->x, old_frame_rect->y, old_frame_rect->width, old_frame_rect->height);
-	printf("old_buffer_rect x=%d, y=%d, w=%d, h=%d\n", old_buffer_rect->x, old_buffer_rect->y, old_buffer_rect->width, old_buffer_rect->height);
-
-	switch(which_change) {
-	case META_SIZE_CHANGE_MAXIMIZE:
-		printf("maximize\n");
-		meta_window_move_resize_frame(meta_window, FALSE, 0, 0, 400, 400);
-		clutter_actor_add_child(main_actor, CLUTTER_ACTOR(window_actor));
-		clutter_actor_show(CLUTTER_ACTOR(window_actor));
-		break;
-	default:
-		break;
-	}
-
-	meta_plugin_size_change_completed(plugin, window_actor);
+//	printf("call %s\n", __PRETTY_FUNCTION__);
+//	auto meta_window = meta_window_actor_get_meta_window(window_actor);
+//	auto screen = meta_plugin_get_screen (plugin);
+//	auto main_actor = meta_get_stage_for_screen(screen);
+//
+//	printf("olf_frame_rect x=%d, y=%d, w=%d, h=%d\n", old_frame_rect->x, old_frame_rect->y, old_frame_rect->width, old_frame_rect->height);
+//	printf("old_buffer_rect x=%d, y=%d, w=%d, h=%d\n", old_buffer_rect->x, old_buffer_rect->y, old_buffer_rect->width, old_buffer_rect->height);
+//
+//	switch(which_change) {
+//	case META_SIZE_CHANGE_MAXIMIZE:
+//		printf("maximize\n");
+//		meta_window_move_resize_frame(meta_window, FALSE, 0, 0, 400, 400);
+//		clutter_actor_add_child(main_actor, CLUTTER_ACTOR(window_actor));
+//		clutter_actor_show(CLUTTER_ACTOR(window_actor));
+//		break;
+//	default:
+//		break;
+//	}
+//
+//	meta_plugin_size_change_completed(plugin, window_actor);
 }
 
 static void on_position_changed(MetaWindow * w, guint user_data) {
@@ -157,97 +162,96 @@ static void on_position_changed(MetaWindow * w, guint user_data) {
 
 static void map(MetaPlugin * plugin, MetaWindowActor * window_actor)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
-	MetaWindowType type;
-	ClutterActor * actor = CLUTTER_ACTOR(window_actor);
-	MetaWindow *meta_window = meta_window_actor_get_meta_window(window_actor);
+	PAGE_PLUGIN(plugin)->priv->core->xmap(window_actor);
 
-	auto screen = meta_plugin_get_screen (plugin);
-	auto main_actor = meta_get_stage_for_screen(screen);
-
-	type = meta_window_get_window_type(meta_window);
-
-	if (type == META_WINDOW_NORMAL) {
-		printf("normal window\n");
-
-		g_signal_connect(meta_window, "position-changed", G_CALLBACK(on_position_changed), NULL);
-
-		//meta_window_maximize(meta_window, META_MAXIMIZE_BOTH);
-		meta_window_move_resize_frame(meta_window, FALSE, 0, 0, 400, 400);
-		meta_plugin_map_completed(plugin, window_actor);
-	} else
-		meta_plugin_map_completed(plugin, window_actor);
+//	printf("call %s\n", __PRETTY_FUNCTION__);
+//	MetaWindowType type;
+//	ClutterActor * actor = CLUTTER_ACTOR(window_actor);
+//	MetaWindow *meta_window = meta_window_actor_get_meta_window(window_actor);
+//
+//	auto screen = meta_plugin_get_screen (plugin);
+//	auto main_actor = meta_get_stage_for_screen(screen);
+//
+//	type = meta_window_get_window_type(meta_window);
+//
+//	if (type == META_WINDOW_NORMAL) {
+//		printf("normal window\n");
+//
+//		g_signal_connect(meta_window, "position-changed", G_CALLBACK(on_position_changed), NULL);
+//
+//		//meta_window_maximize(meta_window, META_MAXIMIZE_BOTH);
+//		meta_window_move_resize_frame(meta_window, FALSE, 0, 0, 400, 400);
+//		meta_plugin_map_completed(plugin, window_actor);
+//	} else
+//		meta_plugin_map_completed(plugin, window_actor);
 }
 
 
 static void destroy(MetaPlugin * plugin, MetaWindowActor * actor)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
-	meta_plugin_destroy_completed(plugin, actor);
+	PAGE_PLUGIN(plugin)->priv->core->destroy(actor);
+//	printf("call %s\n", __PRETTY_FUNCTION__);
+//	meta_plugin_destroy_completed(plugin, actor);
 }
 
 static void switch_workspace(MetaPlugin * plugin, gint from, gint to,
 		MetaMotionDirection direction)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	PAGE_PLUGIN(plugin)->priv->core->switch_workspace(from, to, direction);
 }
 
 static void show_tile_preview(MetaPlugin * plugin, MetaWindow * window,
 		MetaRectangle *tile_rect, int tile_monitor_number)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	PAGE_PLUGIN(plugin)->priv->core->show_tile_preview(window, tile_rect, tile_monitor_number);
 }
 
 static void hide_tile_preview(MetaPlugin * plugin)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	PAGE_PLUGIN(plugin)->priv->core->hide_tile_preview();
 }
 
 static void show_window_menu(MetaPlugin * plugin, MetaWindow * window,
 		MetaWindowMenuType menu, int x, int y)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	PAGE_PLUGIN(plugin)->priv->core->show_window_menu(window, menu, x, y);
 }
 
 static void show_window_menu_for_rect(MetaPlugin * plugin, MetaWindow * window,
 		MetaWindowMenuType menu, MetaRectangle * rect)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	PAGE_PLUGIN(plugin)->priv->core->show_window_menu_for_rect(window, menu, rect);
 }
 
 static void kill_window_effects(MetaPlugin * plugin, MetaWindowActor * actor)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	PAGE_PLUGIN(plugin)->priv->core->kill_window_effects(actor);
 }
 
 static void kill_switch_workspace(MetaPlugin * plugin)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	PAGE_PLUGIN(plugin)->priv->core->kill_switch_workspace();
 }
 
 static gboolean xevent_filter(MetaPlugin * plugin, XEvent * event)
 {
-	//printf("call %s\n", __PRETTY_FUNCTION__);
-	return FALSE;
+	return PAGE_PLUGIN(plugin)->priv->core->xevent_filter(event);
 }
 
 static gboolean keybinding_filter(MetaPlugin * plugin, MetaKeyBinding * binding)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
-	return FALSE;
+	return PAGE_PLUGIN(plugin)->priv->core->keybinding_filter(binding);
 }
 
 static void confirm_display_change(MetaPlugin * plugin)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	PAGE_PLUGIN(plugin)->priv->core->confirm_display_change();
 }
 
 
 static MetaPluginInfo const * plugin_info(MetaPlugin * plugin)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
-	PagePluginPrivate *priv = PAGE_PLUGIN(plugin)->priv;
-	return &priv->info;
+	return PAGE_PLUGIN(plugin)->priv->core->plugin_info();
 }
 
 }
@@ -297,4 +301,7 @@ page_plugin_init (PagePlugin * self)
 	  priv->info.author      = "Benoit Gschwind <gschwind@gnu-log.net>";
 	  priv->info.license     = "GPLv3";
 	  priv->info.description = "Tiling window manager";
+
+	  priv->core = new page::page_t(META_PLUGIN(self));
+
 }

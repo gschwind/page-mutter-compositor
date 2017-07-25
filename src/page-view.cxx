@@ -21,7 +21,6 @@
 #include "page-view.hxx"
 
 #include "page-tree.hxx"
-#include "page-client-proxy.hxx"
 #include "page-client-managed.hxx"
 #include "page-workspace.hxx"
 #include "page-page.hxx"
@@ -46,7 +45,7 @@ view_t::view_t(tree_t * ref, client_managed_p client) :
 	push_back(_popup);
 	push_back(_transiant);
 
-	_client->net_wm_state_remove(_NET_WM_STATE_FOCUSED);
+//	_client->net_wm_state_remove(_NET_WM_STATE_FOCUSED);
 	//_grab_button_unfocused_unsafe();
 
 }
@@ -346,33 +345,33 @@ void view_t::update_layout(time64_t const time)
 	if (not _is_visible)
 		return;
 
-	/** update damage_cache **/
-	region dmg = _client_view->get_damaged();
-	dmg.translate(_client->_absolute_position.x, _client->_absolute_position.y);
-	_damage_cache += dmg;
-	_client_view->clear_damaged();
+//	/** update damage_cache **/
+//	region dmg = _client_view->get_damaged();
+//	dmg.translate(_client->_absolute_position.x, _client->_absolute_position.y);
+//	_damage_cache += dmg;
+//	_client_view->clear_damaged();
 
 }
 
 void view_t::render(cairo_t * cr, region const & area)
 {
-	auto pix = _client_view->get_pixmap();
-
-	if (pix != nullptr) {
-		cairo_save(cr);
-		cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
-		cairo_set_source_surface(cr, pix->get_cairo_surface(),
-				_client->_absolute_position.x,
-				_client->_absolute_position.y);
-		region r = get_visible_region() & area;
-		for (auto &i : r.rects()) {
-			cairo_clip(cr, i);
-			cairo_mask_surface(cr, pix->get_cairo_surface(),
-					_client->_absolute_position.x,
-					_client->_absolute_position.y);
-		}
-		cairo_restore(cr);
-	}
+//	auto pix = _client_view->get_pixmap();
+//
+//	if (pix != nullptr) {
+//		cairo_save(cr);
+//		cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+//		cairo_set_source_surface(cr, pix->get_cairo_surface(),
+//				_client->_absolute_position.x,
+//				_client->_absolute_position.y);
+//		region r = get_visible_region() & area;
+//		for (auto &i : r.rects()) {
+//			cairo_clip(cr, i);
+//			cairo_mask_surface(cr, pix->get_cairo_surface(),
+//					_client->_absolute_position.x,
+//					_client->_absolute_position.y);
+//		}
+//		cairo_restore(cr);
+//	}
 }
 
 void view_t::render_finished()

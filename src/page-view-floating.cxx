@@ -29,10 +29,6 @@ view_floating_t::view_floating_t(tree_t * ref, client_managed_p client) :
 		view_rebased_t{ref, client},
 		_deco{XCB_WINDOW_NONE},
 		_surf{nullptr},
-		_top_buffer{nullptr},
-		_bottom_buffer{nullptr},
-		_left_buffer{nullptr},
-		_right_buffer{nullptr},
 		_is_resized{true},
 		_is_exposed{true},
 		_has_change{true}
@@ -44,10 +40,6 @@ view_floating_t::view_floating_t(view_rebased_t * src) :
 	view_rebased_t{src},
 	_deco{XCB_WINDOW_NONE},
 	_surf{nullptr},
-	_top_buffer{nullptr},
-	_bottom_buffer{nullptr},
-	_left_buffer{nullptr},
-	_right_buffer{nullptr},
 	_is_resized{true},
 	_is_exposed{true},
 	_has_change{true}
@@ -58,7 +50,7 @@ view_floating_t::view_floating_t(view_rebased_t * src) :
 view_floating_t::~view_floating_t()
 {
 	auto _dpy = _root->_ctx->_dpy;
-	auto _xcb = _dpy->xcb();
+//	auto _xcb = _dpy->xcb();
 
 	if (_surf != nullptr) {
 		warn(cairo_surface_get_reference_count(_surf) == 1);
@@ -68,17 +60,17 @@ view_floating_t::~view_floating_t()
 
 	_destroy_back_buffer();
 
-	xcb_destroy_window(_xcb, _input_top);
-	xcb_destroy_window(_xcb, _input_left);
-	xcb_destroy_window(_xcb, _input_right);
-	xcb_destroy_window(_xcb, _input_bottom);
-	xcb_destroy_window(_xcb, _input_top_left);
-	xcb_destroy_window(_xcb, _input_top_right);
-	xcb_destroy_window(_xcb, _input_bottom_left);
-	xcb_destroy_window(_xcb, _input_bottom_right);
-	xcb_destroy_window(_xcb, _input_center);
-
-	xcb_destroy_window(_xcb, _deco);
+//	xcb_destroy_window(_xcb, _input_top);
+//	xcb_destroy_window(_xcb, _input_left);
+//	xcb_destroy_window(_xcb, _input_right);
+//	xcb_destroy_window(_xcb, _input_bottom);
+//	xcb_destroy_window(_xcb, _input_top_left);
+//	xcb_destroy_window(_xcb, _input_top_right);
+//	xcb_destroy_window(_xcb, _input_bottom_left);
+//	xcb_destroy_window(_xcb, _input_bottom_right);
+//	xcb_destroy_window(_xcb, _input_center);
+//
+//	xcb_destroy_window(_xcb, _deco);
 
 	_root->_ctx->_page_windows.erase(_input_top);
 	_root->_ctx->_page_windows.erase(_input_left);
@@ -142,15 +134,15 @@ void view_floating_t::_init()
 	_create_deco_windows();
 	_create_inputs_windows();
 
-	auto _dpy = _root->_ctx->_dpy;
-	auto _xcb = _root->_ctx->_dpy->xcb();
-	_surf = cairo_xcb_surface_create(_dpy->xcb(), _deco,
-			_dpy->find_visual(_base->_visual),
-			_client->_floating_wished_position.w,
-			_client->_floating_wished_position.h);
-
-	_grab_button_unsafe();
-	xcb_flush(_root->_ctx->_dpy->xcb());
+//	auto _dpy = _root->_ctx->_dpy;
+//	auto _xcb = _root->_ctx->_dpy->xcb();
+//	_surf = cairo_xcb_surface_create(_dpy->xcb(), _deco,
+//			_dpy->find_visual(_base->_visual),
+//			_client->_floating_wished_position.w,
+//			_client->_floating_wished_position.h);
+//
+//	_grab_button_unsafe();
+//	xcb_flush(_root->_ctx->_dpy->xcb());
 
 }
 
@@ -268,10 +260,7 @@ void view_floating_t::_create_back_buffer() {
 
 void view_floating_t::_destroy_back_buffer()
 {
-	_top_buffer = nullptr;
-	_bottom_buffer = nullptr;
-	_left_buffer = nullptr;
-	_right_buffer = nullptr;
+
 }
 
 void view_floating_t::_update_floating_areas() {
@@ -423,99 +412,99 @@ void view_floating_t::_update_backbuffers() {
 
 void view_floating_t::_reconfigure_deco_windows()
 {
-	auto _ctx = _root->_ctx;
-	auto _dpy = _ctx->_dpy;
-
-	if (not _root->is_enable()) {
-		return;
-	}
-
-	_dpy->move_resize(_deco, rect { 0, 0, _base_position.w, _base_position.h });
-
-	if (_is_visible) {
-		_map_windows_unsafe();
-		_create_back_buffer();
-	} else {
-		_destroy_back_buffer();
-	}
+//	auto _ctx = _root->_ctx;
+//	auto _dpy = _ctx->_dpy;
+//
+//	if (not _root->is_enable()) {
+//		return;
+//	}
+//
+//	_dpy->move_resize(_deco, rect { 0, 0, _base_position.w, _base_position.h });
+//
+//	if (_is_visible) {
+//		_map_windows_unsafe();
+//		_create_back_buffer();
+//	} else {
+//		_destroy_back_buffer();
+//	}
 }
 
 void view_floating_t::_reconfigure_input_windows()
 {
-	auto _dpy = _root->_ctx->_dpy;
-	_dpy->move_resize(_input_top, _area_top);
-	_dpy->move_resize(_input_bottom, _area_bottom);
-	_dpy->move_resize(_input_right, _area_right);
-	_dpy->move_resize(_input_left, _area_left);
-
-	_dpy->move_resize(_input_top_left, _area_top_left);
-	_dpy->move_resize(_input_top_right, _area_top_right);
-	_dpy->move_resize(_input_bottom_left, _area_bottom_left);
-	_dpy->move_resize(_input_bottom_right, _area_bottom_right);
-
-	_dpy->move_resize(_input_center, _area_center);
+//	auto _dpy = _root->_ctx->_dpy;
+//	_dpy->move_resize(_input_top, _area_top);
+//	_dpy->move_resize(_input_bottom, _area_bottom);
+//	_dpy->move_resize(_input_right, _area_right);
+//	_dpy->move_resize(_input_left, _area_left);
+//
+//	_dpy->move_resize(_input_top_left, _area_top_left);
+//	_dpy->move_resize(_input_top_right, _area_top_right);
+//	_dpy->move_resize(_input_bottom_left, _area_bottom_left);
+//	_dpy->move_resize(_input_bottom_right, _area_bottom_right);
+//
+//	_dpy->move_resize(_input_center, _area_center);
 }
 
 void view_floating_t::_create_inputs_windows()
 {
-	auto _dpy = _root->_ctx->_dpy;
-	uint32_t cursor;
-	rect r{0, 0, 1, 1};
-
-	cursor = _dpy->xc_top_side;
-	_input_top = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-	cursor = _dpy->xc_bottom_side;
-	_input_bottom = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-	cursor = _dpy->xc_left_side;
-	_input_left = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-	cursor = _dpy->xc_right_side;
-	_input_right = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-
-	cursor = _dpy->xc_top_left_corner;
-	_input_top_left = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-	cursor = _dpy->xc_top_right_corner;
-	_input_top_right = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-	cursor = _dpy->xc_bottom_left_corner;
-	_input_bottom_left = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-	cursor = _dpy->xc_bottom_righ_corner;
-	_input_bottom_right = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-	cursor = _dpy->xc_left_ptr;
-	_input_center = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-
-	_root->_ctx->_page_windows.insert(_input_top);
-	_root->_ctx->_page_windows.insert(_input_left);
-	_root->_ctx->_page_windows.insert(_input_right);
-	_root->_ctx->_page_windows.insert(_input_bottom);
-	_root->_ctx->_page_windows.insert(_input_top_left);
-	_root->_ctx->_page_windows.insert(_input_top_right);
-	_root->_ctx->_page_windows.insert(_input_bottom_left);
-	_root->_ctx->_page_windows.insert(_input_bottom_right);
-	_root->_ctx->_page_windows.insert(_input_center);
+//	auto _dpy = _root->_ctx->_dpy;
+//	uint32_t cursor;
+//	rect r{0, 0, 1, 1};
+//
+//	cursor = _dpy->xc_top_side;
+//	_input_top = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
+//	cursor = _dpy->xc_bottom_side;
+//	_input_bottom = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
+//	cursor = _dpy->xc_left_side;
+//	_input_left = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
+//	cursor = _dpy->xc_right_side;
+//	_input_right = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
+//
+//	cursor = _dpy->xc_top_left_corner;
+//	_input_top_left = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
+//	cursor = _dpy->xc_top_right_corner;
+//	_input_top_right = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
+//	cursor = _dpy->xc_bottom_left_corner;
+//	_input_bottom_left = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
+//	cursor = _dpy->xc_bottom_righ_corner;
+//	_input_bottom_right = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
+//	cursor = _dpy->xc_left_ptr;
+//	_input_center = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
+//
+//	_root->_ctx->_page_windows.insert(_input_top);
+//	_root->_ctx->_page_windows.insert(_input_left);
+//	_root->_ctx->_page_windows.insert(_input_right);
+//	_root->_ctx->_page_windows.insert(_input_bottom);
+//	_root->_ctx->_page_windows.insert(_input_top_left);
+//	_root->_ctx->_page_windows.insert(_input_top_right);
+//	_root->_ctx->_page_windows.insert(_input_bottom_left);
+//	_root->_ctx->_page_windows.insert(_input_bottom_right);
+//	_root->_ctx->_page_windows.insert(_input_center);
 
 }
 
 void view_floating_t::_create_deco_windows()
 {
-	auto _dpy = _root->_ctx->_dpy;
-
-	uint32_t value_mask = 0;
-	uint32_t value[4];
-
-	value_mask |= XCB_CW_BACK_PIXEL;
-	value[0] = _dpy->xcb_screen()->black_pixel;
-
-	value_mask |= XCB_CW_BORDER_PIXEL;
-	value[1] = _dpy->xcb_screen()->black_pixel;
-
-	value_mask |= XCB_CW_OVERRIDE_REDIRECT;
-	value[2] = True;
-
-	value_mask |= XCB_CW_COLORMAP;
-	value[3] = _base->_colormap;
-
-	_deco = xcb_generate_id(_dpy->xcb());
-	xcb_create_window(_dpy->xcb(), _base->_depth, _deco, _base->id(), 0, 0, 1, 1, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT, _base->_visual, value_mask, value);
-	_root->_ctx->_page_windows.insert(_deco);
+//	auto _dpy = _root->_ctx->_dpy;
+//
+//	uint32_t value_mask = 0;
+//	uint32_t value[4];
+//
+//	value_mask |= XCB_CW_BACK_PIXEL;
+//	value[0] = _dpy->xcb_screen()->black_pixel;
+//
+//	value_mask |= XCB_CW_BORDER_PIXEL;
+//	value[1] = _dpy->xcb_screen()->black_pixel;
+//
+//	value_mask |= XCB_CW_OVERRIDE_REDIRECT;
+//	value[2] = True;
+//
+//	value_mask |= XCB_CW_COLORMAP;
+//	value[3] = _base->_colormap;
+//
+//	_deco = xcb_generate_id(_dpy->xcb());
+//	xcb_create_window(_dpy->xcb(), _base->_depth, _deco, _base->id(), 0, 0, 1, 1, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT, _base->_visual, value_mask, value);
+//	_root->_ctx->_page_windows.insert(_deco);
 
 }
 
@@ -523,40 +512,40 @@ void view_floating_t::_map_windows_unsafe()
 {
 	auto _dpy = _root->_ctx->_dpy;
 
-	_dpy->map(_input_top);
-	_dpy->map(_input_left);
-	_dpy->map(_input_right);
-	_dpy->map(_input_bottom);
-
-	_dpy->map(_input_top_left);
-	_dpy->map(_input_top_right);
-	_dpy->map(_input_bottom_left);
-	_dpy->map(_input_bottom_right);
-
-	_dpy->map(_input_center);
-
-	_dpy->map(_deco);
-	_base->_window->xmap();
+//	_dpy->map(_input_top);
+//	_dpy->map(_input_left);
+//	_dpy->map(_input_right);
+//	_dpy->map(_input_bottom);
+//
+//	_dpy->map(_input_top_left);
+//	_dpy->map(_input_top_right);
+//	_dpy->map(_input_bottom_left);
+//	_dpy->map(_input_bottom_right);
+//
+//	_dpy->map(_input_center);
+//
+//	_dpy->map(_deco);
+//	_base->_window->xmap();
 }
 
 void view_floating_t::_unmap_windows_unsafe()
 {
 	auto _dpy = _root->_ctx->_dpy;
 
-	_dpy->unmap(_input_top);
-	_dpy->unmap(_input_left);
-	_dpy->unmap(_input_right);
-	_dpy->unmap(_input_bottom);
-
-	_dpy->unmap(_input_top_left);
-	_dpy->unmap(_input_top_right);
-	_dpy->unmap(_input_bottom_left);
-	_dpy->unmap(_input_bottom_right);
-
-	_dpy->unmap(_input_center);
-
-	_base->_window->unmap();
-	_dpy->unmap(_deco);
+//	_dpy->unmap(_input_top);
+//	_dpy->unmap(_input_left);
+//	_dpy->unmap(_input_right);
+//	_dpy->unmap(_input_bottom);
+//
+//	_dpy->unmap(_input_top_left);
+//	_dpy->unmap(_input_top_right);
+//	_dpy->unmap(_input_bottom_left);
+//	_dpy->unmap(_input_bottom_right);
+//
+//	_dpy->unmap(_input_center);
+//
+//	_base->_window->unmap();
+//	_dpy->unmap(_deco);
 }
 
 /**
@@ -570,15 +559,15 @@ void view_floating_t::_grab_button_unsafe() {
 	view_rebased_t::_grab_button_unsafe();
 
 	/** for decoration, grab all **/
-	xcb_grab_button(_dpy->xcb(), true, _deco, DEFAULT_BUTTON_EVENT_MASK,
-			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
-			XCB_NONE, XCB_BUTTON_INDEX_1, XCB_MOD_MASK_ANY);
-	xcb_grab_button(_dpy->xcb(), true, _deco, DEFAULT_BUTTON_EVENT_MASK,
-			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
-			XCB_NONE, XCB_BUTTON_INDEX_2, XCB_MOD_MASK_ANY);
-	xcb_grab_button(_dpy->xcb(), true, _deco, DEFAULT_BUTTON_EVENT_MASK,
-			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
-			XCB_NONE, XCB_BUTTON_INDEX_3, XCB_MOD_MASK_ANY);
+//	xcb_grab_button(_dpy->xcb(), true, _deco, DEFAULT_BUTTON_EVENT_MASK,
+//			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
+//			XCB_NONE, XCB_BUTTON_INDEX_1, XCB_MOD_MASK_ANY);
+//	xcb_grab_button(_dpy->xcb(), true, _deco, DEFAULT_BUTTON_EVENT_MASK,
+//			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
+//			XCB_NONE, XCB_BUTTON_INDEX_2, XCB_MOD_MASK_ANY);
+//	xcb_grab_button(_dpy->xcb(), true, _deco, DEFAULT_BUTTON_EVENT_MASK,
+//			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
+//			XCB_NONE, XCB_BUTTON_INDEX_3, XCB_MOD_MASK_ANY);
 
 }
 
@@ -600,9 +589,9 @@ void view_floating_t::_ungrab_all_button_unsafe() {
  * unsafe: need to lock the _orig window to use it.
  **/
 void view_floating_t::_select_inputs_unsafe() {
-	auto _dpy = _root->_ctx->_dpy;
-	_base->_window->select_input(MANAGED_BASE_WINDOW_EVENT_MASK);
-	_dpy->select_input(_deco, MANAGED_DECO_WINDOW_EVENT_MASK);
+//	auto _dpy = _root->_ctx->_dpy;
+//	_base->_window->select_input(MANAGED_BASE_WINDOW_EVENT_MASK);
+//	_dpy->select_input(_deco, MANAGED_DECO_WINDOW_EVENT_MASK);
 }
 
 /**

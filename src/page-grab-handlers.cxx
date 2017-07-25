@@ -52,15 +52,15 @@ void grab_default_t::key_press(xcb_key_press_event_t const * ev)
 
 void grab_default_t::key_release(xcb_key_release_event_t const * e)
 {
-	/* get KeyCode for Unmodified Key */
-	xcb_keysym_t k = _ctx->keymap()->get(e->detail);
-
-	if (k == 0)
-		return;
-
-	if (XK_Escape == k) {
-		_ctx->grab_stop(e->time);
-	}
+//	/* get KeyCode for Unmodified Key */
+//	xcb_keysym_t k = _ctx->keymap()->get(e->detail);
+//
+//	if (k == 0)
+//		return;
+//
+//	if (XK_Escape == k) {
+//		_ctx->grab_stop(e->time);
+//	}
 
 }
 
@@ -475,7 +475,7 @@ grab_floating_move_t::grab_floating_move_t(page_t * ctx, view_floating_p f, unsi
 	pfm->move_resize(popup_original_position);
 	_ctx->overlay_add(pfm);
 	pfm->show();
-	_ctx->dpy()->set_window_cursor(f->_base->id(), _ctx->dpy()->xc_fleur);
+	//_ctx->dpy()->set_window_cursor(f->_base->id(), _ctx->dpy()->xc_fleur);
 	//_ctx->dpy()->set_window_cursor(f->_client->_client_proxy->id(), _ctx->dpy()->xc_fleur);
 }
 
@@ -520,7 +520,7 @@ void grab_floating_move_t::button_release(xcb_button_release_event_t const * e) 
 
 	if (e->detail == XCB_BUTTON_INDEX_1 or e->detail == XCB_BUTTON_INDEX_3 or e->detail == button) {
 
-		_ctx->dpy()->set_window_cursor(f->_base->id(), XCB_NONE);
+		//_ctx->dpy()->set_window_cursor(f->_base->id(), XCB_NONE);
 
 		//_ctx->dpy()->set_window_cursor(f->_client->_client_proxy->id(), XCB_NONE);
 
@@ -533,32 +533,32 @@ void grab_floating_move_t::button_release(xcb_button_release_event_t const * e) 
 }
 
 xcb_cursor_t grab_floating_resize_t::_get_cursor() {
-	switch(mode) {
-	case RESIZE_TOP:
-		return _ctx->dpy()->xc_top_side;
-		break;
-	case RESIZE_BOTTOM:
-		return _ctx->dpy()->xc_bottom_side;
-		break;
-	case RESIZE_LEFT:
-		return _ctx->dpy()->xc_left_side;
-		break;
-	case RESIZE_RIGHT:
-		return _ctx->dpy()->xc_right_side;
-		break;
-	case RESIZE_TOP_LEFT:
-		return _ctx->dpy()->xc_top_left_corner;
-		break;
-	case RESIZE_TOP_RIGHT:
-		return _ctx->dpy()->xc_top_right_corner;
-		break;
-	case RESIZE_BOTTOM_LEFT:
-		return _ctx->dpy()->xc_bottom_left_corner;
-		break;
-	case RESIZE_BOTTOM_RIGHT:
-		return _ctx->dpy()->xc_bottom_righ_corner;
-		break;
-	}
+//	switch(mode) {
+//	case RESIZE_TOP:
+//		return _ctx->dpy()->xc_top_side;
+//		break;
+//	case RESIZE_BOTTOM:
+//		return _ctx->dpy()->xc_bottom_side;
+//		break;
+//	case RESIZE_LEFT:
+//		return _ctx->dpy()->xc_left_side;
+//		break;
+//	case RESIZE_RIGHT:
+//		return _ctx->dpy()->xc_right_side;
+//		break;
+//	case RESIZE_TOP_LEFT:
+//		return _ctx->dpy()->xc_top_left_corner;
+//		break;
+//	case RESIZE_TOP_RIGHT:
+//		return _ctx->dpy()->xc_top_right_corner;
+//		break;
+//	case RESIZE_BOTTOM_LEFT:
+//		return _ctx->dpy()->xc_bottom_left_corner;
+//		break;
+//	case RESIZE_BOTTOM_RIGHT:
+//		return _ctx->dpy()->xc_bottom_righ_corner;
+//		break;
+//	}
 
 	return XCB_WINDOW_NONE;
 }
@@ -595,7 +595,7 @@ grab_floating_resize_t::grab_floating_resize_t(page_t * ctx, view_floating_p f, 
 	pfm->show();
 
 
-	_ctx->dpy()->set_window_cursor(f->_base->id(), _get_cursor());
+	//_ctx->dpy()->set_window_cursor(f->_base->id(), _get_cursor());
 
 }
 
@@ -723,7 +723,7 @@ void grab_floating_resize_t::button_release(xcb_button_release_event_t const * e
 	auto f = this->f.lock();
 
 	if (e->detail == button) {
-		_ctx->dpy()->set_window_cursor(f->_base->id(), XCB_NONE);
+		//_ctx->dpy()->set_window_cursor(f->_base->id(), XCB_NONE);
 		//_ctx->dpy()->set_window_cursor(f->_client->_client_proxy->id(), XCB_NONE);
 		f->_client->set_floating_wished_position(final_position);
 		f->reconfigure();
@@ -861,75 +861,75 @@ void grab_alt_tab_t::button_motion(xcb_motion_notify_event_t const * e) {
 }
 
 void grab_alt_tab_t::key_press(xcb_key_press_event_t const * e) {
-	/* get KeyCode for Unmodified Key */
-	xcb_keysym_t k = _ctx->keymap()->get(e->detail);
-
-	if (k == 0)
-		return;
-
-	/** XCB_MOD_MASK_2 is num_lock, thus ignore his state **/
-	unsigned int state = e->state;
-	if(_ctx->keymap()->numlock_mod_mask() != 0) {
-		state &= ~(_ctx->keymap()->numlock_mod_mask());
-	}
-
-	if (k == XK_Tab and (state == XCB_MOD_MASK_1)) {
-		if(_selected.expired()) {
-			if(_client_list.size() > 0) {
-				_selected = _client_list.front();
-				for(auto & pat: _popup_list) {
-					pat->selected(_selected);
-				}
-			}
-		} else {
-			auto c = _selected.lock();
-			_selected.reset();
-			auto xc = std::find_if(_client_list.begin(), _client_list.end(),
-				[c](view_w & x) -> bool { return c == x.lock(); });
-
-			if(xc != _client_list.end())
-				++xc;
-			if(xc != _client_list.end()) {
-				_selected = (*xc);
-			}
-
-			for(auto & pat: _popup_list) {
-				pat->selected(_selected);
-			}
-
-			_ctx->schedule_repaint();
-
-		}
-	}
+//	/* get KeyCode for Unmodified Key */
+//	xcb_keysym_t k = _ctx->keymap()->get(e->detail);
+//
+//	if (k == 0)
+//		return;
+//
+//	/** XCB_MOD_MASK_2 is num_lock, thus ignore his state **/
+//	unsigned int state = e->state;
+//	if(_ctx->keymap()->numlock_mod_mask() != 0) {
+//		state &= ~(_ctx->keymap()->numlock_mod_mask());
+//	}
+//
+//	if (k == XK_Tab and (state == XCB_MOD_MASK_1)) {
+//		if(_selected.expired()) {
+//			if(_client_list.size() > 0) {
+//				_selected = _client_list.front();
+//				for(auto & pat: _popup_list) {
+//					pat->selected(_selected);
+//				}
+//			}
+//		} else {
+//			auto c = _selected.lock();
+//			_selected.reset();
+//			auto xc = std::find_if(_client_list.begin(), _client_list.end(),
+//				[c](view_w & x) -> bool { return c == x.lock(); });
+//
+//			if(xc != _client_list.end())
+//				++xc;
+//			if(xc != _client_list.end()) {
+//				_selected = (*xc);
+//			}
+//
+//			for(auto & pat: _popup_list) {
+//				pat->selected(_selected);
+//			}
+//
+//			_ctx->schedule_repaint();
+//
+//		}
+//	}
 }
 
 void grab_alt_tab_t::key_release(xcb_key_release_event_t const * e) {
-	/* get KeyCode for Unmodified Key */
-	xcb_keysym_t k = _ctx->keymap()->get(e->detail);
-
-	if (k == 0)
-		return;
-
-	/** XCB_MOD_MASK_2 is num_lock, thus ignore his state **/
-	unsigned int state = e->state;
-	if(_ctx->keymap()->numlock_mod_mask() != 0) {
-		state &= ~(_ctx->keymap()->numlock_mod_mask());
-	}
-
-	if (XK_Escape == k) {
-		_ctx->grab_stop(e->time);
-		return;
-	}
-
-	/** here we guess Mod1 is bound to Alt **/
-	if (XK_Alt_L == k or XK_Alt_R == k) {
-		if(not _selected.expired()) {
-			auto mw = _selected.lock();
-			_ctx->activate(mw, e->time);
-		}
-		_ctx->grab_stop(e->time);
-		return;
-	}
+//	/* get KeyCode for Unmodified Key */
+//	xcb_keysym_t k = _ctx->keymap()->get(e->detail);
+//
+//	if (k == 0)
+//		return;
+//
+//	/** XCB_MOD_MASK_2 is num_lock, thus ignore his state **/
+//	unsigned int state = e->state;
+//	if(_ctx->keymap()->numlock_mod_mask() != 0) {
+//		state &= ~(_ctx->keymap()->numlock_mod_mask());
+//	}
+//
+//	if (XK_Escape == k) {
+//		_ctx->grab_stop(e->time);
+//		return;
+//	}
+//
+//	/** here we guess Mod1 is bound to Alt **/
+//	if (XK_Alt_L == k or XK_Alt_R == k) {
+//		if(not _selected.expired()) {
+//			auto mw = _selected.lock();
+//			_ctx->activate(mw, e->time);
+//		}
+//		_ctx->grab_stop(e->time);
+//		return;
+//	}
 
 }
 

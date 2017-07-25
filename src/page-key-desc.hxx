@@ -9,7 +9,8 @@
 #define KEY_DESC_HXX_
 
 #include <string>
-
+#include <X11/keysym.h>
+#include <X11/Xlib.h>
 #include "page-exception.hxx"
 
 namespace page {

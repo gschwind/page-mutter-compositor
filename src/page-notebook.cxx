@@ -403,18 +403,18 @@ void notebook_t::render_legacy(cairo_t * cr) {
 void notebook_t::update_layout(time64_t const time) {
 	tree_t::update_layout(time);
 
-	if (fading_notebook != nullptr and time >= (_swap_start + animation_duration)) {
-		/** animation is terminated **/
-		_fading_notebook_layer->remove(fading_notebook);
-		fading_notebook.reset();
-		_ctx->add_global_damage(to_root_position(_allocation));
-	}
-
-	if (fading_notebook != nullptr) {
-		double ratio = (static_cast<double>(time - _swap_start) / static_cast<double const>(animation_duration));
-		fading_notebook->set_ratio(ratio);
-		_ctx->schedule_repaint();
-	}
+//	if (fading_notebook != nullptr and time >= (_swap_start + animation_duration)) {
+//		/** animation is terminated **/
+//		_fading_notebook_layer->remove(fading_notebook);
+//		fading_notebook.reset();
+//		_ctx->add_global_damage(to_root_position(_allocation));
+//	}
+//
+//	if (fading_notebook != nullptr) {
+//		double ratio = (static_cast<double>(time - _swap_start) / static_cast<double const>(animation_duration));
+//		fading_notebook->set_ratio(ratio);
+//		_ctx->schedule_repaint();
+//	}
 }
 
 rect notebook_t::_compute_notebook_bookmark_position() const {
@@ -659,107 +659,104 @@ void notebook_t::_update_theme_notebook(theme_notebook_t & theme_notebook) {
 
 }
 
-shared_ptr<pixmap_t> notebook_t::_render_to_pixmap() {
-
-	/**
-	 * Create image of notebook as it was just before fading start
-	 **/
-	auto pix = make_shared<pixmap_t>(_ctx->dpy(), PIXMAP_RGB, _allocation.w, _allocation.h);
-	cairo_surface_t * surf = pix->get_cairo_surface();
-	cairo_t * cr = cairo_create(surf);
-	cairo_save(cr);
-	cairo_translate(cr, -_allocation.x, -_allocation.y);
-	_ctx->theme()->render_notebook(cr, &_theme_notebook);
-
-	if(_theme_client_tabs.size() > 0) {
-		pixmap_t * pix = new pixmap_t(_ctx->dpy(), PIXMAP_RGBA, _theme_client_tabs.back().position.x + 100, _ctx->theme()->notebook.tab_height);
-		cairo_t * xcr = cairo_create(pix->get_cairo_surface());
-
-		cairo_set_operator(xcr, CAIRO_OPERATOR_SOURCE);
-		cairo_set_source_rgba(xcr, 0.0, 0.0, 0.0, 0.0);
-		cairo_paint(xcr);
-
-		_ctx->theme()->render_iconic_notebook(xcr, _theme_client_tabs);
-		cairo_destroy(xcr);
-
-		cairo_save(cr);
-		cairo_set_source_surface(cr, pix->get_cairo_surface(), _theme_client_tabs_area.x - _theme_client_tabs_offset, _theme_client_tabs_area.y);
-		cairo_clip(cr, _theme_client_tabs_area);
-		cairo_paint(cr);
-
-		cairo_restore(cr);
-		delete pix;
-	}
-
-	cairo_restore(cr);
-
-	/* paste the current window */
-	if (_selected != nullptr) {
-		if (not _selected->is_iconic()) {
-			auto client_view = _selected->create_surface();
-			shared_ptr<pixmap_t> pix = client_view->get_pixmap();
-			if (pix != nullptr) {
-				rect pos = _client_position;
-				rect cl { pos.x-_allocation.x, pos.y-_allocation.y, pos.w, pos.h };
-
-				cairo_reset_clip(cr);
-				cairo_clip(cr, cl);
-				cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
-				cairo_set_source_rgba(cr, 1.0, 1.0, 1.0, 0.0);
-				cairo_set_source_surface(cr, pix->get_cairo_surface(), cl.x, cl.y);
-				cairo_mask_surface(cr, pix->get_cairo_surface(), cl.x, cl.y);
-
-			}
-		}
-	}
-
-	cairo_destroy(cr);
-	cairo_surface_flush(surf);
-
-	return pix;
-}
+//shared_ptr<pixmap_t> notebook_t::_render_to_pixmap() {
+//
+//	/**
+//	 * Create image of notebook as it was just before fading start
+//	 **/
+//	auto pix = make_shared<pixmap_t>(_ctx->dpy(), PIXMAP_RGB, _allocation.w, _allocation.h);
+//	cairo_surface_t * surf = pix->get_cairo_surface();
+//	cairo_t * cr = cairo_create(surf);
+//	cairo_save(cr);
+//	cairo_translate(cr, -_allocation.x, -_allocation.y);
+//	_ctx->theme()->render_notebook(cr, &_theme_notebook);
+//
+//	if(_theme_client_tabs.size() > 0) {
+//		pixmap_t * pix = new pixmap_t(_ctx->dpy(), PIXMAP_RGBA, _theme_client_tabs.back().position.x + 100, _ctx->theme()->notebook.tab_height);
+//		cairo_t * xcr = cairo_create(pix->get_cairo_surface());
+//
+//		cairo_set_operator(xcr, CAIRO_OPERATOR_SOURCE);
+//		cairo_set_source_rgba(xcr, 0.0, 0.0, 0.0, 0.0);
+//		cairo_paint(xcr);
+//
+//		_ctx->theme()->render_iconic_notebook(xcr, _theme_client_tabs);
+//		cairo_destroy(xcr);
+//
+//		cairo_save(cr);
+//		cairo_set_source_surface(cr, pix->get_cairo_surface(), _theme_client_tabs_area.x - _theme_client_tabs_offset, _theme_client_tabs_area.y);
+//		cairo_clip(cr, _theme_client_tabs_area);
+//		cairo_paint(cr);
+//
+//		cairo_restore(cr);
+//		delete pix;
+//	}
+//
+//	cairo_restore(cr);
+//
+//	/* paste the current window */
+//	if (_selected != nullptr) {
+//		if (not _selected->is_iconic()) {
+//			auto client_view = _selected->create_surface();
+//			shared_ptr<pixmap_t> pix = client_view->get_pixmap();
+//			if (pix != nullptr) {
+//				rect pos = _client_position;
+//				rect cl { pos.x-_allocation.x, pos.y-_allocation.y, pos.w, pos.h };
+//
+//				cairo_reset_clip(cr);
+//				cairo_clip(cr, cl);
+//				cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+//				cairo_set_source_rgba(cr, 1.0, 1.0, 1.0, 0.0);
+//				cairo_set_source_surface(cr, pix->get_cairo_surface(), cl.x, cl.y);
+//				cairo_mask_surface(cr, pix->get_cairo_surface(), cl.x, cl.y);
+//
+//			}
+//		}
+//	}
+//
+//	cairo_destroy(cr);
+//	cairo_surface_flush(surf);
+//
+//	return pix;
+//}
 
 void notebook_t::_start_fading() {
 
-	if(_ctx->cmp() == nullptr)
-		return;
-
-	if(fading_notebook == nullptr) {
-		_swap_start.update_to_current_time();
-		auto pix = _render_to_pixmap();
-		rect pos = to_root_position(_allocation);
-		fading_notebook = make_shared<renderable_notebook_fading_t>(this, pix, pos.x, pos.y);
-		_fading_notebook_layer->push_back(fading_notebook);
-		fading_notebook->show();
-		_ctx->schedule_repaint();
-		xcb_flush(_ctx->_dpy->xcb());
-	} else {
-		_swap_start.update_to_current_time();
-
-		auto pix = _render_to_pixmap();
-		auto surf = pix->get_cairo_surface();
-		auto cr = cairo_create(surf);
-		auto surf_src = fading_notebook->surface()->get_cairo_surface();
-
-		cairo_pattern_t * p0 =
-				cairo_pattern_create_rgba(1.0, 1.0, 1.0, 1.0 - fading_notebook->ratio());
-		cairo_set_source_surface(cr, surf_src, 0.0, 0.0);
-		cairo_mask(cr, p0);
-		cairo_pattern_destroy(p0);
-		cairo_destroy(cr);
-
-		rect pos = to_root_position(_allocation);
-		fading_notebook->update_pixmap(pix, pos.x, pos.y);
-		_ctx->schedule_repaint();
-		xcb_flush(_ctx->_dpy->xcb());
-	}
+//	if(_ctx->cmp() == nullptr)
+//		return;
+//
+//	if(fading_notebook == nullptr) {
+//		_swap_start.update_to_current_time();
+//		auto pix = _render_to_pixmap();
+//		rect pos = to_root_position(_allocation);
+//		fading_notebook = make_shared<renderable_notebook_fading_t>(this, pix, pos.x, pos.y);
+//		_fading_notebook_layer->push_back(fading_notebook);
+//		fading_notebook->show();
+//		_ctx->schedule_repaint();
+//		xcb_flush(_ctx->_dpy->xcb());
+//	} else {
+//		_swap_start.update_to_current_time();
+//
+//		auto pix = _render_to_pixmap();
+//		auto surf = pix->get_cairo_surface();
+//		auto cr = cairo_create(surf);
+//		auto surf_src = fading_notebook->surface()->get_cairo_surface();
+//
+//		cairo_pattern_t * p0 =
+//				cairo_pattern_create_rgba(1.0, 1.0, 1.0, 1.0 - fading_notebook->ratio());
+//		cairo_set_source_surface(cr, surf_src, 0.0, 0.0);
+//		cairo_mask(cr, p0);
+//		cairo_pattern_destroy(p0);
+//		cairo_destroy(cr);
+//
+//		rect pos = to_root_position(_allocation);
+//		fading_notebook->update_pixmap(pix, pos.x, pos.y);
+//		_ctx->schedule_repaint();
+//		xcb_flush(_ctx->_dpy->xcb());
+//	}
 
 }
 
 void notebook_t::start_exposay() {
-	if(_ctx->cmp() == nullptr)
-		return;
-
 	if(_selected != nullptr) {
 		iconify_client(_selected);
 		_selected = nullptr;
@@ -777,9 +774,6 @@ void notebook_t::_update_exposay() {
 	_theme_notebook.button_mouse_over = NOTEBOOK_BUTTON_NONE;
 	_mouse_over.tab = nullptr;
 	_mouse_over.exposay = nullptr;
-
-	if(_ctx->cmp() == nullptr)
-		return;
 
 	if(not _exposay)
 		return;

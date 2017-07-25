@@ -17,7 +17,6 @@
 #include "page-viewport.hxx"
 #include "page-client-managed.hxx"
 #include "page-page-types.hxx"
-#include "page-renderable-pixmap.hxx"
 
 namespace page {
 
@@ -58,8 +57,6 @@ private:
 	static time64_t const _switch_duration;
 
 	time64_t _switch_start_time;
-	shared_ptr<pixmap_t> _switch_screenshot;
-	shared_ptr<renderable_pixmap_t> _switch_renderable;
 
 	workspace_switch_direction_e _switch_direction;
 
@@ -71,8 +68,6 @@ private:
 
 public:
 	view_w _net_active_window;
-
-	xcb_atom_t A(atom_e atom);
 
 	workspace_t(page_t * ctx, unsigned id);
 	workspace_t(workspace_t const & v) = delete;
