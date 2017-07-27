@@ -907,21 +907,46 @@ struct g_connect_wrapper : g_connect_wapper_base {
 
 template<typename T>
 class g_connectable {
-	vector<g_connect_wapper_base *> _connected_handler;
+	using key_t = std::pair<void*, guint>;
+	map<key_t, g_connect_wapper_base *> _connected_handler;
 
 public:
 	~g_connectable() {
-		for(auto x: _connected_handler) {
-			delete x;
+		for(auto &i: _connected_handler) {
+			g_signal_handlers_disconnect_by_data(i.first.first, i.second);
+			delete i.second;
 		}
 	}
 
 	template<typename T0, typename ... Args>
 	void g_connect(T0 * obj, char const * s, void (T::* f)(T0 * _0, Args ... args)) {
-		auto x = new g_connect_wrapper<T0, T, Args...>{this, f};
-		_connected_handler.push_back(x);
+		auto x = new g_connect_wrapper<T0, T, Args...>{static_cast<T*>(this), f};
+		guint signum = g_signal_lookup(s, G_TYPE_FROM_INSTANCE(obj));
+		key_t xkey{obj, signum};
+		auto i = _connected_handler.find(xkey);
+		if(i != _connected_handler.end()) {
+			g_signal_handlers_disconnect_by_data(i->first.first, i->second);
+			delete i->second; // free memory
+			i->second = x;
+		} else {
+			_connected_handler[xkey] = x;
+		}
 		g_signal_connect(obj, s, G_CALLBACK((&g_connect_wrapper<T0, T, Args...>::call)), x);
 	}
+
+	template<typename T1>
+	void g_disconnect_from_obj(T1 * obj) {
+		for(auto i = _connected_handler.begin(); i != _connected_handler.end();) {
+			if(i->first.first == obj) {
+				g_signal_handlers_disconnect_by_data(obj, i->second);
+				delete i->second;
+				i = _connected_handler.erase(i);
+			} else {
+				++i;
+			}
+		}
+	}
+
 };
 
 
