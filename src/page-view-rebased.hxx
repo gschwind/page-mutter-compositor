@@ -108,6 +108,8 @@ public:
 	//virtual rect get_window_position() const;
 	//virtual void queue_redraw();
 
+	virtual auto get_default_view() const -> ClutterActor *;
+
 };
 
 } /* namespace page */

@@ -529,7 +529,7 @@ void workspace_t::switch_fullscreen_to_floating(view_fullscreen_p view, xcb_time
 		view->_viewport.lock()->show();
 	}
 
-	meta_window_unmake_fullscreen(view->_client->_meta_client);
+	meta_window_unmake_fullscreen(view->_client->_meta_window);
 	auto fv = make_shared<view_floating_t>(view.get());
 	_insert_view_floating(fv, time);
 }
@@ -547,7 +547,7 @@ void workspace_t::switch_fullscreen_to_notebook(view_fullscreen_p view, xcb_time
 		n = view->revert_notebook.lock();
 	}
 
-	meta_window_unmake_fullscreen(view->_client->_meta_client);
+	meta_window_unmake_fullscreen(view->_client->_meta_window);
 	view->_client->set_managed_type(MANAGED_NOTEBOOK);
 	n->add_client_from_view(view, time);
 	_ctx->_need_restack = true;
@@ -570,11 +570,11 @@ void workspace_t::switch_fullscreen_to_prefered_view_mode(view_fullscreen_p view
 		if(not view->revert_notebook.expired()) {
 			n = view->revert_notebook.lock();
 		}
-		meta_window_unmake_fullscreen(view->_client->_meta_client);
+		meta_window_unmake_fullscreen(view->_client->_meta_window);
 		view->_client->set_managed_type(MANAGED_NOTEBOOK);
 		n->add_client_from_view(view, time);
 	} else {
-		meta_window_unmake_fullscreen(view->_client->_meta_client);
+		meta_window_unmake_fullscreen(view->_client->_meta_window);
 		auto vf = make_shared<view_floating_t>(view.get());
 		_insert_view_floating(vf, time);
 	}

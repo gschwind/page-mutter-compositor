@@ -34,7 +34,7 @@ view_popup_t::view_popup_t(tree_t * ref, client_managed_p client) :
 	_client->set_managed_type(MANAGED_POPUP);
 
 	MetaRectangle xrect;
-	meta_window_get_frame_rect(_client->_meta_client, &xrect);
+	meta_window_get_frame_rect(_client->_meta_window, &xrect);
 	_client->_absolute_position = rect(xrect);
 	if(_client_view == nullptr)
 		_client_view = create_surface();
@@ -71,7 +71,7 @@ void view_popup_t::reconfigure()
 	_damage_cache += get_visible_region();
 
 	MetaRectangle xrect;
-	meta_window_get_frame_rect(_client->_meta_client, &xrect);
+	meta_window_get_frame_rect(_client->_meta_window, &xrect);
 	_client->_absolute_position = rect{xrect};
 
 //	printf("configure to %d,%d,%d,%d\n",

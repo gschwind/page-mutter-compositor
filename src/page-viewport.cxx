@@ -48,12 +48,12 @@ viewport_t::viewport_t(tree_t * ref, rect const & area) :
 	clutter_actor_set_position(_default_view, _effective_area.x, _effective_area.y);
 	clutter_actor_set_size(_default_view, _effective_area.w, _effective_area.h);
 
-
 	_subtree->set_allocation(_page_area);
 }
 
 viewport_t::~viewport_t() {
-
+	g_object_unref(_canvas);
+	g_object_unref(_default_view);
 }
 
 void viewport_t::replace(shared_ptr<page_component_t> src, shared_ptr<page_component_t> by) {
@@ -153,12 +153,13 @@ void viewport_t::show() {
 }
 
 void viewport_t::draw(cairo_t * cr, int width, int height) {
+	printf("call %s\n", __PRETTY_FUNCTION__);
 	if(not _is_durty)
 		return;
 
 	cairo_save(cr);
 	cairo_identity_matrix(cr);
-	cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
+	cairo_set_source_rgb(cr, 0.0, 0.0, 1.0);
 	cairo_paint(cr);
 
 	auto splits = gather_children_root_first<split_t>();
@@ -190,9 +191,15 @@ void viewport_t::trigger_redraw() {
 }
 
 /* mark renderable_page for redraw */
-void viewport_t::queue_redraw() {
+void viewport_t::queue_redraw()
+{
 	_root->_ctx->schedule_repaint();
 	_is_durty = true;
+}
+
+auto viewport_t::get_default_view() const -> ClutterActor *
+{
+	return _default_view;
 }
 
 region viewport_t::get_damaged() {

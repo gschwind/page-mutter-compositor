@@ -406,6 +406,7 @@ void page_t::start()
 
 	auto workspace_list = meta_screen_get_workspaces(screen);
 	for (auto l = workspace_list; l != NULL; l = l->next) {
+		printf("found workspace\n");
 		auto d = make_shared<workspace_t>(this, META_WORKSPACE(l->data));
 		_workspace_list.push_back(d);
 		d->disable();
@@ -413,6 +414,7 @@ void page_t::start()
 		d->update_viewports_layout();
 	}
 
+	sync_tree_view();
 
 	auto stage = meta_get_stage_for_screen(screen);
 
@@ -484,13 +486,18 @@ void page_t::xmap(MetaWindowActor * window_actor)
 	auto screen = meta_plugin_get_screen(_plugin);
 	auto main_actor = meta_get_stage_for_screen(screen);
 
+
 	type = meta_window_get_window_type(meta_window);
 
 	if (type == META_WINDOW_NORMAL) {
 		printf("normal window\n");
 
+		auto mw = make_shared<client_managed_t>(this, window_actor);
+
+		insert_as_notebook(mw, 0);
 		//g_signal_connect(meta_window, "position-changed", G_CALLBACK(on_position_changed), NULL);
 
+		sync_tree_view();
 		//meta_window_maximize(meta_window, META_MAXIMIZE_BOTH);
 		meta_window_move_resize_frame(meta_window, FALSE, 0, 0, 400, 400);
 		meta_plugin_map_completed(_plugin, window_actor);
@@ -541,7 +548,7 @@ void page_t::kill_switch_workspace()
 
 auto page_t::xevent_filter(XEvent * event) -> gboolean
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	//printf("call %s\n", __PRETTY_FUNCTION__);
 	return FALSE;
 }
 
@@ -3285,6 +3292,36 @@ void page_t::activate(view_p c, xcb_timestamp_t time)
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 	c->xxactivate(time);
 	_need_restack = true;
+
+}
+
+void page_t::sync_tree_view()
+{
+	/* create the list of weston views */
+	list<ClutterActor *> views;
+	auto children = get_current_workspace()->get_all_children();
+	printf("found %lu children\n", children.size());
+	for(auto x: children) {
+		auto v = x->get_default_view();
+		if(v)
+			views.push_back(v);
+	}
+
+	auto screen = meta_plugin_get_screen(_plugin);
+	auto main_stage = meta_get_stage_for_screen(screen);
+
+	clutter_actor_remove_all_children(main_stage);
+
+	//_root->print_tree(0);
+
+	printf("found %lu views\n", views.size());
+
+	for(auto actor: views) {
+		clutter_actor_add_child(main_stage, actor);
+		clutter_actor_show(actor);
+	}
+
+	schedule_repaint();
 
 }
 

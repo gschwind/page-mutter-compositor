@@ -104,6 +104,8 @@ public:
 	virtual rect get_window_position() const;
 	virtual void queue_redraw();
 
+	virtual auto get_default_view() const -> ClutterActor *;
+
 	/**
 	 * page_component_t virtual API
 	 **/
@@ -112,6 +114,7 @@ public:
 	virtual rect allocation() const;
 	virtual void replace(shared_ptr<page_component_t> src, shared_ptr<page_component_t> by);
 	virtual void get_min_allocation(int & width, int & height) const;
+
 
 };
 

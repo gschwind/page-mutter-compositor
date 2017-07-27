@@ -53,7 +53,8 @@ struct client_managed_t : public enable_shared_from_this<client_managed_t>, publ
 	page_t * _ctx;
 
 	/* handle properties of client */
-	MetaWindow * _meta_client;
+	MetaWindowActor * _meta_window_actor;
+	MetaWindow * _meta_window;
 
 	managed_window_type_e _managed_type;
 	xcb_atom_t _net_wm_type;
@@ -131,7 +132,7 @@ struct client_managed_t : public enable_shared_from_this<client_managed_t>, publ
 	void acquire(view_t * v);
 	void release(view_t * v);
 
-	client_managed_t(page_t * ctx, MetaWindow * proxy);
+	client_managed_t(page_t * ctx, MetaWindowActor * actor);
 	~client_managed_t();
 
 	signal_t<client_managed_t *> on_destroy;

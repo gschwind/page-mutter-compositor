@@ -22,9 +22,10 @@ namespace page {
 
 using namespace std;
 
-client_managed_t::client_managed_t(page_t * ctx, MetaWindow * proxy) :
+client_managed_t::client_managed_t(page_t * ctx, MetaWindowActor * actor) :
 	_ctx{ctx},
-	_meta_client{proxy},
+	_meta_window_actor{actor},
+	_meta_window{meta_window_actor_get_meta_window(actor)},
 	_managed_type{MANAGED_FLOATING},
 	_net_wm_type{0},
 	_floating_wished_position{},
@@ -35,8 +36,8 @@ client_managed_t::client_managed_t(page_t * ctx, MetaWindow * proxy) :
 	_current_owner_view{nullptr},
 	_views_count{0}
 {
-
-	g_object_ref(proxy);
+	g_object_ref(_meta_window_actor);
+	g_object_ref(_meta_window);
 	//_update_title();
 	rect pos{position()};
 
@@ -62,13 +63,14 @@ client_managed_t::client_managed_t(page_t * ctx, MetaWindow * proxy) :
 
 client_managed_t::~client_managed_t()
 {
-	g_object_unref(_meta_client);
 	on_destroy.signal(this);
+	g_object_unref(_meta_window_actor);
+	g_object_unref(_meta_window);
 }
 
 void client_managed_t::delete_window(xcb_timestamp_t t) {
 	printf("request close for '%s'\n", title().c_str());
-	meta_window_delete(_meta_client, t);
+	meta_window_delete(_meta_window, t);
 }
 
 void client_managed_t::set_managed_type(managed_window_type_e type) {
@@ -88,7 +90,7 @@ bool client_managed_t::is(managed_window_type_e type) {
 }
 
 void client_managed_t::icccm_focus_unsafe(xcb_timestamp_t t) {
-	meta_window_focus(_meta_client, t);
+	meta_window_focus(_meta_window, t);
 }
 
 
@@ -137,7 +139,7 @@ unsigned client_managed_t::ensure_workspace() {
 }
 
 bool client_managed_t::skip_task_bar() {
-	return meta_window_is_skip_taskbar(_meta_client);
+	return meta_window_is_skip_taskbar(_meta_window);
 }
 
 xcb_atom_t client_managed_t::net_wm_type() {
@@ -174,7 +176,7 @@ void client_managed_t::wm_state_delete()
 
 bool client_managed_t::has_wm_state_fullscreen()
 {
-	return meta_window_is_fullscreen(_meta_client);
+	return meta_window_is_fullscreen(_meta_window);
 //	auto wm_state = _client_proxy->get<p_net_wm_state>();
 //	if (wm_state != nullptr) {
 //		return has_key(*wm_state, A(_NET_WM_STATE_FULLSCREEN));
@@ -184,7 +186,7 @@ bool client_managed_t::has_wm_state_fullscreen()
 
 bool client_managed_t::has_wm_state_stiky()
 {
-	return meta_window_is_always_on_all_workspaces(_meta_client);
+	return meta_window_is_always_on_all_workspaces(_meta_window);
 //	auto wm_state = _client_proxy->get<p_net_wm_state>();
 //	if (wm_state != nullptr) {
 //		return has_key(*wm_state, A(_NET_WM_STATE_STICKY));
@@ -300,7 +302,7 @@ void client_managed_t::set_current_workspace(unsigned int n) {
 }
 
 void client_managed_t::set_demands_attention() {
-	meta_window_set_demands_attention(_meta_client);
+	meta_window_set_demands_attention(_meta_window);
 }
 
 bool client_managed_t::demands_attention() {
@@ -478,7 +480,7 @@ void client_managed_t::signal_configure_request(xcb_configure_request_event_t co
 //}
 
 auto client_managed_t::wm_type() -> MetaWindowType {
-	return meta_window_get_window_type(_meta_client);
+	return meta_window_get_window_type(_meta_window);
 }
 
 //void client_managed_t::print_window_attributes() {
@@ -500,7 +502,7 @@ auto client_managed_t::transient_for() -> client_managed_p
 {
 
 	// TODO
-	meta_window_get_transient_for(_meta_client);
+	meta_window_get_transient_for(_meta_window);
 	client_managed_p transient_for = nullptr;
 //	if (_client_proxy->wm_transiant_for() != nullptr) {
 //		transient_for = _ctx->lookup_client_managed_with_orig_window(*(_client_proxy->wm_transiant_for()));
@@ -514,7 +516,7 @@ auto client_managed_t::transient_for() -> client_managed_p
 auto client_managed_t::position() -> rect
 {
 	MetaRectangle xrect;
-	meta_window_get_frame_rect(_meta_client, &xrect);
+	meta_window_get_frame_rect(_meta_window, &xrect);
 	return rect(xrect);
 }
 

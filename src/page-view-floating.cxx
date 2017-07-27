@@ -112,7 +112,7 @@ void view_floating_t::_init()
 	auto _ctx = _root->_ctx;
 
 	MetaRectangle xrect;
-	meta_window_get_frame_rect(_client->_meta_client, &xrect);
+	meta_window_get_frame_rect(_client->_meta_window, &xrect);
 	_client->_floating_wished_position = rect(xrect.x, xrect.y, xrect.width,
 			xrect.height);
 

@@ -291,6 +291,11 @@ void tree_t::queue_redraw() {
 		_parent->queue_redraw();
 }
 
+auto tree_t::get_default_view() const -> ClutterActor *
+{
+	return nullptr;
+}
+
 /**
  * Print the tree recursively using node names.
  **/

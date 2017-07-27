@@ -419,6 +419,7 @@ public:
 	void damage_all();
 
 	void activate(view_p c, xcb_timestamp_t time);
+	void sync_tree_view();
 
 };
 

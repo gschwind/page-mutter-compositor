@@ -15,6 +15,8 @@
 #include <iostream>
 #include <map>
 
+#include <clutter/clutter.h>
+
 #include "page-page-types.hxx"
 #include "page-utils.hxx"
 #include "page-renderable.hxx"
@@ -220,6 +222,8 @@ public:
 	virtual auto get_toplevel_xid() const -> xcb_window_t;
 	virtual rect get_window_position() const;
 	virtual void queue_redraw();
+
+	virtual auto get_default_view() const -> ClutterActor *;
 
 };
 
