@@ -404,6 +404,7 @@ void page_t::start()
 	MetaScreen * screen = meta_plugin_get_screen(_plugin);
 
 
+	MetaRectangle area;
 	auto workspace_list = meta_screen_get_workspaces(screen);
 	for (auto l = workspace_list; l != NULL; l = l->next) {
 		printf("found workspace\n");
@@ -412,18 +413,26 @@ void page_t::start()
 		d->disable();
 		d->show();
 		d->update_viewports_layout();
+		meta_workspace_get_work_area_all_monitors(META_WORKSPACE(l->data), &area);
 	}
+	_theme->update(area.width, area.height);
+
+	auto stage = meta_get_stage_for_screen(screen);
+	auto window_group = meta_get_window_group_for_screen(screen);
+
+	viewport_group = clutter_actor_new();
+	clutter_actor_insert_child_below(stage, viewport_group, window_group);
+	clutter_actor_show(viewport_group);
 
 	sync_tree_view();
 
-	auto stage = meta_get_stage_for_screen(screen);
 
 	ClutterColor actor_color = { 0, 255, 0, 255 };
 	auto rect = clutter_actor_new();
 	clutter_actor_set_background_color(rect, &actor_color);
 	clutter_actor_set_size(rect, 100, 100);
 	clutter_actor_set_position(rect, 100, 100);
-	clutter_actor_add_child(stage, rect);
+	clutter_actor_add_child(viewport_group, rect);
 	clutter_actor_show(rect);
 	clutter_actor_set_rotation_angle(rect, CLUTTER_Z_AXIS, 60);
 	clutter_actor_set_reactive(rect, TRUE);
@@ -496,10 +505,9 @@ void page_t::xmap(MetaWindowActor * window_actor)
 
 		insert_as_notebook(mw, 0);
 		//g_signal_connect(meta_window, "position-changed", G_CALLBACK(on_position_changed), NULL);
-
 		sync_tree_view();
 		//meta_window_maximize(meta_window, META_MAXIMIZE_BOTH);
-		meta_window_move_resize_frame(meta_window, FALSE, 0, 0, 400, 400);
+		//meta_window_move_resize_frame(meta_window, FALSE, 0, 0, 400, 400);
 		meta_plugin_map_completed(_plugin, window_actor);
 	} else
 		meta_plugin_map_completed(_plugin, window_actor);
@@ -508,6 +516,10 @@ void page_t::xmap(MetaWindowActor * window_actor)
 void page_t::destroy(MetaWindowActor * actor)
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+	auto mw = lookup_client_managed_with_base_window(actor);
+	if(mw) {
+		unmanage(mw);
+	}
 	meta_plugin_destroy_completed(_plugin, actor);
 }
 
@@ -586,6 +598,7 @@ void page_t::unmanage(client_managed_p mw)
 //	mw->_client_proxy->set_wm_state(WithdrawnState);
 //	mw->_client_proxy->unmap();
 	_need_update_client_list = true;
+	sync_tree_view();
 	update_workarea();
 }
 
@@ -2384,16 +2397,16 @@ auto page_t::lookup_client_managed_with_orig_window(xcb_window_t w) const -> cli
 	return nullptr;
 }
 
-auto page_t::lookup_client_managed_with_base_window(xcb_window_t w) const -> client_managed_p
+auto page_t::lookup_client_managed_with_base_window(MetaWindowActor * w) const -> client_managed_p
 {
-//	auto views = get_current_workspace()->gather_children_root_first<view_rebased_t>();
-//	for(auto v: views) {
-//		if (v->_base != nullptr) {
-//			if (v->_base->_window->id() == w) {
-//				return v->_client;
-//			}
-//		}
-//	}
+	auto views = get_current_workspace()->gather_children_root_first<view_rebased_t>();
+	for(auto v: views) {
+		if (v->_base != nullptr) {
+			if (v->get_default_view() == CLUTTER_ACTOR(w)) {
+				return v->_client;
+			}
+		}
+	}
 	return nullptr;
 }
 
@@ -3278,7 +3291,7 @@ void page_t::schedule_repaint(int64_t timeout)
 //	}
 
 	auto screen = meta_plugin_get_screen(_plugin);
-	auto stage = meta_get_stage_for_screen(screen);
+	auto stage = meta_get_window_group_for_screen(screen);
 	clutter_actor_queue_redraw(stage);
 }
 
@@ -3297,9 +3310,23 @@ void page_t::activate(view_p c, xcb_timestamp_t time)
 
 void page_t::sync_tree_view()
 {
+
+	clutter_actor_remove_all_children(viewport_group);
+	auto viewport = get_current_workspace()->gather_children_root_first<viewport_t>();
+	for (auto x : viewport) {
+		if (x->get_default_view()) {
+			clutter_actor_add_child(viewport_group, x->get_default_view());
+		}
+	}
+
+	auto screen = meta_plugin_get_screen(_plugin);
+	auto window_group = meta_get_window_group_for_screen(screen);
+
+	//_root->print_tree(0);
+
 	/* create the list of weston views */
 	list<ClutterActor *> views;
-	auto children = get_current_workspace()->get_all_children();
+	auto children = get_current_workspace()->gather_children_root_first<view_t>();
 	printf("found %lu children\n", children.size());
 	for(auto x: children) {
 		auto v = x->get_default_view();
@@ -3307,19 +3334,21 @@ void page_t::sync_tree_view()
 			views.push_back(v);
 	}
 
-	auto screen = meta_plugin_get_screen(_plugin);
-	auto main_stage = meta_get_stage_for_screen(screen);
-
-	clutter_actor_remove_all_children(main_stage);
-
-	//_root->print_tree(0);
-
 	printf("found %lu views\n", views.size());
 
 	for(auto actor: views) {
-		clutter_actor_add_child(main_stage, actor);
+		if (clutter_actor_get_parent(actor) != window_group) {
+			continue;
+		}
+
+		clutter_actor_set_child_below_sibling(window_group, actor, NULL);
+
+		clutter_actor_set_opacity(actor, 255);
 		clutter_actor_show(actor);
 	}
+
+	clutter_actor_set_opacity(window_group, 255);
+	clutter_actor_show(window_group);
 
 	schedule_repaint();
 

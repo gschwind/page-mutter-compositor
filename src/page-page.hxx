@@ -122,6 +122,8 @@ public:
 	MetaDisplay * _dpy;
 	theme_t * _theme;
 
+	ClutterActor * viewport_group;
+
 	page_configuration_t configuration;
 
 	bool _need_restack;
@@ -326,7 +328,7 @@ public:
 	void set_workspace_geometry(long width, long height);
 
 	auto lookup_client_managed_with_orig_window(xcb_window_t w) const -> client_managed_p;
-	auto lookup_client_managed_with_base_window(xcb_window_t w) const -> client_managed_p;
+	auto lookup_client_managed_with_base_window(MetaWindowActor * actor) const -> client_managed_p;
 
 	void raise_child(shared_ptr<tree_t> t);
 	void process_notebook_client_menu(shared_ptr<client_managed_t> c, int selected);

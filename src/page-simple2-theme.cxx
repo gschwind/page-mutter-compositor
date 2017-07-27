@@ -237,8 +237,6 @@ simple2_theme_t::simple2_theme_t(config_handler_t & conf)
 	if(conf.has_key("simple_theme", "scale_mode"))
 		scale_mode = conf.get_string("simple_theme", "scale_mode");
 
-	create_background_img(1, 1);
-
 	/* open icons */
 	if (hsplit_button_s == nullptr) {
 		std::string filename = conf_img_dir + "/hsplit_button.png";
@@ -1737,6 +1735,8 @@ void simple2_theme_t::create_background_img(int width, int height) {
 		warn(cairo_surface_get_reference_count(tmp) == 1);
 		cairo_surface_destroy(tmp);
 
+		if(backgroun_px)
+			cairo_surface_destroy(backgroun_px);
 		/* copy background to pixmap */
 		backgroun_px = cairo_image_surface_create(CAIRO_FORMAT_RGB24, width, height);
 

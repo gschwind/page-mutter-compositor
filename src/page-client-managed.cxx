@@ -310,6 +310,7 @@ bool client_managed_t::demands_attention() {
 }
 
 string const & client_managed_t::title() const {
+	_title = meta_window_get_title(_meta_window);
 	return _title;
 }
 
