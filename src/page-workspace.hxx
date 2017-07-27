@@ -32,6 +32,8 @@ struct workspace_t: public tree_t {
 
 private:
 
+	MetaWorkspace * _meta_workspace;
+
 	//rect _allocation;
 	rect _workarea;
 
@@ -69,7 +71,7 @@ private:
 public:
 	view_w _net_active_window;
 
-	workspace_t(page_t * ctx, unsigned id);
+	workspace_t(page_t * ctx, MetaWorkspace * workspace);
 	workspace_t(workspace_t const & v) = delete;
 	workspace_t & operator= (workspace_t const &) = delete;
 
@@ -88,7 +90,7 @@ public:
 	auto ensure_default_notebook() -> notebook_p;
 	auto get_viewport_map() const -> vector<shared_ptr<viewport_t>>;
 	void set_primary_viewport(shared_ptr<viewport_t> v);
-	void update_viewports_layout(vector<rect> const & layout);
+	void update_viewports_layout();
 	void remove_viewport(viewport_p v);
 	void attach(shared_ptr<client_managed_t> c) __attribute__((deprecated));
 

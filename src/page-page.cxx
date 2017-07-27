@@ -391,7 +391,29 @@ void page_t::run()
 void page_t::start()
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+
+	if (_theme_engine == "tiny") {
+		cout << "using tiny theme engine" << endl;
+		_theme = new tiny_theme_t{_conf};
+	} else {
+		/* The default theme engine */
+		cout << "using simple theme engine" << endl;
+		_theme = new simple2_theme_t{_conf};
+	}
+
 	MetaScreen * screen = meta_plugin_get_screen(_plugin);
+
+
+	auto workspace_list = meta_screen_get_workspaces(screen);
+	for (auto l = workspace_list; l != NULL; l = l->next) {
+		auto d = make_shared<workspace_t>(this, META_WORKSPACE(l->data));
+		_workspace_list.push_back(d);
+		d->disable();
+		d->show();
+		d->update_viewports_layout();
+	}
+
+
 	auto stage = meta_get_stage_for_screen(screen);
 
 	ClutterColor actor_color = { 0, 255, 0, 255 };
@@ -1973,99 +1995,28 @@ void page_t::update_windows_stack() {
  * sub-rectangle that do not overlap previous allocated area.
  **/
 void page_t::update_viewport_layout() {
-//	_left_most_border = std::numeric_limits<int>::max();
-//	_top_most_border = std::numeric_limits<int>::max();
+	_left_most_border = 0;
+	_top_most_border = 0;
+
+//	MetaScreen * screen = meta_plugin_get_screen(_plugin);
+//	MetaWorkspace * meta_workspace;
 //
-//	/** update root size infos **/
-//	xcb_get_geometry_cookie_t ck0 = xcb_get_geometry(_dpy->xcb(), _dpy->root());
-//	xcb_randr_get_screen_resources_cookie_t ck1 = xcb_randr_get_screen_resources(_dpy->xcb(), _dpy->root());
-//
-//	xcb_get_geometry_reply_t * geometry = xcb_get_geometry_reply(_dpy->xcb(), ck0, nullptr);
-//	xcb_randr_get_screen_resources_reply_t * randr_resources = xcb_randr_get_screen_resources_reply(_dpy->xcb(), ck1, 0);
-//
-//	if(geometry == nullptr or randr_resources == nullptr) {
-//		throw exception_t("FATAL: cannot read root window attributes");
-//	}
-//
-//	_root_position = rect{geometry->x, geometry->y, geometry->width, geometry->height};
-//	set_workspace_geometry(_root_position.w, _root_position.h);
-//
-//	map<xcb_randr_crtc_t, xcb_randr_get_crtc_info_reply_t *> crtc_info;
-//
-//	vector<xcb_randr_get_crtc_info_cookie_t> ckx(xcb_randr_get_screen_resources_crtcs_length(randr_resources));
-//	xcb_randr_crtc_t * crtc_list = xcb_randr_get_screen_resources_crtcs(randr_resources);
-//	for (unsigned k = 0; k < xcb_randr_get_screen_resources_crtcs_length(randr_resources); ++k) {
-//		ckx[k] = xcb_randr_get_crtc_info(_dpy->xcb(), crtc_list[k], XCB_CURRENT_TIME);
-//	}
-//
-//	for (unsigned k = 0; k < xcb_randr_get_screen_resources_crtcs_length(randr_resources); ++k) {
-//		xcb_randr_get_crtc_info_reply_t * r = xcb_randr_get_crtc_info_reply(_dpy->xcb(), ckx[k], 0);
-//		if(r != nullptr) {
-//			crtc_info[crtc_list[k]] = r;
-//		}
-//
-//		// keep left more screen to move iconnified window there
-//		if(r->x < _left_most_border) {
-//			_left_most_border = r->x;
-//		}
-//
-//		if(r->y < _top_most_border) {
-//			_top_most_border = r->y;
-//		}
-//
-//	}
-//
-//	// compute all viewport that does not overlap and cover the full area of
-//	// crts
-//	vector<rect> viewport_allocation; // the list of _viewport locations.
+//	vector<rect> viewport_allocation;
 //	region already_allocated;
-//	for (auto crtc: crtc_info) {
-//		if (crtc.second->num_outputs <= 0)
-//			continue;
-//
-//		/* the location of crts */
-//		region location{crtc.second->x, crtc.second->y, crtc.second->width,
-//			crtc.second->height};
-//		location -= already_allocated;
-//		for (auto & b: location.rects()) {
-//			viewport_allocation.push_back(b);
+//	for(int monitor_id = 0; monitor_id < meta_screen_get_n_monitors(screen); ++monitor_id) {
+//		MetaRectangle area;
+//		auto monitors = meta_workspace_get_work_area_for_monitor(meta_workspace, monitor_id, &area);
+//		region region_to_alocate{rect{area}};
+//		region_to_alocate -= already_allocated;
+//		for (auto & r: region_to_alocate.rects()) {
+//			viewport_allocation.push_back(r);
 //		}
-//		already_allocated += location;
-//	}
-//
-//	if (viewport_allocation.size() < 1) {
-//		viewport_allocation.push_back(_root_position);
+//		already_allocated += region_to_alocate;
 //	}
 //
 //	for(auto d: _workspace_list) {
 //		d->update_viewports_layout(viewport_allocation);
 //	}
-//
-//	for(auto i: crtc_info) {
-//		if(i.second != nullptr)
-//			free(i.second);
-//	}
-//
-//	if(geometry != nullptr) {
-//		free(geometry);
-//	}
-//
-//	if(randr_resources != nullptr) {
-//		free(randr_resources);
-//	}
-//
-//	update_workspace_visibility(XCB_CURRENT_TIME);
-//
-//	/* set _viewport */
-//	std::vector<uint32_t> viewport(_workspace_list.size()*2);
-//	std::fill_n(viewport.begin(), _workspace_list.size()*2, 0);
-//	_dpy->change_property(_dpy->root(), _NET_DESKTOP_VIEWPORT,
-//			CARDINAL, 32, &viewport[0], _workspace_list.size()*2);
-//
-//	/* define workspace geometry */
-//	set_workspace_geometry(_root_position.w, _root_position.h);
-//
-//	update_workarea();
 
 }
 

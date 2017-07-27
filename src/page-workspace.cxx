@@ -55,16 +55,17 @@ void workspace_t::_fix_view_floating_position()
 	}
 }
 
-workspace_t::workspace_t(page_t * ctx, unsigned id) :
+workspace_t::workspace_t(page_t * ctx, MetaWorkspace * workspace) :
 	tree_t{this},
 	_ctx{ctx},
 	//_allocation{},
 	_default_pop{},
 	_workarea{},
 	_primary_viewport{},
-	_id{id},
+	_id{meta_workspace_index(workspace)},
 	_switch_direction{WORKSPACE_SWITCH_LEFT},
-	_is_enable{false}
+	_is_enable{false},
+	_meta_workspace{workspace}
 {
 
 	_stack_is_locked = true;
@@ -123,31 +124,46 @@ auto workspace_t::get_viewport_map() const -> vector<viewport_p> {
 	return _viewport_outputs;
 }
 
-void workspace_t::update_viewports_layout(vector<rect> const & layout)
+void workspace_t::update_viewports_layout()
 {
 	_viewport_layer->clear();
 
-	/** get old layout to recycle old viewport, and keep unchanged outputs **/
+	MetaScreen * screen = meta_plugin_get_screen(_ctx->_plugin);
+
+	vector<rect> viewport_allocation;
+	region already_allocated;
+	for(int monitor_id = 0; monitor_id < meta_screen_get_n_monitors(screen); ++monitor_id) {
+		MetaRectangle area;
+		meta_workspace_get_work_area_for_monitor(_meta_workspace, monitor_id, &area);
+		region region_to_alocate{rect{area}};
+		region_to_alocate -= already_allocated;
+		for (auto & r: region_to_alocate.rects()) {
+			viewport_allocation.push_back(r);
+		}
+		already_allocated += region_to_alocate;
+	}
+
+	/** get old viewport_allocation to recycle old viewport, and keep unchanged outputs **/
 	auto old_layout = _viewport_outputs;
 	/** store the newer layout, to be able to cleanup obsolete viewports **/
 	_viewport_outputs.clear();
 	/** for each not overlaped rectangle **/
-	for (unsigned i = 0; i < layout.size(); ++i) {
+	for (unsigned i = 0; i < viewport_allocation.size(); ++i) {
 //		printf("%d: found viewport (%d,%d,%d,%d)\n", id(),
-//				layout[i].x, layout[i].y,
-//				layout[i].w, layout[i].h);
+//				viewport_allocation[i].x, viewport_allocation[i].y,
+//				viewport_allocation[i].w, viewport_allocation[i].h);
 		viewport_p vp;
 		if (i < old_layout.size()) {
 			vp = old_layout[i];
-			vp->set_raw_area(layout[i]);
+			vp->set_raw_area(viewport_allocation[i]);
 		} else {
-			vp = make_shared<viewport_t>(this, layout[i]);
+			vp = make_shared<viewport_t>(this, viewport_allocation[i]);
 		}
 		_viewport_outputs.push_back(vp);
 		_viewport_layer->push_back(vp);
 	}
 
-	/** clean up obsolete layout **/
+	/** clean up obsolete viewport_allocation **/
 	for (unsigned i = _viewport_outputs.size(); i < old_layout.size(); ++i) {
 		/** destroy this viewport **/
 		remove_viewport(old_layout[i]);
