@@ -435,7 +435,9 @@ void simple2_theme_t::render_notebook(cairo_t * cr, theme_notebook_t const * n) 
 		if (backgroun_px != nullptr) {
 			CHECK_CAIRO(cairo_set_source_surface(cr, backgroun_px, -n->root_x, -n->root_y));
 		} else {
-			CHECK_CAIRO(cairo_set_source_color_alpha(cr, default_background_color));
+			printf("XXXcolor\n");
+			//CHECK_CAIRO(cairo_set_source_color_alpha(cr, default_background_color));
+			CHECK_CAIRO(cairo_set_source_rgba(cr, 0.5, 0.5, 0.5, 0.0));
 		}
 		CHECK_CAIRO(cairo_paint(cr));
 		CHECK_CAIRO(cairo_restore(cr)); // restore #3
@@ -1568,6 +1570,11 @@ void simple2_theme_t::update(int width, int height) {
 
 void simple2_theme_t::create_background_img(int width, int height) {
 
+	if(backgroun_px) {
+		cairo_surface_destroy(backgroun_px);
+		backgroun_px = nullptr;
+	}
+
 	if (has_background) {
 		if(not exists(background_file.c_str()))
 			throw wrong_config_file_t("background file not found!");
@@ -1735,8 +1742,6 @@ void simple2_theme_t::create_background_img(int width, int height) {
 		warn(cairo_surface_get_reference_count(tmp) == 1);
 		cairo_surface_destroy(tmp);
 
-		if(backgroun_px)
-			cairo_surface_destroy(backgroun_px);
 		/* copy background to pixmap */
 		backgroun_px = cairo_image_surface_create(CAIRO_FORMAT_RGB24, width, height);
 

@@ -30,6 +30,8 @@
 #include <sstream>
 #include <iostream>
 
+#include <glib-2.0/glib.h>
+
 #include "page-color.hxx"
 #include "page-box.hxx"
 #include "page-x11-func-name.hxx"
@@ -879,6 +881,52 @@ inline xcb_sync_int64_t make_xcb_sync_int64(uint64_t value) {
 }
 
 bool exists(char const * name);
+
+struct g_connect_wapper_base {
+	virtual ~g_connect_wapper_base() { };
+};
+
+template<typename T0, typename T1, typename ... Args>
+struct g_connect_wrapper : g_connect_wapper_base {
+	T1 * obj;
+	void (T1::* f)(T0 * _0, Args ... args);
+	static void call(T0 * self, Args ... args, gpointer user_data) {
+		auto p = reinterpret_cast<g_connect_wrapper*>(user_data);
+		((p->obj)->*(p->f))(self, args...);
+	}
+
+	g_connect_wrapper(T1 * ths, void (T1::* f)(T0 * _0, Args ... args)) :
+		obj{ths}, f{f}
+	{
+
+	}
+
+	virtual ~g_connect_wrapper() { }
+
+};
+
+template<typename T>
+class g_connectable {
+	vector<g_connect_wapper_base *> _connected_handler;
+
+public:
+	~g_connectable() {
+		for(auto x: _connected_handler) {
+			delete x;
+		}
+	}
+
+	template<typename T0, typename ... Args>
+	void g_connect(T0 * obj, char const * s, void (T::* f)(T0 * _0, Args ... args)) {
+		auto x = new g_connect_wrapper<T0, T, Args...>{this, f};
+		_connected_handler.push_back(x);
+		g_signal_connect(obj, s, G_CALLBACK((&g_connect_wrapper<T0, T, Args...>::call)), x);
+	}
+};
+
+
+
+
 
 }
 

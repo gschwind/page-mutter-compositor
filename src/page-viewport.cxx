@@ -42,8 +42,11 @@ viewport_t::viewport_t(tree_t * ref, rect const & area) :
 	clutter_actor_set_content_scaling_filters(_default_view,
 			CLUTTER_SCALING_FILTER_NEAREST, CLUTTER_SCALING_FILTER_NEAREST);
 	clutter_actor_set_reactive (_default_view, TRUE);
-	g_signal_connect(CLUTTER_CANVAS(_canvas), "draw",
-			G_CALLBACK(wrapper_draw_callback), this);
+//	g_signal_connect(CLUTTER_CANVAS(_canvas), "draw",
+//			G_CALLBACK(wrapper_draw_callback), this);
+
+	g_connect(CLUTTER_CANVAS(_canvas), "draw", &viewport_t::draw);
+
 	clutter_content_invalidate(_canvas);
 	clutter_actor_set_position(_default_view, _effective_area.x, _effective_area.y);
 	clutter_actor_set_size(_default_view, _effective_area.w, _effective_area.h);
@@ -152,10 +155,10 @@ void viewport_t::show() {
 	reconfigure();
 }
 
-void viewport_t::draw(cairo_t * cr, int width, int height) {
+void viewport_t::draw(ClutterCanvas * _, cairo_t * cr, int width, int height) {
 	printf("call %s\n", __PRETTY_FUNCTION__);
-	if(not _is_durty)
-		return;
+//	if(not _is_durty)
+//		return;
 
 	cairo_save(cr);
 	cairo_identity_matrix(cr);
@@ -214,7 +217,7 @@ gboolean viewport_t::wrapper_draw_callback(ClutterCanvas *canvas, cairo_t *cr, i
 		int height, gpointer user_data)
 {
 	auto viewport = reinterpret_cast<viewport_t*>(user_data);
-	viewport->draw(cr, width, height);
+	viewport->draw(canvas, cr, width, height);
 	return FALSE;
 }
 
