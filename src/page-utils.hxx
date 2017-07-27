@@ -947,6 +947,18 @@ public:
 		}
 	}
 
+	template<typename T1>
+	void g_disconnect_signal_from_obj(T1 * obj, char const * name) {
+		guint signum = g_signal_lookup(name, G_TYPE_FROM_INSTANCE(obj));
+		key_t xkey{obj, signum};
+		auto i = _connected_handler.find(xkey);
+		if(i != _connected_handler.end()) {
+			g_signal_handlers_disconnect_by_data(i->first.first, i->second);
+			delete i->second; // free memory
+			_connected_handler.erase(i);
+		}
+	}
+
 };
 
 

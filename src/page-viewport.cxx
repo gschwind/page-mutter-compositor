@@ -42,10 +42,9 @@ viewport_t::viewport_t(tree_t * ref, rect const & area) :
 	clutter_actor_set_content_scaling_filters(_default_view,
 			CLUTTER_SCALING_FILTER_NEAREST, CLUTTER_SCALING_FILTER_NEAREST);
 	clutter_actor_set_reactive (_default_view, TRUE);
-//	g_signal_connect(CLUTTER_CANVAS(_canvas), "draw",
-//			G_CALLBACK(wrapper_draw_callback), this);
 
 	g_connect(CLUTTER_CANVAS(_canvas), "draw", &viewport_t::draw);
+	g_connect(CLUTTER_ACTOR(_default_view), "button-press-event", &viewport_t::_button_press_handler);
 
 	clutter_content_invalidate(_canvas);
 	clutter_actor_set_position(_default_view, _effective_area.x, _effective_area.y);
@@ -219,6 +218,11 @@ gboolean viewport_t::wrapper_draw_callback(ClutterCanvas *canvas, cairo_t *cr, i
 	auto viewport = reinterpret_cast<viewport_t*>(user_data);
 	viewport->draw(canvas, cr, width, height);
 	return FALSE;
+}
+
+void viewport_t::_button_press_handler(ClutterActor * actor, ClutterEvent * event)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 rect viewport_t::get_window_position() const {

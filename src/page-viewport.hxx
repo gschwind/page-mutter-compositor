@@ -64,6 +64,9 @@ class viewport_t: public page_component_t, public g_connectable<viewport_t> {
 
 	static gboolean wrapper_draw_callback(ClutterCanvas *canvas, cairo_t *cr, int width, int height, gpointer user_data);
 
+
+	void _button_press_handler(ClutterActor * actor, ClutterEvent * event);
+
 public:
 
 	viewport_t(tree_t * ref, rect const & area);
