@@ -141,13 +141,14 @@ void view_rebased_t::_reconfigure_windows()
 //		_client->_client_proxy->move_resize(_orig_position);
 //		_client->fake_configure_unsafe(_client->_absolute_position);
 
-		meta_window_unminimize(_client->_meta_window);
+		meta_window_unminimize(_client->meta_window());
 		meta_window_move_resize_frame(_client->_meta_window, FALSE, _client->_absolute_position.x, _client->_absolute_position.y, _client->_absolute_position.w, _client->_absolute_position.h);
+		clutter_actor_show(CLUTTER_ACTOR(_client->meta_window_actor()));
 		printf("%s\n", _client->_absolute_position.to_string().c_str());
 
 	} else {
-		meta_window_minimize(_client->meta_window());
 		clutter_actor_hide(CLUTTER_ACTOR(_client->meta_window_actor()));
+		meta_window_minimize(_client->meta_window());
 //		_client->_client_proxy->set_wm_state(IconicState);
 //		_client->net_wm_state_remove(_NET_WM_STATE_FOCUSED);
 //		rect hidden_position{
