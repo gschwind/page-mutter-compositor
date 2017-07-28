@@ -406,15 +406,35 @@ void page_t::start()
 	MetaRectangle area;
 	auto workspace_list = meta_screen_get_workspaces(screen);
 	for (auto l = workspace_list; l != NULL; l = l->next) {
-		printf("found workspace\n");
-		auto d = make_shared<workspace_t>(this, META_WORKSPACE(l->data));
+		auto meta_workspace = META_WORKSPACE(l->data);
+		auto d = make_shared<workspace_t>(this, meta_workspace);
 		_workspace_list.push_back(d);
 		d->disable();
 		d->show();
 		d->update_viewports_layout();
-		meta_workspace_get_work_area_all_monitors(META_WORKSPACE(l->data), &area);
+		meta_workspace_get_work_area_all_monitors(meta_workspace, &area);
 	}
+
 	_theme->update(area.width, area.height);
+
+	{
+		auto windows = meta_get_window_actors(screen);
+		for (auto l = windows; l != NULL; l = l->next) {
+			auto meta_window_actor = META_WINDOW_ACTOR(l->data);
+			printf("XXXfound\n");
+			xmap(meta_window_actor);
+		}
+
+		auto wgroup = meta_get_window_group_for_screen(screen);
+		auto actors = clutter_actor_get_children(wgroup);
+		for (auto l = actors; l != NULL; l = l->next) {
+			auto cactor = CLUTTER_ACTOR(l->data);
+			if(META_IS_WINDOW_ACTOR(cactor)) {
+				printf("YYYYfound\n");
+				xmap(META_WINDOW_ACTOR(cactor));
+			}
+		}
+	}
 
 	auto stage = meta_get_stage_for_screen(screen);
 	auto window_group = meta_get_window_group_for_screen(screen);
@@ -489,7 +509,6 @@ void page_t::size_change(MetaWindowActor * window_actor, MetaSizeChange which_ch
 void page_t::on_position_changed(MetaWindow * w, guint user_data)
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
-	meta_window_move_resize_frame(w, FALSE, 0, 0, 400, 400);
 }
 
 void page_t::xmap(MetaWindowActor * window_actor)
@@ -510,6 +529,8 @@ void page_t::xmap(MetaWindowActor * window_actor)
 
 		auto mw = make_shared<client_managed_t>(this, window_actor);
 
+		g_connect(meta_window_actor_get_meta_window(window_actor), "focus", &page_t::_handler_focus);
+
 		insert_as_notebook(mw, 0);
 		//g_signal_connect(meta_window, "position-changed", G_CALLBACK(on_position_changed), NULL);
 		sync_tree_view();
@@ -523,7 +544,7 @@ void page_t::xmap(MetaWindowActor * window_actor)
 void page_t::destroy(MetaWindowActor * actor)
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
-	auto mw = lookup_client_managed_with_base_window(actor);
+	auto mw = lookup_client_managed_with_meta_window_actor(actor);
 	if(mw) {
 		unmanage(mw);
 	}
@@ -592,18 +613,30 @@ auto page_t::plugin_info() -> MetaPluginInfo const *
 auto page_t::_button_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+
+	if (_grab_handler)
+		_grab_handler->button_press(event);
+
 	return FALSE;
 }
 
 auto page_t::_button_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+
+	if (_grab_handler)
+		_grab_handler->button_release(event);
+
 	return FALSE;
 }
 
 auto page_t::_motion_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+
+	if (_grab_handler)
+		_grab_handler->button_motion(event);
+
 	return FALSE;
 }
 
@@ -611,6 +644,24 @@ void page_t::_handler_monitors_changed(MetaScreen * screen)
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
 	update_viewport_layout();
+}
+
+void page_t::_handler_focus(MetaWindow * window)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+
+	auto w = get_current_workspace();
+	if (not w->_net_active_window.expired()) {
+		w->_net_active_window.lock()->set_focus_state(false);
+	}
+
+	auto mw = lookup_client_managed_with_meta_window(window);
+	if (mw) {
+		auto v = get_current_workspace()->lookup_view_for(mw);
+		if (v)
+			v->set_focus_state(true);
+	}
+
 }
 
 void page_t::unmanage(client_managed_p mw)
@@ -2407,23 +2458,20 @@ auto page_t::find_client_managed_with(xcb_window_t w) -> client_managed_p
 	return nullptr;
 }
 
-auto page_t::lookup_client_managed_with_orig_window(xcb_window_t w) const -> client_managed_p {
-//	for(auto & i: _net_client_list) {
-//		if(i->is_window(w)) {
-//			return i;
-//		}
-//	}
+auto page_t::lookup_client_managed_with_meta_window(MetaWindow * w) const -> client_managed_p {
+	for (auto & i: _net_client_list) {
+		if (i->meta_window() == w) {
+			return i;
+		}
+	}
 	return nullptr;
 }
 
-auto page_t::lookup_client_managed_with_base_window(MetaWindowActor * w) const -> client_managed_p
+auto page_t::lookup_client_managed_with_meta_window_actor(MetaWindowActor * w) const -> client_managed_p
 {
-	auto views = get_current_workspace()->gather_children_root_first<view_rebased_t>();
-	for(auto v: views) {
-		if (v->_base != nullptr) {
-			if (v->get_default_view() == CLUTTER_ACTOR(w)) {
-				return v->_client;
-			}
+	for (auto & i: _net_client_list) {
+		if (i->meta_window_actor() == w) {
+			return i;
 		}
 	}
 	return nullptr;
@@ -3105,7 +3153,18 @@ auto page_t::dpy() const -> MetaDisplay *
 	return _dpy;
 }
 
-void page_t::grab_start(shared_ptr<grab_handler_t> handler, xcb_timestamp_t time) {
+void page_t::grab_start(shared_ptr<grab_handler_t> handler, guint32 time)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+
+	assert(_grab_handler == nullptr);
+	if (meta_plugin_begin_modal(_plugin, (MetaModalOptions)0, time)) {
+		_grab_handler = handler;
+	} else {
+		printf("FAIL GRAB\n");
+	}
+
+
 //	assert(_grab_handler == nullptr);
 //
 //	_dpy->grab();
@@ -3158,8 +3217,14 @@ void page_t::grab_start(shared_ptr<grab_handler_t> handler, xcb_timestamp_t time
 
 }
 
-void page_t::grab_stop(xcb_timestamp_t time) {
-//	assert(_grab_handler != nullptr);
+void page_t::grab_stop(guint32 time)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+
+	assert(_grab_handler != nullptr);
+	_grab_handler = nullptr;
+	meta_plugin_end_modal(_plugin, time);
+
 //	assert(time != XCB_CURRENT_TIME);
 //	_grab_handler = nullptr;
 //	xcb_ungrab_keyboard(_dpy->xcb(), time);

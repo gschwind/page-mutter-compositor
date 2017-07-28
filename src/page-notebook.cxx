@@ -848,8 +848,10 @@ auto notebook_t::button_press(ClutterEvent const * e) -> button_action_e
 	clutter_event_get_coords(e, &x, &y);
 	auto time = clutter_event_get_time(e);
 
+	printf("button_press_event time = %u, x = %f, y = %f, button = 0x%x\n", time, x, y, button);
+
 	/* left click on page window */
-	if (button & CLUTTER_BUTTON1_MASK) {
+	if (button == 1 /* TODO: find emun or define */) {
 		if (_area.button_close.is_inside(x, y)) {
 			_ctx->notebook_close(shared_from_this(), time);
 			return BUTTON_ACTION_GRAB_ASYNC;
@@ -884,6 +886,7 @@ auto notebook_t::button_press(ClutterEvent const * e) -> button_action_e
 		} else {
 			for(auto & i: _client_buttons) {
 				if(std::get<0>(i).is_inside(x, y)) {
+					printf("XXX found %f, %f\n", x, y);
 					if (not std::get<1>(i).expired()) {
 						auto c = std::get<1>(i).lock();
 						_ctx->grab_start(make_shared<grab_bind_view_notebook_t>(_ctx, c, XCB_BUTTON_INDEX_1, to_root_position(std::get<0>(i))), time);
@@ -907,7 +910,7 @@ auto notebook_t::button_press(ClutterEvent const * e) -> button_action_e
 		}
 
 	/* rigth click on page */
-	} else if (button & CLUTTER_BUTTON3_MASK) {
+	} else if (button == 3) {
 
 		if (_area.button_close.is_inside(x, y)) {
 
@@ -1088,7 +1091,7 @@ void notebook_t::_mouse_over_reset() {
 					_ctx->theme()->get_normal_color();
 		}
 
-		if(tooltips != nullptr) {
+		if (tooltips != nullptr) {
 			_tooltips_layer->remove(tooltips);
 			tooltips = nullptr;
 		}
@@ -1118,10 +1121,10 @@ void notebook_t::_mouse_over_set() {
 		pos.h = 256;
 
 		if(std::get<1>(*_mouse_over.tab).lock() != _selected and not std::get<1>(*_mouse_over.tab).expired()) {
-			tooltips = make_shared<renderable_thumbnail_t>(this, std::get<1>(*_mouse_over.tab).lock(), pos, ANCHOR_TOP_RIGHT);
-			_tooltips_layer->push_back(tooltips);
-			tooltips->show();
-			tooltips->set_mouse_over(true);
+//			tooltips = make_shared<renderable_thumbnail_t>(this, std::get<1>(*_mouse_over.tab).lock(), pos, ANCHOR_TOP_RIGHT);
+//			_tooltips_layer->push_back(tooltips);
+//			tooltips->show();
+//			tooltips->set_mouse_over(true);
 		}
 	}
 

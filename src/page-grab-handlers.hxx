@@ -35,11 +35,11 @@ struct grab_default_t : public grab_handler_t {
 	grab_default_t(page_t * c);
 
 	virtual ~grab_default_t();
-	virtual void button_press(xcb_button_press_event_t const * e) override;
-	virtual void button_motion(xcb_motion_notify_event_t const * e) override;
-	virtual void button_release(xcb_button_release_event_t const * e) override;
-	virtual void key_press(xcb_key_press_event_t const * ev) override;
-	virtual void key_release(xcb_key_release_event_t const * ev) override;
+	virtual void button_press(ClutterEvent const * e) override;
+	virtual void button_motion(ClutterEvent const * e) override;
+	virtual void button_release(ClutterEvent const * e) override;
+	virtual void key_press(ClutterEvent const * ev) override;
+	virtual void key_release(ClutterEvent const * ev) override;
 };
 
 class grab_split_t : public grab_default_t {
@@ -53,9 +53,9 @@ public:
 	grab_split_t(page_t * ctx, shared_ptr<split_t> s);
 
 	virtual ~grab_split_t();
-	virtual void button_press(xcb_button_press_event_t const * e);
-	virtual void button_motion(xcb_motion_notify_event_t const * e);
-	virtual void button_release(xcb_button_release_event_t const * e);
+	virtual void button_press(ClutterEvent const * e) override;
+	virtual void button_motion(ClutterEvent const * e) override;
+	virtual void button_release(ClutterEvent const * e) override;
 	using grab_handler_t::key_press;
 	using grab_handler_t::key_release;
 
@@ -78,9 +78,9 @@ public:
 	grab_bind_view_notebook_t(page_t * ctx, view_notebook_p c, xcb_button_t button, rect const & pos);
 
 	virtual ~grab_bind_view_notebook_t();
-	virtual void button_press(xcb_button_press_event_t const * e);
-	virtual void button_motion(xcb_motion_notify_event_t const * e);
-	virtual void button_release(xcb_button_release_event_t const * e);
+	virtual void button_press(ClutterEvent const * e) override;
+	virtual void button_motion(ClutterEvent const * e) override;
+	virtual void button_release(ClutterEvent const * e) override;
 	using grab_handler_t::key_press;
 	using grab_handler_t::key_release;
 };
@@ -101,9 +101,9 @@ public:
 	grab_bind_view_floating_t(page_t * ctx, view_floating_p c, xcb_button_t button, rect const & pos);
 
 	virtual ~grab_bind_view_floating_t();
-	virtual void button_press(xcb_button_press_event_t const * e);
-	virtual void button_motion(xcb_motion_notify_event_t const * e);
-	virtual void button_release(xcb_button_release_event_t const * e);
+	virtual void button_press(ClutterEvent const * e) override;
+	virtual void button_motion(ClutterEvent const * e) override;
+	virtual void button_release(ClutterEvent const * e) override;
 	using grab_handler_t::key_press;
 	using grab_handler_t::key_release;
 };
@@ -153,9 +153,9 @@ struct grab_floating_move_t : public grab_default_t {
 	grab_floating_move_t(page_t * ctx, view_floating_p f, unsigned int button, int x, int y);
 
 	virtual ~grab_floating_move_t();
-	virtual void button_press(xcb_button_press_event_t const * e);
-	virtual void button_motion(xcb_motion_notify_event_t const * e);
-	virtual void button_release(xcb_button_release_event_t const * e);
+	virtual void button_press(ClutterEvent const * e) override;
+	virtual void button_motion(ClutterEvent const * e) override;
+	virtual void button_release(ClutterEvent const * e) override;
 	using grab_handler_t::key_press;
 	using grab_handler_t::key_release;
 };
@@ -179,9 +179,9 @@ public:
 	grab_floating_resize_t(page_t * _ctx, view_floating_p f, xcb_button_t button, int x, int y, resize_mode_e mode);
 
 	virtual ~grab_floating_resize_t();
-	virtual void button_press(xcb_button_press_event_t const * e);
-	virtual void button_motion(xcb_motion_notify_event_t const * e);
-	virtual void button_release(xcb_button_release_event_t const * e);
+	virtual void button_press(ClutterEvent const * e) override;
+	virtual void button_motion(ClutterEvent const * e) override;
+	virtual void button_release(ClutterEvent const * e) override;
 	using grab_handler_t::key_press;
 	using grab_handler_t::key_release;
 
@@ -198,9 +198,9 @@ public:
 	grab_fullscreen_client_t(page_t * ctx, view_fullscreen_p mw, xcb_button_t button, int x, int y);
 
 	virtual ~grab_fullscreen_client_t();
-	virtual void button_press(xcb_button_press_event_t const * e);
-	virtual void button_motion(xcb_motion_notify_event_t const * e);
-	virtual void button_release(xcb_button_release_event_t const * e);
+	virtual void button_press(ClutterEvent const * e) override;
+	virtual void button_motion(ClutterEvent const * e) override;
+	virtual void button_release(ClutterEvent const * e) override;
 	using grab_handler_t::key_press;
 	using grab_handler_t::key_release;
 };
@@ -220,11 +220,11 @@ public:
 	grab_alt_tab_t(page_t * ctx, list<view_p> managed_window, xcb_timestamp_t time);
 
 	virtual ~grab_alt_tab_t();
-	virtual void button_press(xcb_button_press_event_t const * e);
-	virtual void button_motion(xcb_motion_notify_event_t const * e);
+	virtual void button_press(ClutterEvent const * e) override;
+	virtual void button_motion(ClutterEvent const * e) override;
 	using grab_handler_t::button_release;
-	virtual void key_press(xcb_key_press_event_t const * ev) override;
-	virtual void key_release(xcb_key_release_event_t const * ev) override;
+	virtual void key_press(ClutterEvent const * ev) override;
+	virtual void key_release(ClutterEvent const * ev) override;
 };
 
 }

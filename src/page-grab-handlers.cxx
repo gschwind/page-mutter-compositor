@@ -30,27 +30,27 @@ grab_default_t::~grab_default_t()
 
 }
 
-void grab_default_t::button_press(xcb_button_press_event_t const * e)
+void grab_default_t::button_press(ClutterEvent const * e)
 {
 
 }
 
-void grab_default_t::button_motion(xcb_motion_notify_event_t const * e)
+void grab_default_t::button_motion(ClutterEvent const * e)
 {
 
 }
 
-void grab_default_t::button_release(xcb_button_release_event_t const * e)
+void grab_default_t::button_release(ClutterEvent const * e)
 {
 
 }
 
-void grab_default_t::key_press(xcb_key_press_event_t const * ev)
+void grab_default_t::key_press(ClutterEvent const * ev)
 {
 
 }
 
-void grab_default_t::key_release(xcb_key_release_event_t const * e)
+void grab_default_t::key_release(ClutterEvent const * e)
 {
 //	/* get KeyCode for Unmodified Key */
 //	xcb_keysym_t k = _ctx->keymap()->get(e->detail);
@@ -80,22 +80,28 @@ grab_split_t::~grab_split_t() {
 	}
 }
 
-void grab_split_t::button_press(xcb_button_press_event_t const *) {
+void grab_split_t::button_press(ClutterEvent const * e) {
 	/* ignore */
 }
 
-void grab_split_t::button_motion(xcb_motion_notify_event_t const * e) {
+void grab_split_t::button_motion(ClutterEvent const * e)
+{
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto button = clutter_event_get_button(e);
+	auto time = clutter_event_get_time(e);
+
 	if(_split.expired()) {
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 		return;
 	}
 
 	if (_split.lock()->type() == VERTICAL_SPLIT) {
-		_split_ratio = (e->root_x
+		_split_ratio = (x
 				- _split_root_allocation.x)
 				/ (double) (_split_root_allocation.w);
 	} else {
-		_split_ratio = (e->root_y
+		_split_ratio = (y
 				- _split_root_allocation.y)
 				/ (double) (_split_root_allocation.h);
 	}
@@ -107,20 +113,26 @@ void grab_split_t::button_motion(xcb_motion_notify_event_t const * e) {
 
 }
 
-void grab_split_t::button_release(xcb_button_release_event_t const * e) {
+void grab_split_t::button_release(ClutterEvent const * e)
+{
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto button = clutter_event_get_button(e);
+	auto time = clutter_event_get_time(e);
+
 	if(_split.expired()) {
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 		return;
 	}
 
-	if (e->detail == XCB_BUTTON_INDEX_1) {
+	if (button == 1) {
 
 		if (_split.lock()->type() == VERTICAL_SPLIT) {
-			_split_ratio = (e->root_x
+			_split_ratio = (x
 					- _split_root_allocation.x)
 					/ (double) (_split_root_allocation.w);
 		} else {
-			_split_ratio = (e->root_y
+			_split_ratio = (y
 					- _split_root_allocation.y)
 					/ (double) (_split_root_allocation.h);
 		}
@@ -134,7 +146,7 @@ void grab_split_t::button_release(xcb_button_release_event_t const * e) {
 
 		_split.lock()->queue_redraw();
 		_split.lock()->set_split(_split_ratio);
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 	}
 }
 
@@ -196,18 +208,23 @@ void grab_bind_view_notebook_t::_find_target_notebook(int x, int y,
 	}
 }
 
-void grab_bind_view_notebook_t::button_press(xcb_button_press_event_t const * e) {
+void grab_bind_view_notebook_t::button_press(ClutterEvent const * e) {
 
 }
 
-void grab_bind_view_notebook_t::button_motion(xcb_motion_notify_event_t const * e) {
+void grab_bind_view_notebook_t::button_motion(ClutterEvent const * e)
+{
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto time = clutter_event_get_time(e);
+
 	if(c.expired()) {
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 		return;
 	}
 
 	/* do not start drag&drop for small move */
-	if (not start_position.is_inside(e->root_x, e->root_y) and pn0->parent() == nullptr) {
+	if (not start_position.is_inside(x, y) and pn0->parent() == nullptr) {
 		_ctx->overlay_add(pn0);
 		pn0->show();
 	}
@@ -217,7 +234,7 @@ void grab_bind_view_notebook_t::button_motion(xcb_motion_notify_event_t const * 
 
 	notebook_p new_target;
 	notebook_area_e new_zone;
-	_find_target_notebook(e->root_x, e->root_y, new_target, new_zone);
+	_find_target_notebook(x, y, new_target, new_zone);
 
 	if((new_target != target_notebook.lock() or new_zone != zone) and new_zone != NOTEBOOK_AREA_NONE) {
 		target_notebook = new_target;
@@ -245,18 +262,24 @@ void grab_bind_view_notebook_t::button_motion(xcb_motion_notify_event_t const * 
 	}
 }
 
-void grab_bind_view_notebook_t::button_release(xcb_button_release_event_t const * e) {
+void grab_bind_view_notebook_t::button_release(ClutterEvent const * e)
+{
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto button = clutter_event_get_button(e);
+	auto time = clutter_event_get_time(e);
+
 	if(c.expired()) {
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 		return;
 	}
 
 	auto c = this->c.lock();
 
-	if (e->detail == _button) {
+	if (button == _button) {
 		notebook_p new_target;
 		notebook_area_e new_zone;
-		_find_target_notebook(e->root_x, e->root_y, new_target, new_zone);
+		_find_target_notebook(x, y, new_target, new_zone);
 
 		/* if the mouse is no where, keep old location */
 		if ((new_target == nullptr or new_zone == NOTEBOOK_AREA_NONE)
@@ -265,9 +288,9 @@ void grab_bind_view_notebook_t::button_release(xcb_button_release_event_t const 
 			new_target = target_notebook.lock();
 		}
 
-		if (start_position.is_inside(e->root_x, e->root_y)) {
-			c->xxactivate(e->time);
-			_ctx->grab_stop(e->time);
+		if (start_position.is_inside(x, y)) {
+			c->xxactivate(time);
+			_ctx->grab_stop(time);
 			return;
 		}
 
@@ -275,26 +298,26 @@ void grab_bind_view_notebook_t::button_release(xcb_button_release_event_t const 
 		case NOTEBOOK_AREA_TAB:
 		case NOTEBOOK_AREA_CENTER:
 			if(new_target != c->parent_notebook()) {
-				_ctx->move_notebook_to_notebook(c, new_target, e->time);
+				_ctx->move_notebook_to_notebook(c, new_target, time);
 			}
 			break;
 		case NOTEBOOK_AREA_TOP:
-			_ctx->split_top(new_target, c, e->time);
+			_ctx->split_top(new_target, c, time);
 			break;
 		case NOTEBOOK_AREA_LEFT:
-			_ctx->split_left(new_target, c, e->time);
+			_ctx->split_left(new_target, c, time);
 			break;
 		case NOTEBOOK_AREA_BOTTOM:
-			_ctx->split_bottom(new_target, c, e->time);
+			_ctx->split_bottom(new_target, c, time);
 			break;
 		case NOTEBOOK_AREA_RIGHT:
-			_ctx->split_right(new_target, c, e->time);
+			_ctx->split_right(new_target, c, time);
 			break;
 		default:
-			c->xxactivate(e->time);
+			c->xxactivate(time);
 		}
 
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 
 	}
 }
@@ -356,18 +379,23 @@ void grab_bind_view_floating_t::_find_target_notebook(int x, int y,
 	}
 }
 
-void grab_bind_view_floating_t::button_press(xcb_button_press_event_t const * e) {
+void grab_bind_view_floating_t::button_press(ClutterEvent const * e) {
 
 }
 
-void grab_bind_view_floating_t::button_motion(xcb_motion_notify_event_t const * e) {
+void grab_bind_view_floating_t::button_motion(ClutterEvent const * e)
+{
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto time = clutter_event_get_time(e);
+
 	if(c.expired()) {
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 		return;
 	}
 
 	/* do not start drag&drop for small move */
-	if (not start_position.is_inside(e->root_x, e->root_y) and pn0->parent() == nullptr) {
+	if (not start_position.is_inside(x, y) and pn0->parent() == nullptr) {
 		_ctx->overlay_add(pn0);
 		pn0->show();
 	}
@@ -377,7 +405,7 @@ void grab_bind_view_floating_t::button_motion(xcb_motion_notify_event_t const * 
 
 	shared_ptr<notebook_t> new_target;
 	notebook_area_e new_zone;
-	_find_target_notebook(e->root_x, e->root_y, new_target, new_zone);
+	_find_target_notebook(x, y, new_target, new_zone);
 
 	if((new_target != target_notebook.lock() or new_zone != zone) and new_zone != NOTEBOOK_AREA_NONE) {
 		target_notebook = new_target;
@@ -405,18 +433,24 @@ void grab_bind_view_floating_t::button_motion(xcb_motion_notify_event_t const * 
 	}
 }
 
-void grab_bind_view_floating_t::button_release(xcb_button_release_event_t const * e) {
+void grab_bind_view_floating_t::button_release(ClutterEvent const * e)
+{
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto button = clutter_event_get_button(e);
+	auto time = clutter_event_get_time(e);
+
 	if(c.expired()) {
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 		return;
 	}
 
 	auto c = this->c.lock();
 
-	if (e->detail == _button) {
+	if (button == _button) {
 		notebook_p new_target;
 		notebook_area_e new_zone;
-		_find_target_notebook(e->root_x, e->root_y, new_target, new_zone);
+		_find_target_notebook(x, y, new_target, new_zone);
 
 		/* if the mouse is no where, keep old location */
 		if((new_target == nullptr or new_zone == NOTEBOOK_AREA_NONE) and not target_notebook.expired()) {
@@ -424,35 +458,35 @@ void grab_bind_view_floating_t::button_release(xcb_button_release_event_t const 
 			new_target = target_notebook.lock();
 		}
 
-		if(start_position.is_inside(e->root_x, e->root_y)) {
-			c->workspace()->switch_floating_to_notebook(c, e->time);
-			_ctx->grab_stop(e->time);
+		if(start_position.is_inside(x, y)) {
+			c->workspace()->switch_floating_to_notebook(c, time);
+			_ctx->grab_stop(time);
 			return;
 		}
 
 		switch(zone) {
 		case NOTEBOOK_AREA_TAB:
 		case NOTEBOOK_AREA_CENTER:
-			_ctx->move_floating_to_notebook(c, new_target, e->time);
+			_ctx->move_floating_to_notebook(c, new_target, time);
 			break;
 		case NOTEBOOK_AREA_TOP:
-			_ctx->split_top(new_target, c, e->time);
+			_ctx->split_top(new_target, c, time);
 			break;
 		case NOTEBOOK_AREA_LEFT:
-			_ctx->split_left(new_target, c, e->time);
+			_ctx->split_left(new_target, c, time);
 			break;
 		case NOTEBOOK_AREA_BOTTOM:
-			_ctx->split_bottom(new_target, c, e->time);
+			_ctx->split_bottom(new_target, c, time);
 			break;
 		case NOTEBOOK_AREA_RIGHT:
-			_ctx->split_right(new_target, c, e->time);
+			_ctx->split_right(new_target, c, time);
 			break;
 		default:
 			c->raise();
-			c->workspace()->set_focus(c, e->time);
+			c->workspace()->set_focus(c, time);
 		}
 
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 
 	}
 }
@@ -486,39 +520,51 @@ grab_floating_move_t::~grab_floating_move_t() {
 	}
 }
 
-void grab_floating_move_t::button_press(xcb_button_press_event_t const * e) {
+void grab_floating_move_t::button_press(ClutterEvent const * e) {
 	/* ignore */
 }
 
-void grab_floating_move_t::button_motion(xcb_motion_notify_event_t const * e) {
+void grab_floating_move_t::button_motion(ClutterEvent const * e)
+{
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto button = clutter_event_get_button(e);
+	auto time = clutter_event_get_time(e);
+
 	if(f.expired()) {
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 		return;
 	}
 
 	/* compute new window position */
 	rect new_position = original_position;
-	new_position.x += e->root_x - x_root;
-	new_position.y += e->root_y - y_root;
+	new_position.x += x - x_root;
+	new_position.y += y - y_root;
 	final_position = new_position;
 
 	rect new_popup_position = popup_original_position;
-	new_popup_position.x += e->root_x - x_root;
-	new_popup_position.y += e->root_y - y_root;
+	new_popup_position.x += x - x_root;
+	new_popup_position.y += y - y_root;
 	pfm->move_resize(new_popup_position);
 	_ctx->schedule_repaint();
 
 }
 
-void grab_floating_move_t::button_release(xcb_button_release_event_t const * e) {
+void grab_floating_move_t::button_release(ClutterEvent const * e)
+{
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto button = clutter_event_get_button(e);
+	auto time = clutter_event_get_time(e);
+
 	if(f.expired()) {
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 		return;
 	}
 
 	auto f = this->f.lock();
 
-	if (e->detail == XCB_BUTTON_INDEX_1 or e->detail == XCB_BUTTON_INDEX_3 or e->detail == button) {
+	if (button == 1 or button == 3 or button == this->button) {
 
 		//_ctx->dpy()->set_window_cursor(f->_base->id(), XCB_NONE);
 
@@ -527,8 +573,8 @@ void grab_floating_move_t::button_release(xcb_button_release_event_t const * e) 
 		f->_client->set_floating_wished_position(final_position);
 		f->reconfigure();
 
-		f->_root->set_focus(f, e->time);
-		_ctx->grab_stop(e->time);
+		f->_root->set_focus(f, time);
+		_ctx->grab_stop(time);
 	}
 }
 
@@ -606,13 +652,18 @@ grab_floating_resize_t::~grab_floating_resize_t() {
 	}
 }
 
-void grab_floating_resize_t::button_press(xcb_button_press_event_t const * e) {
+void grab_floating_resize_t::button_press(ClutterEvent const * e) {
 
 }
 
-void grab_floating_resize_t::button_motion(xcb_motion_notify_event_t const * e) {
+void grab_floating_resize_t::button_motion(ClutterEvent const * e)
+{
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto time = clutter_event_get_time(e);
+
 	if(f.expired()) {
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 		return;
 	}
 
@@ -620,32 +671,32 @@ void grab_floating_resize_t::button_motion(xcb_motion_notify_event_t const * e) 
 
 	switch(mode) {
 	case RESIZE_TOP_LEFT:
-		size.w -= e->root_x - x_root;
-		size.h -= e->root_y - y_root;
+		size.w -= x - x_root;
+		size.h -= y - y_root;
 		break;
 	case RESIZE_TOP:
-		size.h -= e->root_y - y_root;
+		size.h -= y - y_root;
 		break;
 	case RESIZE_TOP_RIGHT:
-		size.w += e->root_x - x_root;
-		size.h -= e->root_y - y_root;
+		size.w += x - x_root;
+		size.h -= y - y_root;
 		break;
 	case RESIZE_LEFT:
-		size.w -= e->root_x - x_root;
+		size.w -= x - x_root;
 		break;
 	case RESIZE_RIGHT:
-		size.w += e->root_x - x_root;
+		size.w += x - x_root;
 		break;
 	case RESIZE_BOTTOM_LEFT:
-		size.w -= e->root_x - x_root;
-		size.h += e->root_y - y_root;
+		size.w -= x - x_root;
+		size.h += y - y_root;
 		break;
 	case RESIZE_BOTTOM:
-		size.h += e->root_y - y_root;
+		size.h += y - y_root;
 		break;
 	case RESIZE_BOTTOM_RIGHT:
-		size.w += e->root_x - x_root;
-		size.h += e->root_y - y_root;
+		size.w += x - x_root;
+		size.h += y - y_root;
 		break;
 	}
 
@@ -714,21 +765,27 @@ void grab_floating_resize_t::button_motion(xcb_motion_notify_event_t const * e) 
 
 }
 
-void grab_floating_resize_t::button_release(xcb_button_release_event_t const * e) {
+void grab_floating_resize_t::button_release(ClutterEvent const * e)
+{
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto button = clutter_event_get_button(e);
+	auto time = clutter_event_get_time(e);
+
 	if(f.expired()) {
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 		return;
 	}
 
 	auto f = this->f.lock();
 
-	if (e->detail == button) {
+	if (button == this->button) {
 		//_ctx->dpy()->set_window_cursor(f->_base->id(), XCB_NONE);
 		//_ctx->dpy()->set_window_cursor(f->_client->_client_proxy->id(), XCB_NONE);
 		f->_client->set_floating_wished_position(final_position);
 		f->reconfigure();
-		f->_root->set_focus(f, e->time);
-		_ctx->grab_stop(e->time);
+		f->_root->set_focus(f, time);
+		_ctx->grab_stop(time);
 	}
 }
 
@@ -753,17 +810,22 @@ grab_fullscreen_client_t::~grab_fullscreen_client_t() {
 	}
 }
 
-void grab_fullscreen_client_t::button_press(xcb_button_press_event_t const * e) {
+void grab_fullscreen_client_t::button_press(ClutterEvent const * e) {
 
 }
 
-void grab_fullscreen_client_t::button_motion(xcb_motion_notify_event_t const * e) {
+void grab_fullscreen_client_t::button_motion(ClutterEvent const * e)
+{
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto time = clutter_event_get_time(e);
+
 	if(mw.expired()) {
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 		return;
 	}
 
-	shared_ptr<viewport_t> new_viewport = _ctx->find_mouse_viewport(e->root_x, e->root_y);
+	shared_ptr<viewport_t> new_viewport = _ctx->find_mouse_viewport(x, y);
 
 	if(new_viewport != v.lock()) {
 		if(new_viewport != nullptr) {
@@ -775,22 +837,28 @@ void grab_fullscreen_client_t::button_motion(xcb_motion_notify_event_t const * e
 
 }
 
-void grab_fullscreen_client_t::button_release(xcb_button_release_event_t const * e) {
+void grab_fullscreen_client_t::button_release(ClutterEvent const * e)
+{
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto button = clutter_event_get_button(e);
+	auto time = clutter_event_get_time(e);
+
 	if(mw.expired()) {
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 		return;
 	}
 
-	if (button == e->detail) {
+	if (this->button == button) {
 		/** drop the fullscreen window to the new viewport **/
 
-		auto new_viewport = _ctx->find_mouse_viewport(e->root_x, e->root_y);
+		auto new_viewport = _ctx->find_mouse_viewport(x, y);
 
 		if(new_viewport != nullptr) {
 			_ctx->move_fullscreen_to_viewport(mw.lock(), new_viewport);
 		}
 
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 
 	}
 }
@@ -832,25 +900,27 @@ grab_alt_tab_t::~grab_alt_tab_t() {
 	}
 }
 
-void grab_alt_tab_t::button_press(xcb_button_press_event_t const * e) {
-
-	if (e->detail == XCB_BUTTON_INDEX_1) {
+void grab_alt_tab_t::button_press(ClutterEvent const * e)
+{
+	auto button = clutter_event_get_button(e);
+	auto time = clutter_event_get_time(e);
+	if (button == 1) {
 		for(auto & pat: _popup_list) {
 			pat->grab_button_press(e);
 			auto _mw = pat->selected();
 			if(not _mw.expired()) {
 				auto mw = _mw.lock();
-				_ctx->activate(mw, e->time);
+				_ctx->activate(mw, time);
 				break;
 			}
 		}
 
-		_ctx->grab_stop(e->time);
+		_ctx->grab_stop(time);
 
 	}
 }
 
-void grab_alt_tab_t::button_motion(xcb_motion_notify_event_t const * e) {
+void grab_alt_tab_t::button_motion(ClutterEvent const * e) {
 	for(auto & pat: _popup_list) {
 		pat->grab_button_motion(e);
 		auto _mw = pat->selected();
@@ -860,7 +930,7 @@ void grab_alt_tab_t::button_motion(xcb_motion_notify_event_t const * e) {
 	}
 }
 
-void grab_alt_tab_t::key_press(xcb_key_press_event_t const * e) {
+void grab_alt_tab_t::key_press(ClutterEvent const * e) {
 //	/* get KeyCode for Unmodified Key */
 //	xcb_keysym_t k = _ctx->keymap()->get(e->detail);
 //
@@ -903,7 +973,7 @@ void grab_alt_tab_t::key_press(xcb_key_press_event_t const * e) {
 //	}
 }
 
-void grab_alt_tab_t::key_release(xcb_key_release_event_t const * e) {
+void grab_alt_tab_t::key_release(ClutterEvent const * e) {
 //	/* get KeyCode for Unmodified Key */
 //	xcb_keysym_t k = _ctx->keymap()->get(e->detail);
 //

@@ -93,8 +93,8 @@ public:
 
 	void destroy_client(client_managed_t * c);
 
-	void grab_button_press(xcb_button_press_event_t const * ev);
-	void grab_button_motion(xcb_motion_notify_event_t const * ev);
+	void grab_button_press(ClutterEvent const * ev);
+	void grab_button_motion(ClutterEvent const * ev);
 
 	/**
 	 * tree_t virtual API

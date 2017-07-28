@@ -68,6 +68,15 @@ client_managed_t::~client_managed_t()
 	g_object_unref(_meta_window);
 }
 
+auto client_managed_t::meta_window() -> MetaWindow *
+{
+	return _meta_window;
+}
+auto client_managed_t::meta_window_actor() -> MetaWindowActor *
+{
+	return _meta_window_actor;
+}
+
 void client_managed_t::delete_window(xcb_timestamp_t t) {
 	printf("request close for '%s'\n", title().c_str());
 	meta_window_delete(_meta_window, t);
@@ -77,9 +86,9 @@ void client_managed_t::set_managed_type(managed_window_type_e type) {
 	_managed_type = type;
 }
 
-void client_managed_t::focus(xcb_timestamp_t t) {
-	icccm_focus_unsafe(t);
-}
+//void client_managed_t::focus(xcb_timestamp_t t) {
+//	icccm_focus_unsafe(t);
+//}
 
 managed_window_type_e client_managed_t::get_type() {
 	return _managed_type;
@@ -299,6 +308,11 @@ void client_managed_t::update_icon() {
 void client_managed_t::set_current_workspace(unsigned int n) {
 	// TODO
 	//_client_proxy->set_net_wm_desktop(n);
+}
+
+void client_managed_t::focus(guint32 timestamp)
+{
+	meta_window_focus(_meta_window, timestamp);
 }
 
 void client_managed_t::set_demands_attention() {

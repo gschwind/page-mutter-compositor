@@ -12,6 +12,8 @@
 #include <xcb/xcb.h>
 #include <memory>
 
+#include <clutter/clutter.h>
+
 namespace page {
 
 using namespace std;
@@ -100,11 +102,11 @@ class view_fullscreen_t;
 
 struct grab_handler_t {
 	virtual ~grab_handler_t() { }
-	virtual void button_press(xcb_button_press_event_t const *) = 0;
-	virtual void button_motion(xcb_motion_notify_event_t const *) = 0;
-	virtual void button_release(xcb_button_release_event_t const *) = 0;
-	virtual void key_press(xcb_key_press_event_t const * ev) = 0;
-	virtual void key_release(xcb_key_release_event_t const * ev) = 0;
+	virtual void button_press(ClutterEvent const *) = 0;
+	virtual void button_motion(ClutterEvent const *) = 0;
+	virtual void button_release(ClutterEvent const *) = 0;
+	virtual void key_press(ClutterEvent const * ev) = 0;
+	virtual void key_release(ClutterEvent const * ev) = 0;
 };
 
 struct page_configuration_t {

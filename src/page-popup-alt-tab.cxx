@@ -303,13 +303,24 @@ void popup_alt_tab_t::_select_from_mouse(int x, int y) {
 	}
 }
 
-void popup_alt_tab_t::grab_button_press(xcb_button_press_event_t const * ev) {
+void popup_alt_tab_t::grab_button_press(ClutterEvent const * ev)
+{
+	gfloat x, y;
+	clutter_event_get_coords(ev, &x, &y);
+	auto button = clutter_event_get_button(ev);
+	auto time = clutter_event_get_time(ev);
+
 	_clear_selected();
-	_select_from_mouse(ev->root_x, ev->root_y);
+	_select_from_mouse(x, y);
 }
 
-void popup_alt_tab_t::grab_button_motion(xcb_motion_notify_event_t const * ev) {
-	_select_from_mouse(ev->root_x, ev->root_y);
+void popup_alt_tab_t::grab_button_motion(ClutterEvent const * ev)
+{
+	gfloat x, y;
+	clutter_event_get_coords(ev, &x, &y);
+	auto button = clutter_event_get_button(ev);
+	auto time = clutter_event_get_time(ev);
+	_select_from_mouse(x, y);
 	_ctx->schedule_repaint();
 }
 

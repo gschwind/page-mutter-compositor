@@ -274,37 +274,44 @@ void dropdown_menu_t::update_cursor_position(int x, int y)
 	}
 }
 
-void dropdown_menu_t::button_press(xcb_button_press_event_t const * e)
+void dropdown_menu_t::button_press(ClutterEvent const * e)
 {
 
 }
 
 
-void dropdown_menu_t::button_motion(xcb_motion_notify_event_t const * e)
+void dropdown_menu_t::button_motion(ClutterEvent const * e)
 {
-	update_cursor_position(e->root_x, e->root_y);
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	update_cursor_position(x, y);
 }
 
-void dropdown_menu_t::button_release(xcb_button_release_event_t const * e)
+void dropdown_menu_t::button_release(ClutterEvent const * e)
 {
-	if (e->detail == XCB_BUTTON_INDEX_3 or e->detail == XCB_BUTTON_INDEX_1) {
-		if(not pop->_position.is_inside(e->root_x, e->root_y)) {
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto button = clutter_event_get_button(e);
+	auto time = clutter_event_get_time(e);
+
+	if (button == 3 or button == 1) {
+		if(not pop->_position.is_inside(x, y)) {
 			if(has_been_released) {
-				_ctx->grab_stop(e->time);
+				_ctx->grab_stop(time);
 			} else {
 				has_been_released = true;
 			}
 		} else {
-			update_cursor_position(e->root_x, e->root_y);
-			_time = e->time;
-			_items[_selected]->_on_click(e->time);
-			_ctx->grab_stop(e->time);
+			update_cursor_position(x, y);
+			_time = time;
+			_items[_selected]->_on_click(time);
+			_ctx->grab_stop(time);
 		}
 	}
 }
 
-void dropdown_menu_t::key_press(xcb_key_press_event_t const * ev) { }
-void dropdown_menu_t::key_release(xcb_key_release_event_t const * ev) { }
+void dropdown_menu_t::key_press(ClutterEvent const * ev) { }
+void dropdown_menu_t::key_release(ClutterEvent const * ev) { }
 
 
 

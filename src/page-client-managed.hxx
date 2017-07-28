@@ -39,7 +39,11 @@ enum managed_window_type_e {
 	MANAGED_POPUP
 };
 
-struct client_managed_t : public enable_shared_from_this<client_managed_t>, public connectable_t {
+struct client_managed_t :
+		public enable_shared_from_this<client_managed_t>,
+		public connectable_t,
+		public g_connectable<client_managed_t>
+{
 	static long const MANAGED_ORIG_WINDOW_EVENT_MASK =
 			  XCB_EVENT_MASK_STRUCTURE_NOTIFY
 			| XCB_EVENT_MASK_PROPERTY_CHANGE
@@ -135,6 +139,9 @@ struct client_managed_t : public enable_shared_from_this<client_managed_t>, publ
 	client_managed_t(page_t * ctx, MetaWindowActor * actor);
 	~client_managed_t();
 
+	auto meta_window() -> MetaWindow *;
+	auto meta_window_actor() -> MetaWindowActor *;
+
 	signal_t<client_managed_t *> on_destroy;
 	signal_t<client_managed_t *> on_title_change;
 	signal_t<client_managed_t *> on_configure_notify;
@@ -151,6 +158,7 @@ struct client_managed_t : public enable_shared_from_this<client_managed_t>, publ
 	void delete_window(xcb_timestamp_t);
 	auto icon() const -> shared_ptr<icon16>;
 	void set_current_workspace(unsigned int n);
+	void focus(guint32 timestamp);
 
 	//void net_wm_state_add(atom_e atom);
 	//void net_wm_state_remove(atom_e atom);
@@ -165,7 +173,7 @@ struct client_managed_t : public enable_shared_from_this<client_managed_t>, publ
 	void unlock();
 	void set_demands_attention();
 	bool demands_attention();
-	void focus(xcb_timestamp_t t);
+//	void focus(xcb_timestamp_t t);
 	auto get_type() -> managed_window_type_e;
 	void set_managed_type(managed_window_type_e type);
 	auto ensure_workspace() -> unsigned;

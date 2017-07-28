@@ -146,7 +146,8 @@ void view_rebased_t::_reconfigure_windows()
 		printf("%s\n", _client->_absolute_position.to_string().c_str());
 
 	} else {
-		meta_window_unminimize(_client->_meta_window);
+		meta_window_minimize(_client->meta_window());
+		clutter_actor_hide(CLUTTER_ACTOR(_client->meta_window_actor()));
 //		_client->_client_proxy->set_wm_state(IconicState);
 //		_client->net_wm_state_remove(_NET_WM_STATE_FOCUSED);
 //		rect hidden_position{

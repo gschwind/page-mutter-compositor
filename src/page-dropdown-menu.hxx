@@ -104,11 +104,11 @@ public:
 	void set_selected(int s);
 	void update_cursor_position(int x, int y);
 
-	virtual void button_press(xcb_button_press_event_t const * e) override;
-	virtual void button_motion(xcb_motion_notify_event_t const * e) override;
-	virtual void button_release(xcb_button_release_event_t const * e) override;
-	virtual void key_press(xcb_key_press_event_t const * ev) override;
-	virtual void key_release(xcb_key_release_event_t const * ev) override;
+	virtual void button_press(ClutterEvent const * e) override;
+	virtual void button_motion(ClutterEvent const * e) override;
+	virtual void button_release(ClutterEvent const * e) override;
+	virtual void key_press(ClutterEvent const * ev) override;
+	virtual void key_release(ClutterEvent const * ev) override;
 
 };
 

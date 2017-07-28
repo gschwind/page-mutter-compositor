@@ -219,6 +219,8 @@ public:
 
 	void _handler_monitors_changed(MetaScreen * screen);
 
+	void _handler_focus(MetaWindow * window);
+
 
 	/** user inputs **/
 //	void process_key_press_event(xcb_generic_event_t const * e);
@@ -334,8 +336,8 @@ public:
 	void update_page_areas();
 	void set_workspace_geometry(long width, long height);
 
-	auto lookup_client_managed_with_orig_window(xcb_window_t w) const -> client_managed_p;
-	auto lookup_client_managed_with_base_window(MetaWindowActor * actor) const -> client_managed_p;
+	auto lookup_client_managed_with_meta_window(MetaWindow * w) const -> client_managed_p;
+	auto lookup_client_managed_with_meta_window_actor(MetaWindowActor * actor) const -> client_managed_p;
 
 	void raise_child(shared_ptr<tree_t> t);
 	void process_notebook_client_menu(shared_ptr<client_managed_t> c, int selected);
@@ -407,8 +409,8 @@ public:
 	auto get_workspace(int id) const -> shared_ptr<workspace_t> const &;
 	int  get_workspace_count() const;
 	int  create_workspace();
-	void grab_start(shared_ptr<grab_handler_t> handler, xcb_timestamp_t time);
-	void grab_stop(xcb_timestamp_t time);
+	void grab_start(shared_ptr<grab_handler_t> handler, guint32 time);
+	void grab_stop(guint32 time);
 	void insert_window_in_notebook(shared_ptr<client_managed_t> x, shared_ptr<notebook_t> n, bool prefer_activate);
 	void move_fullscreen_to_viewport(view_fullscreen_p c, viewport_p v);
 	void split_left(notebook_p nbk, view_p c, xcb_timestamp_t time);
