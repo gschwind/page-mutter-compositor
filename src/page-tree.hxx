@@ -86,7 +86,7 @@ protected:
 		(this->*f)(args...);
 	}
 
-	auto _broadcast_deep_first(button_action_e (tree_t::* f)(xcb_button_press_event_t const * ev), xcb_button_press_event_t const * ev) -> button_action_e {
+	auto _broadcast_deep_first(button_action_e (tree_t::* f)(ClutterEvent const * ev), ClutterEvent const * ev) -> button_action_e {
 		for(auto x: weak(get_all_children_deep_first())) {
 			if(not x.expired()) {
 				auto ret = (x.lock().get()->*f)(ev);
@@ -165,11 +165,12 @@ public:
 
 	void broadcast_trigger_redraw();
 
-	auto broadcast_button_press(xcb_button_press_event_t const * ev) -> button_action_e;
-	bool broadcast_button_release(xcb_button_release_event_t const * ev);
-	bool broadcast_button_motion(xcb_motion_notify_event_t const * ev);
-	bool broadcast_leave(xcb_leave_notify_event_t const * ev);
-	bool broadcast_enter(xcb_enter_notify_event_t const * ev);
+	auto broadcast_button_press(ClutterEvent const * ev) -> button_action_e;
+	bool broadcast_button_release(ClutterEvent const * ev);
+	bool broadcast_button_motion(ClutterEvent const * ev);
+	bool broadcast_leave(ClutterEvent const * ev);
+	bool broadcast_enter(ClutterEvent const * ev);
+
 	void broadcast_expose(xcb_expose_event_t const * ev);
 	void broadcast_update_layout(time64_t const time);
 	void broadcast_render_finished();
@@ -212,11 +213,12 @@ public:
 	virtual auto get_visible_region() -> region;
 	virtual auto get_damaged() -> region;
 
-	virtual auto button_press(xcb_button_press_event_t const * ev) -> button_action_e;
-	virtual bool button_release(xcb_button_release_event_t const * ev);
-	virtual bool button_motion(xcb_motion_notify_event_t const * ev);
-	virtual bool leave(xcb_leave_notify_event_t const * ev);
-	virtual bool enter(xcb_enter_notify_event_t const * ev);
+	virtual auto button_press(ClutterEvent const * ev) -> button_action_e;
+	virtual bool button_release(ClutterEvent const * ev);
+	virtual bool button_motion(ClutterEvent const * ev);
+	virtual bool leave(ClutterEvent const * ev);
+	virtual bool enter(ClutterEvent const * ev);
+
 	virtual void expose(xcb_expose_event_t const * ev);
 
 	virtual auto get_toplevel_xid() const -> xcb_window_t;

@@ -435,9 +435,7 @@ void simple2_theme_t::render_notebook(cairo_t * cr, theme_notebook_t const * n) 
 		if (backgroun_px != nullptr) {
 			CHECK_CAIRO(cairo_set_source_surface(cr, backgroun_px, -n->root_x, -n->root_y));
 		} else {
-			printf("XXXcolor\n");
-			//CHECK_CAIRO(cairo_set_source_color_alpha(cr, default_background_color));
-			CHECK_CAIRO(cairo_set_source_rgba(cr, 0.5, 0.5, 0.5, 0.0));
+			CHECK_CAIRO(cairo_set_source_color_alpha(cr, default_background_color));
 		}
 		CHECK_CAIRO(cairo_paint(cr));
 		CHECK_CAIRO(cairo_restore(cr)); // restore #3
@@ -784,15 +782,15 @@ void simple2_theme_t::render_notebook_selected(
 	bicon.y += 2;
 
 	CHECK_CAIRO(cairo_set_operator(cr, CAIRO_OPERATOR_OVER));
-	if (data.icon != nullptr) {
-		if (data.icon->get_cairo_surface() != 0) {
-			CHECK_CAIRO(::cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 1.0));
-			CHECK_CAIRO(cairo_set_source_surface(cr, data.icon->get_cairo_surface(),
-					bicon.x, bicon.y));
-			CHECK_CAIRO(cairo_mask_surface(cr, data.icon->get_cairo_surface(),
-					bicon.x, bicon.y));
-		}
-	}
+//	if (data.icon != nullptr) {
+//		if (data.icon->get_cairo_surface() != 0) {
+//			CHECK_CAIRO(::cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 1.0));
+//			CHECK_CAIRO(cairo_set_source_surface(cr, data.icon->get_cairo_surface(),
+//					bicon.x, bicon.y));
+//			CHECK_CAIRO(cairo_mask_surface(cr, data.icon->get_cairo_surface(),
+//					bicon.x, bicon.y));
+//		}
+//	}
 
 	/** draw title **/
 	{
@@ -933,15 +931,15 @@ void simple2_theme_t::render_notebook_normal(
 
 	CHECK_CAIRO(cairo_save(cr));
 	CHECK_CAIRO(cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE));
-	if (data.icon != nullptr) {
-		if (data.icon->get_cairo_surface() != nullptr) {
-			CHECK_CAIRO(::cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 1.0));
-			CHECK_CAIRO(cairo_set_source_surface(cr, data.icon->get_cairo_surface(),
-					bicon.x, bicon.y));
-			CHECK_CAIRO(cairo_mask_surface(cr, data.icon->get_cairo_surface(),
-					bicon.x, bicon.y));
-		}
-	}
+//	if (data.icon != nullptr) {
+//		if (data.icon->get_cairo_surface() != nullptr) {
+//			CHECK_CAIRO(::cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 1.0));
+//			CHECK_CAIRO(cairo_set_source_surface(cr, data.icon->get_cairo_surface(),
+//					bicon.x, bicon.y));
+//			CHECK_CAIRO(cairo_mask_surface(cr, data.icon->get_cairo_surface(),
+//					bicon.x, bicon.y));
+//		}
+//	}
 
 	CHECK_CAIRO(cairo_restore(cr));
 

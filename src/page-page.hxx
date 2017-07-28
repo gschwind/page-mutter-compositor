@@ -80,7 +80,7 @@ struct key_bind_cmd_t {
 	string cmd;
 };
 
-class page_t : public connectable_t {
+class page_t : public connectable_t, public g_connectable<page_t> {
 	static uint32_t const DEFAULT_BUTTON_EVENT_MASK = XCB_EVENT_MASK_BUTTON_PRESS|XCB_EVENT_MASK_BUTTON_RELEASE|XCB_EVENT_MASK_BUTTON_MOTION|XCB_EVENT_MASK_POINTER_MOTION;
 	static uint32_t const ROOT_EVENT_MASK = XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_FOCUS_CHANGE;
 	static time64_t const default_wait;
@@ -212,6 +212,13 @@ public:
 
 	/* scan current root window status, finding mapped windows */
 //	void scan();
+
+	auto _button_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
+	auto _button_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
+	auto _motion_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
+
+	void _handler_monitors_changed(MetaScreen * screen);
+
 
 	/** user inputs **/
 //	void process_key_press_event(xcb_generic_event_t const * e);

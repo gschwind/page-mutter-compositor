@@ -44,7 +44,11 @@ viewport_t::viewport_t(tree_t * ref, rect const & area) :
 	clutter_actor_set_reactive (_default_view, TRUE);
 
 	g_connect(CLUTTER_CANVAS(_canvas), "draw", &viewport_t::draw);
-	g_connect(CLUTTER_ACTOR(_default_view), "button-press-event", &viewport_t::_button_press_handler);
+	g_connect(CLUTTER_ACTOR(_default_view), "button-press-event", &viewport_t::_handler_button_press_event);
+	g_connect(CLUTTER_ACTOR(_default_view), "button-release-event", &viewport_t::_handler_button_release_event);
+	g_connect(CLUTTER_ACTOR(_default_view), "motion-event", &viewport_t::_handler_motion_event);
+	g_connect(CLUTTER_ACTOR(_default_view), "enter-event", &viewport_t::_handler_enter_event);
+	g_connect(CLUTTER_ACTOR(_default_view), "leave-event", &viewport_t::_handler_leave_event);
 
 	clutter_content_invalidate(_canvas);
 	clutter_actor_set_position(_default_view, _effective_area.x, _effective_area.y);
@@ -90,6 +94,7 @@ void viewport_t::set_allocation(rect const & area) {
 	_page_area = rect{0, 0, _effective_area.w, _effective_area.h};
 	if(_subtree != nullptr)
 		_subtree->set_allocation(_page_area);
+	queue_redraw();
 }
 
 void viewport_t::set_raw_area(rect const & area) {
@@ -183,7 +188,8 @@ void viewport_t::draw(ClutterCanvas * _, cairo_t * cr, int width, int height) {
 }
 
 void viewport_t::_redraw_back_buffer() {
-	clutter_content_invalidate(CLUTTER_CONTENT(_default_view));
+	if(_canvas)
+		clutter_content_invalidate(_canvas);
 }
 
 void viewport_t::trigger_redraw() {
@@ -197,6 +203,8 @@ void viewport_t::queue_redraw()
 {
 	_root->_ctx->schedule_repaint();
 	_is_durty = true;
+	if(_canvas)
+		clutter_content_invalidate(_canvas);
 }
 
 auto viewport_t::get_default_view() const -> ClutterActor *
@@ -220,10 +228,51 @@ gboolean viewport_t::wrapper_draw_callback(ClutterCanvas *canvas, cairo_t *cr, i
 	return FALSE;
 }
 
-void viewport_t::_button_press_handler(ClutterActor * actor, ClutterEvent * event)
+auto viewport_t::_handler_button_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+
+	broadcast_button_press(event);
+
+	return FALSE;
 }
+
+auto viewport_t::_handler_button_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+
+	broadcast_button_release(event);
+
+	return FALSE;
+}
+
+auto viewport_t::_handler_motion_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+
+	broadcast_button_motion(event);
+
+	return FALSE;
+}
+
+auto viewport_t::_handler_enter_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+
+	broadcast_enter(event);
+
+	return FALSE;
+}
+
+auto viewport_t::_handler_leave_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+
+	broadcast_leave(event);
+
+	return FALSE;
+}
+
 
 rect viewport_t::get_window_position() const {
 	return _effective_area;

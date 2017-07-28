@@ -239,27 +239,27 @@ auto tree_t::lookup_view_for(client_managed_p c) const -> view_p
 	return _root->workspace_t::lookup_view_for(c);
 }
 
-auto tree_t::button_press(xcb_button_press_event_t const * ev) -> button_action_e
+auto tree_t::button_press(ClutterEvent const * ev) -> button_action_e
 {
 	return BUTTON_ACTION_CONTINUE;
 }
 
-bool tree_t::button_release(xcb_button_release_event_t const * ev)
+bool tree_t::button_release(ClutterEvent const * ev)
 {
 	return false;
 }
 
-bool tree_t::button_motion(xcb_motion_notify_event_t const * ev)
+bool tree_t::button_motion(ClutterEvent const * ev)
 {
 	return false;
 }
 
-bool tree_t::leave(xcb_leave_notify_event_t const * ev)
+bool tree_t::leave(ClutterEvent const * ev)
 {
 	return false;
 }
 
-bool tree_t::enter(xcb_enter_notify_event_t const * ev)
+bool tree_t::enter(ClutterEvent const * ev)
 {
 	return false;
 }
@@ -360,23 +360,23 @@ void tree_t::broadcast_trigger_redraw() {
 	_broadcast_deep_first(&tree_t::trigger_redraw);
 }
 
-auto tree_t::broadcast_button_press(xcb_button_press_event_t const * ev) -> button_action_e {
+auto tree_t::broadcast_button_press(ClutterEvent const * ev) -> button_action_e {
 	return _broadcast_deep_first(&tree_t::button_press, ev);
 }
 
-bool tree_t::broadcast_button_release(xcb_button_release_event_t const * ev) {
+bool tree_t::broadcast_button_release(ClutterEvent const * ev) {
 	return _broadcast_deep_first(&tree_t::button_release, ev);
 }
 
-bool tree_t::broadcast_button_motion(xcb_motion_notify_event_t const * ev) {
+bool tree_t::broadcast_button_motion(ClutterEvent const * ev) {
 	return _broadcast_deep_first(&tree_t::button_motion, ev);
 }
 
-bool tree_t::broadcast_leave(xcb_leave_notify_event_t const * ev) {
+bool tree_t::broadcast_leave(ClutterEvent const * ev) {
 	return _broadcast_deep_first(&tree_t::leave, ev);
 }
 
-bool tree_t::broadcast_enter(xcb_enter_notify_event_t const * ev) {
+bool tree_t::broadcast_enter(ClutterEvent const * ev) {
 	return _broadcast_deep_first(&tree_t::enter, ev);
 }
 

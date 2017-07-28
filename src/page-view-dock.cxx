@@ -179,16 +179,16 @@ void view_dock_t::reconfigure()
 	view_t::reconfigure();
 }
 
-auto view_dock_t::button_press(xcb_button_press_event_t const * e)  -> button_action_e
-{
-
+//auto view_dock_t::button_press(xcb_button_press_event_t const * e)  -> button_action_e
+//{
+//
 //	if (e->event != _client->_client_proxy->id()) {
 //		return BUTTON_ACTION_CONTINUE;
 //	}
-
-	_root->set_focus(shared_from_this(), e->time);
-	return BUTTON_ACTION_REPLAY;
-
-}
+//
+//	_root->set_focus(shared_from_this(), e->time);
+//	return BUTTON_ACTION_REPLAY;
+//
+//}
 
 } /* namespace page */

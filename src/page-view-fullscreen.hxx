@@ -70,7 +70,7 @@ struct view_fullscreen_t : public view_rebased_t {
 	using view_t::get_visible_region;
 	using view_t::get_damaged;
 
-	virtual auto button_press(xcb_button_press_event_t const * ev) -> button_action_e override;
+	//virtual auto button_press(xcb_button_press_event_t const * ev) -> button_action_e override;
 	//virtual bool button_release(xcb_button_release_event_t const * ev);
 	//virtual bool button_motion(xcb_motion_notify_event_t const * ev);
 	//virtual bool leave(xcb_leave_notify_event_t const * ev);

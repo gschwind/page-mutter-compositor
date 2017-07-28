@@ -585,7 +585,7 @@ void notebook_t::_update_theme_notebook(theme_notebook_t & theme_notebook) {
 			}
 
 			theme_notebook.selected_client.title = _selected->title();
-			theme_notebook.selected_client.icon = _selected->icon();
+			//theme_notebook.selected_client.icon = _selected->icon();
 			theme_notebook.selected_client.is_iconic = _selected->is_iconic();
 			theme_notebook.has_selected_client = true;
 		} else {
@@ -610,7 +610,7 @@ void notebook_t::_update_theme_notebook(theme_notebook_t & theme_notebook) {
 				tab.tab_color = _ctx->theme()->get_normal_color();
 			}
 			tab.title = i->title();
-			tab.icon = i->icon();
+			//tab.icon = i->icon();
 			tab.is_iconic = i->is_iconic();
 			offset += _ctx->theme()->notebook.iconic_tab_width;
 		}
@@ -654,8 +654,6 @@ void notebook_t::_update_theme_notebook(theme_notebook_t & theme_notebook) {
 		theme_notebook.client_position = _client_position;
 	}
 	theme_notebook.is_default = is_default();
-
-
 
 }
 
@@ -843,27 +841,25 @@ void notebook_t::_stop_exposay() {
 	queue_redraw();
 }
 
-auto notebook_t::button_press(xcb_button_press_event_t const * e) -> button_action_e
+auto notebook_t::button_press(ClutterEvent const * e) -> button_action_e
 {
-	if (e->event != get_component_xid()) {
-		return BUTTON_ACTION_CONTINUE;
-	}
+	auto button = clutter_event_get_button(e);
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto time = clutter_event_get_time(e);
 
 	/* left click on page window */
-	if (e->child == XCB_NONE and e->detail == XCB_BUTTON_INDEX_1) {
-		int x = e->event_x;
-		int y = e->event_y;
-
+	if (button & CLUTTER_BUTTON1_MASK) {
 		if (_area.button_close.is_inside(x, y)) {
-			_ctx->notebook_close(shared_from_this(), e->time);
+			_ctx->notebook_close(shared_from_this(), time);
 			return BUTTON_ACTION_GRAB_ASYNC;
 		} else if (_area.button_hsplit.is_inside(x, y)) {
 			if(_can_hsplit)
-				_ctx->split_bottom(shared_from_this(), nullptr, e->time);
+				_ctx->split_bottom(shared_from_this(), nullptr, time);
 			return BUTTON_ACTION_GRAB_ASYNC;
 		} else if (_area.button_vsplit.is_inside(x, y)) {
 			if(_can_vsplit)
-				_ctx->split_right(shared_from_this(), nullptr, e->time);
+				_ctx->split_right(shared_from_this(), nullptr, time);
 			return BUTTON_ACTION_GRAB_ASYNC;
 		} else if (_area.button_select.is_inside(x, y)) {
 			_root->set_default_pop(shared_from_this());
@@ -873,11 +869,11 @@ auto notebook_t::button_press(xcb_button_press_event_t const * e) -> button_acti
 			return BUTTON_ACTION_GRAB_ASYNC;
 		} else if (_area.close_client.is_inside(x, y)) {
 			if(_selected != nullptr)
-				_close_view_notebook(_selected, e->time);
+				_close_view_notebook(_selected, time);
 			return BUTTON_ACTION_GRAB_ASYNC;
 		} else if (_area.undck_client.is_inside(x, y)) {
 			if (_selected != nullptr)
-				_root->switch_notebook_to_floating(_selected, e->time);
+				_root->switch_notebook_to_floating(_selected, time);
 			return BUTTON_ACTION_GRAB_ASYNC;
 		} else if (_area.left_scroll_arrow.is_inside(x, y)) {
 			_scroll_left(30);
@@ -890,7 +886,7 @@ auto notebook_t::button_press(xcb_button_press_event_t const * e) -> button_acti
 				if(std::get<0>(i).is_inside(x, y)) {
 					if (not std::get<1>(i).expired()) {
 						auto c = std::get<1>(i).lock();
-						_ctx->grab_start(make_shared<grab_bind_view_notebook_t>(_ctx, c, XCB_BUTTON_INDEX_1, to_root_position(std::get<0>(i))), e->time);
+						_ctx->grab_start(make_shared<grab_bind_view_notebook_t>(_ctx, c, XCB_BUTTON_INDEX_1, to_root_position(std::get<0>(i))), time);
 						_mouse_over_reset();
 						return BUTTON_ACTION_HAS_ACTIVE_GRAB;
 					}
@@ -902,7 +898,7 @@ auto notebook_t::button_press(xcb_button_press_event_t const * e) -> button_acti
 				if(std::get<0>(i).is_inside(x, y) and not std::get<1>(i).expired()) {
 					if (not std::get<1>(i).expired()) {
 						auto c = std::get<1>(i).lock();
-						_ctx->grab_start(make_shared<grab_bind_view_notebook_t>(_ctx, c, XCB_BUTTON_INDEX_1, to_root_position(std::get<0>(i))), e->time);
+						_ctx->grab_start(make_shared<grab_bind_view_notebook_t>(_ctx, c, XCB_BUTTON_INDEX_1, to_root_position(std::get<0>(i))), time);
 						return BUTTON_ACTION_HAS_ACTIVE_GRAB;
 					}
 					return BUTTON_ACTION_GRAB_ASYNC;
@@ -911,9 +907,7 @@ auto notebook_t::button_press(xcb_button_press_event_t const * e) -> button_acti
 		}
 
 	/* rigth click on page */
-	} else if (e->child == XCB_NONE and e->detail == XCB_BUTTON_INDEX_3) {
-		int x = e->event_x;
-		int y = e->event_y;
+	} else if (button & CLUTTER_BUTTON3_MASK) {
 
 		if (_area.button_close.is_inside(x, y)) {
 
@@ -930,31 +924,32 @@ auto notebook_t::button_press(xcb_button_press_event_t const * e) -> button_acti
 		} else if (_area.undck_client.is_inside(x, y)) {
 
 		} else {
-			for(auto & i: _client_buttons) {
-				if(std::get<0>(i).is_inside(x, y)) {
-					_start_client_menu(std::get<1>(i).lock(), e->detail, e->root_x, e->root_y, e->time);
-					return BUTTON_ACTION_HAS_ACTIVE_GRAB;
-				}
-			}
-
-			for(auto & i: _exposay_buttons) {
-				if(std::get<0>(i).is_inside(x, y)) {
-					_start_client_menu(std::get<1>(i).lock(), e->detail, e->root_x, e->root_y, e->time);
-					return BUTTON_ACTION_HAS_ACTIVE_GRAB;
-				}
-			}
-		}
-	} else if (e->child == XCB_NONE and e->detail == XCB_BUTTON_INDEX_4) {
-		if(_theme_client_tabs_area.is_inside(e->event_x, e->event_y)) {
-			_scroll_left(15);
-			return BUTTON_ACTION_GRAB_ASYNC;
-		}
-	} else if (e->child == XCB_NONE and e->detail == XCB_BUTTON_INDEX_5) {
-		if(_theme_client_tabs_area.is_inside(e->event_x, e->event_y)) {
-			_scroll_right(15);
-			return BUTTON_ACTION_GRAB_ASYNC;
+//			for(auto & i: _client_buttons) {
+//				if(std::get<0>(i).is_inside(x, y)) {
+//					_start_client_menu(std::get<1>(i).lock(), e->detail, e->root_x, e->root_y, e->time);
+//					return BUTTON_ACTION_HAS_ACTIVE_GRAB;
+//				}
+//			}
+//
+//			for(auto & i: _exposay_buttons) {
+//				if(std::get<0>(i).is_inside(x, y)) {
+//					_start_client_menu(std::get<1>(i).lock(), e->detail, e->root_x, e->root_y, e->time);
+//					return BUTTON_ACTION_HAS_ACTIVE_GRAB;
+//				}
+//			}
 		}
 	}
+//	else if (e->child == XCB_NONE and e->detail == XCB_BUTTON_INDEX_4) {
+//		if(_theme_client_tabs_area.is_inside(x, e->event_y)) {
+//			_scroll_left(15);
+//			return BUTTON_ACTION_GRAB_ASYNC;
+//		}
+//	} else if (e->child == XCB_NONE and e->detail == XCB_BUTTON_INDEX_5) {
+//		if(_theme_client_tabs_area.is_inside(e->event_x, e->event_y)) {
+//			_scroll_right(15);
+//			return BUTTON_ACTION_GRAB_ASYNC;
+//		}
+//	}
 
 	return BUTTON_ACTION_CONTINUE;
 
@@ -1062,26 +1057,21 @@ void notebook_t::_update_mouse_over(int x, int y) {
 
 }
 
-bool notebook_t::button_motion(xcb_motion_notify_event_t const * e) {
+bool notebook_t::button_motion(ClutterEvent const * e)
+{
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto time = clutter_event_get_time(e);
 
-	if (e->event != get_component_xid()) {
-		_update_mouse_over(-1, -1);
-		return false;
-	}
-
-	if (e->child == XCB_NONE) {
-		_update_mouse_over(e->event_x, e->event_y);
-		if(_allocation.is_inside(e->event_x, e->event_y))
-			return true;
-	}
+	_update_mouse_over(x, y);
+	if(_allocation.is_inside(x, y))
+		return true;
 
 	return false;
 }
 
-bool notebook_t::leave(xcb_leave_notify_event_t const * ev) {
-	if(ev->event == get_component_xid()) {
-		_update_mouse_over(-1, -1);
-	}
+bool notebook_t::leave(ClutterEvent const * ev) {
+	_update_mouse_over(-1, -1);
 	return false;
 }
 

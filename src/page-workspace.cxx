@@ -149,9 +149,9 @@ void workspace_t::update_viewports_layout()
 	_viewport_outputs.clear();
 	/** for each not overlaped rectangle **/
 	for (unsigned i = 0; i < viewport_allocation.size(); ++i) {
-//		printf("%d: found viewport (%d,%d,%d,%d)\n", id(),
-//				viewport_allocation[i].x, viewport_allocation[i].y,
-//				viewport_allocation[i].w, viewport_allocation[i].h);
+		printf("%d: found viewport (%d,%d,%d,%d)\n", id(),
+				viewport_allocation[i].x, viewport_allocation[i].y,
+				viewport_allocation[i].w, viewport_allocation[i].h);
 		viewport_p vp;
 		if (i < old_layout.size()) {
 			vp = old_layout[i];

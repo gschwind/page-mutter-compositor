@@ -700,8 +700,8 @@ void view_floating_t::reconfigure() {
 	_damage_cache += get_visible_region();
 }
 
-auto view_floating_t::button_press(xcb_button_press_event_t const * e) -> button_action_e
-{
+//auto view_floating_t::button_press(xcb_button_press_event_t const * e) -> button_action_e
+//{
 //	if (not (e->event == _deco or e->event == _base->id())) {
 //		return BUTTON_ACTION_CONTINUE;
 //	}
@@ -759,7 +759,7 @@ auto view_floating_t::button_press(xcb_button_press_event_t const * e) -> button
 //	}
 //
 //	return BUTTON_ACTION_CONTINUE;
-}
+//}
 
 void view_floating_t::expose(xcb_expose_event_t const * ev) {
 	_is_exposed = true;

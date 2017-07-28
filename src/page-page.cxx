@@ -403,7 +403,6 @@ void page_t::start()
 
 	MetaScreen * screen = meta_plugin_get_screen(_plugin);
 
-
 	MetaRectangle area;
 	auto workspace_list = meta_screen_get_workspaces(screen);
 	for (auto l = workspace_list; l != NULL; l = l->next) {
@@ -443,6 +442,14 @@ void page_t::start()
 //	g_signal_connect(rect, "button-release-event", G_CALLBACK(on_button_release_event), NULL);
 
 	clutter_actor_show(stage);
+
+	g_connect(stage, "button-press-event", &page_t::_button_press_event);
+	g_connect(stage, "button-release-event", &page_t::_button_release_event);
+	g_connect(stage, "motion-event", &page_t::_motion_event);
+
+	g_connect(screen, "monitors-changed", &page_t::_handler_monitors_changed);
+	update_viewport_layout();
+
 }
 
 void page_t::minimize(MetaWindowActor * actor)
@@ -580,6 +587,30 @@ auto page_t::plugin_info() -> MetaPluginInfo const *
 	printf("call %s\n", __PRETTY_FUNCTION__);
 	PagePluginPrivate *priv = PAGE_PLUGIN(_plugin)->priv;
 	return &priv->info;
+}
+
+auto page_t::_button_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	return FALSE;
+}
+
+auto page_t::_button_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	return FALSE;
+}
+
+auto page_t::_motion_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	return FALSE;
+}
+
+void page_t::_handler_monitors_changed(MetaScreen * screen)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	update_viewport_layout();
 }
 
 void page_t::unmanage(client_managed_p mw)
@@ -2018,25 +2049,13 @@ void page_t::update_viewport_layout() {
 	_left_most_border = 0;
 	_top_most_border = 0;
 
-//	MetaScreen * screen = meta_plugin_get_screen(_plugin);
-//	MetaWorkspace * meta_workspace;
-//
-//	vector<rect> viewport_allocation;
-//	region already_allocated;
-//	for(int monitor_id = 0; monitor_id < meta_screen_get_n_monitors(screen); ++monitor_id) {
-//		MetaRectangle area;
-//		auto monitors = meta_workspace_get_work_area_for_monitor(meta_workspace, monitor_id, &area);
-//		region region_to_alocate{rect{area}};
-//		region_to_alocate -= already_allocated;
-//		for (auto & r: region_to_alocate.rects()) {
-//			viewport_allocation.push_back(r);
-//		}
-//		already_allocated += region_to_alocate;
-//	}
-//
-//	for(auto d: _workspace_list) {
-//		d->update_viewports_layout(viewport_allocation);
-//	}
+	for (auto w : _workspace_list) {
+		w->update_viewports_layout();
+	}
+
+	MetaRectangle area;
+	meta_workspace_get_work_area_all_monitors(META_WORKSPACE(get_current_workspace()->_meta_workspace), &area);
+	_theme->update(area.width, area.height);
 
 }
 

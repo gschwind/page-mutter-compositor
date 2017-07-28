@@ -886,16 +886,16 @@ struct g_connect_wapper_base {
 	virtual ~g_connect_wapper_base() { };
 };
 
-template<typename T0, typename T1, typename ... Args>
+template<typename X, typename T0, typename T1, typename ... Args>
 struct g_connect_wrapper : g_connect_wapper_base {
 	T1 * obj;
-	void (T1::* f)(T0 * _0, Args ... args);
-	static void call(T0 * self, Args ... args, gpointer user_data) {
+	X (T1::* f)(T0 * _0, Args ... args);
+	static X call(T0 * self, Args ... args, gpointer user_data) {
 		auto p = reinterpret_cast<g_connect_wrapper*>(user_data);
-		((p->obj)->*(p->f))(self, args...);
+		return ((p->obj)->*(p->f))(self, args...);
 	}
 
-	g_connect_wrapper(T1 * ths, void (T1::* f)(T0 * _0, Args ... args)) :
+	g_connect_wrapper(T1 * ths, X (T1::* f)(T0 * _0, Args ... args)) :
 		obj{ths}, f{f}
 	{
 
@@ -918,9 +918,9 @@ public:
 		}
 	}
 
-	template<typename T0, typename ... Args>
-	void g_connect(T0 * obj, char const * s, void (T::* f)(T0 * _0, Args ... args)) {
-		auto x = new g_connect_wrapper<T0, T, Args...>{static_cast<T*>(this), f};
+	template<typename X, typename T0, typename ... Args>
+	void g_connect(T0 * obj, char const * s, X (T::* f)(T0 * _0, Args ... args)) {
+		auto x = new g_connect_wrapper<X, T0, T, Args...>{static_cast<T*>(this), f};
 		guint signum = g_signal_lookup(s, G_TYPE_FROM_INSTANCE(obj));
 		key_t xkey{obj, signum};
 		auto i = _connected_handler.find(xkey);
@@ -931,7 +931,7 @@ public:
 		} else {
 			_connected_handler[xkey] = x;
 		}
-		g_signal_connect(obj, s, G_CALLBACK((&g_connect_wrapper<T0, T, Args...>::call)), x);
+		g_signal_connect(obj, s, G_CALLBACK((&g_connect_wrapper<X, T0, T, Args...>::call)), x);
 	}
 
 	template<typename T1>

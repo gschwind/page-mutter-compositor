@@ -540,15 +540,15 @@ void tiny_theme_t::render_notebook_selected(
 	bicon.y += 2;
 
 	cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
-	if (data.icon != nullptr) {
-		if (data.icon->get_cairo_surface() != 0) {
-			cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 1.0);
-			cairo_set_source_surface(cr, data.icon->get_cairo_surface(),
-					bicon.x, bicon.y);
-			cairo_mask_surface(cr, data.icon->get_cairo_surface(),
-					bicon.x, bicon.y);
-		}
-	}
+//	if (data.icon != nullptr) {
+//		if (data.icon->get_cairo_surface() != 0) {
+//			cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 1.0);
+//			cairo_set_source_surface(cr, data.icon->get_cairo_surface(),
+//					bicon.x, bicon.y);
+//			cairo_mask_surface(cr, data.icon->get_cairo_surface(),
+//					bicon.x, bicon.y);
+//		}
+//	}
 
 	/** draw application title **/
 	rect btext = tab_area;
@@ -701,15 +701,15 @@ void tiny_theme_t::render_notebook_normal(
 
 	cairo_save(cr);
 	cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
-	if (data.icon != nullptr) {
-		if (data.icon->get_cairo_surface() != nullptr) {
-			cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 1.0);
-			cairo_set_source_surface(cr, data.icon->get_cairo_surface(),
-					bicon.x, bicon.y);
-			cairo_mask_surface(cr, data.icon->get_cairo_surface(),
-					bicon.x, bicon.y);
-		}
-	}
+//	if (data.icon != nullptr) {
+//		if (data.icon->get_cairo_surface() != nullptr) {
+//			cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 1.0);
+//			cairo_set_source_surface(cr, data.icon->get_cairo_surface(),
+//					bicon.x, bicon.y);
+//			cairo_mask_surface(cr, data.icon->get_cairo_surface(),
+//					bicon.x, bicon.y);
+//		}
+//	}
 	cairo_restore(cr);
 
 	cairo_new_path(cr);
