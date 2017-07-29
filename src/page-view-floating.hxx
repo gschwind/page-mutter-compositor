@@ -87,11 +87,6 @@ struct view_floating_t : public view_rebased_t {
 	void _compute_floating_areas();
 	rect _compute_floating_close_position(rect const & allocation) const;
 	rect _compute_floating_bind_position(rect const & allocation) const;
-	void _update_backbuffers();
-	void _reconfigure_deco_windows();
-	void _reconfigure_input_windows();
-	void _create_inputs_windows();
-	void _create_deco_windows();
 	void _map_windows_unsafe();
 	void _unmap_windows_unsafe();
 	void _grab_button_unsafe();

@@ -130,9 +130,17 @@ void view_floating_t::_init()
 						- _client->_floating_wished_position.h) / 2;
 	}
 
+
+	_client->_absolute_position = _client->_floating_wished_position;
+
+	if(meta_window_is_fullscreen(_client->meta_window()))
+		meta_window_unmake_fullscreen(_client->meta_window());
+
+	meta_window_move_resize_frame(_client->meta_window(), FALSE, _client->_absolute_position.x, _client->_absolute_position.y, _client->_absolute_position.w, _client->_absolute_position.h);
+	meta_window_unminimize(_client->meta_window());
+	clutter_actor_show(CLUTTER_ACTOR(_client->meta_window_actor()));
+
 	_update_floating_areas();
-	_create_deco_windows();
-	_create_inputs_windows();
 
 //	auto _dpy = _root->_ctx->_dpy;
 //	auto _xcb = _root->_ctx->_dpy->xcb();
@@ -371,143 +379,6 @@ rect view_floating_t::_compute_floating_bind_position(rect const & allocation) c
 	return position;
 }
 
-void view_floating_t::_update_backbuffers() {
-//	if(not _client->prefer_window_border())
-//		return;
-//
-//	theme_managed_window_t fw;
-//
-//	if (_bottom_buffer != nullptr) {
-//		fw.cairo_bottom = cairo_create(_bottom_buffer->get_cairo_surface());
-//	} else {
-//		fw.cairo_bottom = nullptr;
-//	}
-//
-//	if (_top_buffer != nullptr) {
-//		fw.cairo_top = cairo_create(_top_buffer->get_cairo_surface());
-//	} else {
-//		fw.cairo_top = nullptr;
-//	}
-//
-//	if (_right_buffer != nullptr) {
-//		fw.cairo_right = cairo_create(_right_buffer->get_cairo_surface());
-//	} else {
-//		fw.cairo_right = nullptr;
-//	}
-//
-//	if (_left_buffer != nullptr) {
-//		fw.cairo_left = cairo_create(_left_buffer->get_cairo_surface());
-//	} else {
-//		fw.cairo_left = nullptr;
-//	}
-//
-//	fw.focuced = _client->_has_focus;
-//	fw.position = _base_position;
-//	fw.icon = _client->icon();
-//	fw.title = _client->title();
-//	fw.demand_attention = _client->_demands_attention;
-//
-//	_root->_ctx->theme()->render_floating(&fw);
-}
-
-void view_floating_t::_reconfigure_deco_windows()
-{
-//	auto _ctx = _root->_ctx;
-//	auto _dpy = _ctx->_dpy;
-//
-//	if (not _root->is_enable()) {
-//		return;
-//	}
-//
-//	_dpy->move_resize(_deco, rect { 0, 0, _base_position.w, _base_position.h });
-//
-//	if (_is_visible) {
-//		_map_windows_unsafe();
-//		_create_back_buffer();
-//	} else {
-//		_destroy_back_buffer();
-//	}
-}
-
-void view_floating_t::_reconfigure_input_windows()
-{
-//	auto _dpy = _root->_ctx->_dpy;
-//	_dpy->move_resize(_input_top, _area_top);
-//	_dpy->move_resize(_input_bottom, _area_bottom);
-//	_dpy->move_resize(_input_right, _area_right);
-//	_dpy->move_resize(_input_left, _area_left);
-//
-//	_dpy->move_resize(_input_top_left, _area_top_left);
-//	_dpy->move_resize(_input_top_right, _area_top_right);
-//	_dpy->move_resize(_input_bottom_left, _area_bottom_left);
-//	_dpy->move_resize(_input_bottom_right, _area_bottom_right);
-//
-//	_dpy->move_resize(_input_center, _area_center);
-}
-
-void view_floating_t::_create_inputs_windows()
-{
-//	auto _dpy = _root->_ctx->_dpy;
-//	uint32_t cursor;
-//	rect r{0, 0, 1, 1};
-//
-//	cursor = _dpy->xc_top_side;
-//	_input_top = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-//	cursor = _dpy->xc_bottom_side;
-//	_input_bottom = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-//	cursor = _dpy->xc_left_side;
-//	_input_left = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-//	cursor = _dpy->xc_right_side;
-//	_input_right = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-//
-//	cursor = _dpy->xc_top_left_corner;
-//	_input_top_left = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-//	cursor = _dpy->xc_top_right_corner;
-//	_input_top_right = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-//	cursor = _dpy->xc_bottom_left_corner;
-//	_input_bottom_left = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-//	cursor = _dpy->xc_bottom_righ_corner;
-//	_input_bottom_right = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-//	cursor = _dpy->xc_left_ptr;
-//	_input_center = _dpy->create_input_only_window(_deco, r, XCB_CW_CURSOR, &cursor);
-//
-//	_root->_ctx->_page_windows.insert(_input_top);
-//	_root->_ctx->_page_windows.insert(_input_left);
-//	_root->_ctx->_page_windows.insert(_input_right);
-//	_root->_ctx->_page_windows.insert(_input_bottom);
-//	_root->_ctx->_page_windows.insert(_input_top_left);
-//	_root->_ctx->_page_windows.insert(_input_top_right);
-//	_root->_ctx->_page_windows.insert(_input_bottom_left);
-//	_root->_ctx->_page_windows.insert(_input_bottom_right);
-//	_root->_ctx->_page_windows.insert(_input_center);
-
-}
-
-void view_floating_t::_create_deco_windows()
-{
-//	auto _dpy = _root->_ctx->_dpy;
-//
-//	uint32_t value_mask = 0;
-//	uint32_t value[4];
-//
-//	value_mask |= XCB_CW_BACK_PIXEL;
-//	value[0] = _dpy->xcb_screen()->black_pixel;
-//
-//	value_mask |= XCB_CW_BORDER_PIXEL;
-//	value[1] = _dpy->xcb_screen()->black_pixel;
-//
-//	value_mask |= XCB_CW_OVERRIDE_REDIRECT;
-//	value[2] = True;
-//
-//	value_mask |= XCB_CW_COLORMAP;
-//	value[3] = _base->_colormap;
-//
-//	_deco = xcb_generate_id(_dpy->xcb());
-//	xcb_create_window(_dpy->xcb(), _base->_depth, _deco, _base->id(), 0, 0, 1, 1, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT, _base->_visual, value_mask, value);
-//	_root->_ctx->_page_windows.insert(_deco);
-
-}
-
 void view_floating_t::_map_windows_unsafe()
 {
 	auto _dpy = _root->_ctx->_dpy;
@@ -692,8 +563,6 @@ void view_floating_t::reconfigure() {
 	_update_floating_areas();
 
 	_reconfigure_windows();
-	_reconfigure_deco_windows();
-	_reconfigure_input_windows();
 
 	_update_opaque_region();
 	_update_visible_region();
@@ -777,7 +646,6 @@ void view_floating_t::trigger_redraw()
 	if (_has_change) {
 		_has_change = false;
 		_is_exposed = true;
-		_update_backbuffers();
 	}
 
 	if (_is_exposed) {
