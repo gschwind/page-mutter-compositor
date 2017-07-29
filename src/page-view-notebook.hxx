@@ -21,6 +21,10 @@
 #ifndef SRC_VIEW_NOTEBOOK_HXX_
 #define SRC_VIEW_NOTEBOOK_HXX_
 
+extern "C" {
+#include <meta/meta-plugin.h>
+}
+
 #include "page-page-types.hxx"
 
 #include "page-view-rebased.hxx"
@@ -47,6 +51,9 @@ struct view_notebook_t : public view_rebased_t {
 	auto parent_notebook() -> notebook_p;
 
 	void _on_configure_request(client_managed_t * c, xcb_configure_request_event_t const * e);
+
+	void _handler_position_changed(MetaWindow * window);
+	void _handler_size_changed(MetaWindow * window);
 
 	/**
 	 * view_t virtual API

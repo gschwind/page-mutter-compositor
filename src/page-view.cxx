@@ -261,7 +261,7 @@ void view_t::release_client()
 
 void view_t::set_focus_state(bool is_focused)
 {
-//	_client->_has_focus = is_focused;
+	_client->_has_focus = is_focused;
 //	if (_client->_has_focus) {
 //		_client->net_wm_state_add(_NET_WM_STATE_FOCUSED);
 //	} else {

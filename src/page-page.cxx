@@ -499,6 +499,10 @@ void page_t::size_change(MetaWindowActor * window_actor, MetaSizeChange which_ch
 		clutter_actor_add_child(main_actor, CLUTTER_ACTOR(window_actor));
 		clutter_actor_show(CLUTTER_ACTOR(window_actor));
 		break;
+	case META_SIZE_CHANGE_UNMAXIMIZE:
+	case META_SIZE_CHANGE_FULLSCREEN:
+	case META_SIZE_CHANGE_UNFULLSCREEN:
+		break;
 	default:
 		break;
 	}
@@ -661,8 +665,10 @@ void page_t::_handler_focus(MetaWindow * window)
 	auto mw = lookup_client_managed_with_meta_window(window);
 	if (mw) {
 		auto v = get_current_workspace()->lookup_view_for(mw);
-		if (v)
+		if (v) {
 			v->set_focus_state(true);
+			schedule_repaint();
+		}
 	}
 
 }

@@ -44,6 +44,11 @@ view_notebook_t::view_notebook_t(tree_t * ref, client_managed_p client) :
 //		_NET_WM_ACTION_CHANGE_DESKTOP,
 //		_NET_WM_ACTION_CLOSE
 //	});
+
+	// disable move/resizes.
+	g_connect(_client->meta_window(), "position-changed", &view_notebook_t::_handler_position_changed);
+	g_connect(_client->meta_window(), "size-changed", &view_notebook_t::_handler_size_changed);
+
 }
 
 view_notebook_t::view_notebook_t(view_rebased_t * src) :
@@ -62,11 +67,16 @@ view_notebook_t::view_notebook_t(view_rebased_t * src) :
 //		_NET_WM_ACTION_CHANGE_DESKTOP,
 //		_NET_WM_ACTION_CLOSE
 //	});
+
+	// disable move/resizes.
+	g_connect(_client->meta_window(), "position-changed", &view_notebook_t::_handler_position_changed);
+	g_connect(_client->meta_window(), "size-changed", &view_notebook_t::_handler_size_changed);
+
 }
 
 view_notebook_t::~view_notebook_t()
 {
-
+	g_disconnect_from_obj(_client->meta_window());
 }
 
 auto view_notebook_t::shared_from_this() -> view_notebook_p
@@ -109,6 +119,18 @@ void view_notebook_t::_on_configure_request(client_managed_t * c, xcb_configure_
 {
 	if(_root->is_enable())
 		reconfigure();
+}
+
+void view_notebook_t::_handler_position_changed(MetaWindow * window)
+{
+	/* disable frame move */
+	meta_window_move_frame(window, FALSE, _client->_absolute_position.x, _client->_absolute_position.y);
+}
+
+void view_notebook_t::_handler_size_changed(MetaWindow * window)
+{
+	/* disable frame resize */
+	meta_window_move_resize_frame(window, FALSE, _client->_absolute_position.x, _client->_absolute_position.y, _client->_absolute_position.w, _client->_absolute_position.h);
 }
 
 void view_notebook_t::xxactivate(xcb_timestamp_t time)
