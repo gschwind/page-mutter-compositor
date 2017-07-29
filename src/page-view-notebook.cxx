@@ -49,6 +49,7 @@ view_notebook_t::view_notebook_t(tree_t * ref, client_managed_p client) :
 	g_connect(_client->meta_window(), "position-changed", &view_notebook_t::_handler_position_changed);
 	g_connect(_client->meta_window(), "size-changed", &view_notebook_t::_handler_size_changed);
 
+	g_object_set(G_OBJECT(_client->meta_window_actor()), "no-shadow", TRUE, NULL);
 }
 
 view_notebook_t::view_notebook_t(view_rebased_t * src) :
@@ -71,6 +72,8 @@ view_notebook_t::view_notebook_t(view_rebased_t * src) :
 	// disable move/resizes.
 	g_connect(_client->meta_window(), "position-changed", &view_notebook_t::_handler_position_changed);
 	g_connect(_client->meta_window(), "size-changed", &view_notebook_t::_handler_size_changed);
+
+	g_object_set(G_OBJECT(_client->meta_window_actor()), "no-shadow", TRUE, NULL);
 
 }
 

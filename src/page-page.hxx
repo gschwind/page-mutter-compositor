@@ -197,7 +197,6 @@ public:
 	void minimize(MetaWindowActor * actor);
 	void unminimize(MetaWindowActor * actor);
 	void size_change(MetaWindowActor * window_actor, MetaSizeChange which_change, MetaRectangle * old_frame_rect, MetaRectangle * old_buffer_rect);
-	void on_position_changed(MetaWindow * w, guint user_data);
 	void xmap(MetaWindowActor * window_actor);
 	void destroy(MetaWindowActor * actor);
 	void switch_workspace(gint from, gint to, MetaMotionDirection direction);
@@ -221,6 +220,7 @@ public:
 	auto _motion_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
 
 	void _handler_monitors_changed(MetaScreen * screen);
+	void _handler_workareas_changed(MetaScreen * screen);
 
 	void _handler_focus(MetaWindow * window);
 	void _handler_unmanaged(MetaWindow * window);

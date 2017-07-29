@@ -468,6 +468,7 @@ void page_t::start()
 	g_connect(stage, "motion-event", &page_t::_motion_event);
 
 	g_connect(screen, "monitors-changed", &page_t::_handler_monitors_changed);
+	g_connect(screen, "workareas-changed", &page_t::_handler_workareas_changed);
 	update_viewport_layout();
 
 }
@@ -475,11 +476,28 @@ void page_t::start()
 void page_t::minimize(MetaWindowActor * actor)
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+
+	auto mw = lookup_client_managed_with_meta_window_actor(actor);
+	if (not mw) {
+		meta_plugin_minimize_completed(_plugin, actor);
+		return;
+	}
+
+	auto fv = dynamic_pointer_cast<view_floating_t>(get_current_workspace()->lookup_view_for(mw));
+	if (not fv) {
+		meta_plugin_minimize_completed(_plugin, actor);
+		return;
+	}
+
+	get_current_workspace()->switch_floating_to_notebook(fv, 0);
+	meta_plugin_minimize_completed(_plugin, actor);
+
 }
 
 void page_t::unminimize(MetaWindowActor * actor)
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+	meta_plugin_unminimize_completed(_plugin, actor);
 }
 
 void page_t::size_change(MetaWindowActor * window_actor, MetaSizeChange which_change, MetaRectangle * old_frame_rect, MetaRectangle * old_buffer_rect)
@@ -508,11 +526,6 @@ void page_t::size_change(MetaWindowActor * window_actor, MetaSizeChange which_ch
 	}
 
 	meta_plugin_size_change_completed(_plugin, window_actor);
-}
-
-void page_t::on_position_changed(MetaWindow * w, guint user_data)
-{
-	printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 void page_t::xmap(MetaWindowActor * window_actor)
@@ -561,6 +574,7 @@ void page_t::destroy(MetaWindowActor * actor)
 void page_t::switch_workspace(gint from, gint to, MetaMotionDirection direction)
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+	meta_plugin_switch_workspace_completed(_plugin);
 }
 
 void page_t::show_tile_preview(MetaWindow * window, MetaRectangle *tile_rect, int tile_monitor_number)
@@ -608,6 +622,7 @@ auto page_t::keybinding_filter(MetaKeyBinding * binding) -> gboolean
 void page_t::confirm_display_change()
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+	meta_plugin_complete_display_change(_plugin, TRUE);
 }
 
 auto page_t::plugin_info() -> MetaPluginInfo const *
@@ -648,6 +663,12 @@ auto page_t::_motion_event(ClutterActor * actor, ClutterEvent * event) -> gboole
 }
 
 void page_t::_handler_monitors_changed(MetaScreen * screen)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	update_viewport_layout();
+}
+
+void page_t::_handler_workareas_changed(MetaScreen * screen)
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
 	update_viewport_layout();
