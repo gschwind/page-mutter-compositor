@@ -118,7 +118,7 @@ auto view_rebased_t::shared_from_this() -> view_rebased_p
 void view_rebased_t::_reconfigure_windows()
 {
 	auto _ctx = _root->_ctx;
-	auto _dpy = _ctx->_dpy;
+	auto _dpy = _ctx->_display;
 
 //	if (not _root->is_enable()) {
 //		_client_view = nullptr;
@@ -175,7 +175,7 @@ void view_rebased_t::_update_visible_region() {
 
 void view_rebased_t::_ungrab_button_unsafe()
 {
-	auto _dpy = _root->_ctx->_dpy;
+	auto _dpy = _root->_ctx->_display;
 
 	/** First ungrab all **/
 	_ungrab_all_button_unsafe();
@@ -319,8 +319,10 @@ void view_rebased_t::on_workspace_disable()
 	auto _ctx = _root->_ctx;
 	auto _dpy = _root->_ctx->dpy();
 	release_client();
-//	if (_client->current_owner_view() == static_cast<view_t*>(this))
-//		_base->_window->unmap();
+	//if (_client->current_owner_view() == static_cast<view_t*>(this)) {
+		clutter_actor_hide(CLUTTER_ACTOR(_client->meta_window_actor()));
+		meta_window_minimize(_client->meta_window());
+	//}
 }
 
 auto view_rebased_t::get_toplevel_xid() const -> xcb_window_t

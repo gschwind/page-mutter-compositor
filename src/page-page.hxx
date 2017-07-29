@@ -122,7 +122,8 @@ public:
 	xcb_window_t identity_window;
 
 	MetaPlugin * _plugin;
-	MetaDisplay * _dpy;
+	MetaDisplay * _display;
+	MetaScreen * _screen;
 	theme_t * _theme;
 
 	ClutterActor * viewport_group;
@@ -176,6 +177,39 @@ private:
 	int _left_most_border;
 	int _top_most_border;
 
+	using key_handler_func = void (page_t::*)(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
+
+	struct _handler_key_binding {
+		page_t * target;
+		key_handler_func func;
+
+		_handler_key_binding(page_t * target, key_handler_func func) :
+			target{target}, func{func} { }
+
+		static void call(MetaDisplay * display, MetaScreen * screen,
+				MetaWindow * window, ClutterKeyEvent * event,
+				MetaKeyBinding * binding, gpointer user_data);
+	};
+
+	void add_keybinding_helper(GSettings * settings, char const * name, key_handler_func func);
+	void set_keybinding_custom_helper(char const * name, key_handler_func func);
+
+	void _handler_key_switch_to_workspace_down(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
+	void _handler_key_switch_to_workspace_up(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
+	void _handler_key_make_notebook_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
+	void _handler_key_make_fullscreen_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
+	void _handler_key_make_floating_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
+	void _handler_key_toggle_fullscreen(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
+	void _handler_key_debug_1(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
+	void _handler_key_debug_2(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
+	void _handler_key_debug_3(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
+	void _handler_key_debug_4(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
+	void _handler_key_run_cmd_0(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
+	void _handler_key_run_cmd_1(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
+	void _handler_key_run_cmd_2(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
+	void _handler_key_run_cmd_3(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
+	void _handler_key_run_cmd_4(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
+
 private:
 	/* do no allow copy */
 	page_t(page_t const &);
@@ -186,9 +220,6 @@ public:
 	virtual ~page_t();
 
 	void set_default_pop(shared_ptr<notebook_t> x);
-
-	/* run page main loop */
-	void run();
 
 
 	// Plugin API
@@ -369,7 +400,6 @@ public:
 
 	/** debug function that try to print the state of page in stdout **/
 	void print_state() const;
-	void update_current_workspace() const;
 	void switch_to_workspace(unsigned int workspace, xcb_timestamp_t time);
 	void start_switch_to_workspace_animation(unsigned int workspace);
 	void update_fullscreen_clients_position();

@@ -49,7 +49,7 @@ view_floating_t::view_floating_t(view_rebased_t * src) :
 
 view_floating_t::~view_floating_t()
 {
-	auto _dpy = _root->_ctx->_dpy;
+	auto _dpy = _root->_ctx->_display;
 //	auto _xcb = _dpy->xcb();
 
 	if (_surf != nullptr) {
@@ -381,7 +381,7 @@ rect view_floating_t::_compute_floating_bind_position(rect const & allocation) c
 
 void view_floating_t::_map_windows_unsafe()
 {
-	auto _dpy = _root->_ctx->_dpy;
+	auto _dpy = _root->_ctx->_display;
 
 //	_dpy->map(_input_top);
 //	_dpy->map(_input_left);
@@ -401,7 +401,7 @@ void view_floating_t::_map_windows_unsafe()
 
 void view_floating_t::_unmap_windows_unsafe()
 {
-	auto _dpy = _root->_ctx->_dpy;
+	auto _dpy = _root->_ctx->_display;
 
 //	_dpy->unmap(_input_top);
 //	_dpy->unmap(_input_left);
@@ -425,7 +425,7 @@ void view_floating_t::_unmap_windows_unsafe()
  * unsafe: need to lock the _orig window to use it.
  **/
 void view_floating_t::_grab_button_unsafe() {
-	auto _dpy = _root->_ctx->_dpy;
+	auto _dpy = _root->_ctx->_display;
 
 	view_rebased_t::_grab_button_unsafe();
 

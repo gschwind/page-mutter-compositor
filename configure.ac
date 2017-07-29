@@ -38,5 +38,6 @@ AC_SUBST(PANGO_LIBS)
 AC_CONFIG_FILES([
   Makefile
   src/Makefile
+  gschemas/Makefile
   ])
 AC_OUTPUT

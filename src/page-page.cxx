@@ -29,6 +29,10 @@
 #include <typeinfo>
 #include <memory>
 
+extern "C" {
+#include <meta/keybindings.h>
+}
+
 #include "page-plugin.hxx"
 #include "page-utils.hxx"
 
@@ -66,10 +70,119 @@ namespace page {
 time64_t const page_t::default_wait{1000000000L / 120L};
 bool mainloop_t::got_sigterm = false;
 
-
-page_t::page_t(MetaPlugin * cnx)
+void page_t::_handler_key_binding::call(MetaDisplay * display,
+		MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event,
+		MetaKeyBinding * binding, gpointer user_data)
 {
-	_plugin = cnx;
+	auto tranpoline = reinterpret_cast<_handler_key_binding*>(user_data);
+	((tranpoline->target)->*(tranpoline->func))(display, screen, window, event, binding);
+}
+
+void page_t::add_keybinding_helper(GSettings * settings, char const * name, key_handler_func func)
+{
+	auto tranpoline = new _handler_key_binding{this, func};
+	meta_display_add_keybinding(_display, name, settings, META_KEY_BINDING_NONE,
+				     &page_t::_handler_key_binding::call, tranpoline, [](gpointer userdata) { delete reinterpret_cast<_handler_key_binding*>(userdata); });
+}
+
+void page_t::set_keybinding_custom_helper(char const * name, key_handler_func func)
+{
+	auto tranpoline = new _handler_key_binding{this, func};
+	meta_keybindings_set_custom_handler(name, &page_t::_handler_key_binding::call, tranpoline, [](gpointer userdata) { delete reinterpret_cast<_handler_key_binding*>(userdata); });
+}
+
+void page_t::_handler_key_switch_to_workspace_down(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	if(_current_workspace < _workspace_list.size()-1) {
+		auto from = get_current_workspace()->_meta_workspace;
+		auto to = _workspace_list[_current_workspace+1]->_meta_workspace;
+		meta_compositor_switch_workspace(meta_display_get_compositor(_display), from, to, META_MOTION_DOWN);
+	}
+}
+
+void page_t::_handler_key_switch_to_workspace_up(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	if(_current_workspace > 0) {
+		auto from = get_current_workspace()->_meta_workspace;
+		auto to = _workspace_list[_current_workspace-1]->_meta_workspace;
+		meta_compositor_switch_workspace(meta_display_get_compositor(_display), from, to, META_MOTION_UP);
+	}}
+
+void page_t::_handler_key_make_notebook_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_key_make_fullscreen_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_key_make_floating_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_key_toggle_fullscreen(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_key_debug_1(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_key_debug_2(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_key_debug_3(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_key_debug_4(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_key_run_cmd_0(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_key_run_cmd_1(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_key_run_cmd_2(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_key_run_cmd_3(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_key_run_cmd_4(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+page_t::page_t(MetaPlugin * plugin) :
+	_plugin{plugin},
+	_screen{nullptr},
+	_display{nullptr}
+{
+
+	viewport_group = nullptr;
 	frame_alarm = 0;
 	_current_workspace = 0;
 	_grab_handler = nullptr;
@@ -99,7 +212,8 @@ page_t::page_t(MetaPlugin * cnx)
 //		++k;
 //	}
 
-	_dpy = nullptr;
+
+
 
 	/* load configurations, from lower priority to high one */
 
@@ -204,192 +318,11 @@ page_t::~page_t() {
 	//cairo_debug_reset_static_data();
 }
 
-void page_t::run()
-{
-//
-//	_dpy = nullptr;
-//
-//	/* check for required page extension */
-//	_dpy->check_x11_extension();
-//
-//	{ // check for sync system counters
-//		xcb_generic_error_t * e;
-//		auto ck = xcb_sync_list_system_counters(_dpy->xcb());
-//		auto r = xcb_sync_list_system_counters_reply(_dpy->xcb(), ck, &e);
-//		//printf("counter length %u\n", r->counters_len);
-//		if (r != nullptr) {
-//			// the first item is correctly computed by libxcb but I can extract it
-//			// without xcb_sync_list_system_counters_counters_iterator, thus
-//			// extract it manually.
-//			fixed_xcb_sync_systemcounter_t * item =
-//					(fixed_xcb_sync_systemcounter_t*) (r + 1);
-//			for (int i = 0; i < r->counters_len; ++i) {
-//				char * name = xcb_sync_system_counter_dup_name(item);
-//				//printf("COUNTER_NAME %d = %s, id = %u, resolution = %lu\n", i, name,
-//				//		item->counter, xcb_sync_system_counter_int64_swap(&item->resolution));
-//
-//				if(strcmp("SERVERTIME", name) == 0) {
-//					printf("found SERVERTIME\n");
-//					/* about 30 fps */
-//					frame_alarm = _dpy->create_alarm_delay(item->counter, 32);
-//				}
-//
-//				free(name);
-//				/* next item */
-//				item = (struct fixed_xcb_sync_systemcounter_t*) (((char*) item)
-//						+ xcb_sync_system_counter_sizeof_item(item));
-//			}
-//			free(r);
-//		}
-//
-//	}
-//
-//	{
-//		xcb_generic_error_t * e;
-//		auto ck = xcb_sync_get_priority(_dpy->xcb(), frame_alarm);
-//		auto r = xcb_sync_get_priority_reply(_dpy->xcb(), ck, &e);
-//		if (r != nullptr) {
-//			//printf("priority is %d\n", r->priority);
-//		}
-//		free(r);
-//
-//		xcb_sync_set_priority(_dpy->xcb(), frame_alarm, 16);
-//
-//	}
-//
-//	/** Initialize theme **/
-//
-//	if(_theme_engine == "tiny") {
-//		cout << "using tiny theme engine" << endl;
-//		_theme = new tiny_theme_t{_dpy, _conf};
-//	} else {
-//		/* The default theme engine */
-//		cout << "using simple theme engine" << endl;
-//		_theme = new simple2_theme_t{_dpy, _conf};
-//	}
-//
-//	/* Before doing anything, trying to register wm and cm */
-//	create_identity_window();
-//	register_wm();
-//
-//	/** initialize the empty workspace **/
-//
-//	/* start the compositor once the window manager is fully started */
-//	start_compositor();
-//
-//	_dpy->grab();
-//	_dpy->change_property(_dpy->root(), _NET_SUPPORTING_WM_CHECK,
-//			WINDOW, 32, &identity_window, 1);
-//
-//	_bind_all_default_event();
-//
-//	{
-//		/** check for number of workspace and create them **/
-//		net_number_of_desktops_t number_of_workspace;
-//		auto nd = number_of_workspace.read(_dpy->xcb(), _dpy->_A, _dpy->root());
-//		int n = 1;
-//		if(nd != nullptr and *nd != 0)
-//			n = *nd;
-//		update_number_of_workspace(n);
-//		number_of_workspace.release(_dpy->xcb());
-//	}
-//
-//	/* start listen root event before anything, each event will be stored to be processed later */
-//	_dpy->select_input(_dpy->root(), ROOT_EVENT_MASK);
-//
-//	/**
-//	 * listen RRCrtcChangeNotifyMask for possible change in screen layout.
-//	 **/
-//	xcb_randr_select_input(_dpy->xcb(), _dpy->root(), XCB_RANDR_NOTIFY_MASK_CRTC_CHANGE);
-//
-//	update_viewport_layout();
-//
-//	_dpy->load_cursors();
-//	_dpy->set_window_cursor(_dpy->root(), _dpy->xc_left_ptr);
-//
-//	update_net_supported();
-//
-//	{
-//		/* page does not have showing workspace mode */
-//		uint32_t showing_workspace = 0;
-//		_dpy->change_property(_dpy->root(), _NET_SHOWING_DESKTOP, CARDINAL, 32,
-//				&showing_workspace, 1);
-//	}
-//
-//	{
-//		wm_icon_size_t icon_size{16,16,16,16,16,16};
-//		_dpy->change_property(_dpy->root(), WM_ICON_SIZE, CARDINAL, 32,
-//				&icon_size, 6);
-//
-//	}
-//
-//	//scan();
-//
-//	/* setup _NET_ACTIVE_WINDOW */
-//	_dpy->set_input_focus(identity_window, XCB_INPUT_FOCUS_PARENT, XCB_CURRENT_TIME);
-//	_dpy->set_net_active_window(XCB_WINDOW_NONE);
-//
-//	update_keymap();
-//	update_grabkey();
-//
-//	update_windows_stack();
-//	xcb_flush(_dpy->xcb());
-//
-//	_dpy->ungrab();
-//
-//	/** switch back to the first workspace by default */
-//	switch_to_workspace(0, XCB_CURRENT_TIME);
-//	update_windows_stack();
-//	xcb_flush(_dpy->xcb());
-//
-//	/* process messages as soon as we get messages, or every 1/60 of seconds */
-//	_mainloop.add_poll(_dpy->fd(), POLLIN|POLLPRI|POLLERR,
-//		[this](struct pollfd const & x) -> void {
-//			this->process_pending_events();
-//		});
-//
-//	_mainloop.run();
-//
-//	cout << "Page END" << endl;
-//
-//	_mainloop.remove_poll(_dpy->fd());
-//
-//	_dpy->unload_cursors();
-//
-//	for (auto & i : net_client_list()) {
-//		//_dpy->reparentwindow(i->_client_proxy->id(), _dpy->root(), 0, 0);
-//		//detach(i);
-//	}
-//
-//	_workspace_list.clear();
-//
-//	delete _keymap; _keymap = nullptr;
-//	delete _theme; _theme = nullptr;
-//	delete _compositor; _compositor = nullptr;
-//
-//	if(_dpy != nullptr) {
-//		/** clean up properties defined by Window Manager **/
-//		_dpy->delete_property(_dpy->root(), _NET_SUPPORTED);
-//		_dpy->delete_property(_dpy->root(), _NET_CLIENT_LIST);
-//		_dpy->delete_property(_dpy->root(), _NET_CLIENT_LIST_STACKING);
-//		_dpy->delete_property(_dpy->root(), _NET_ACTIVE_WINDOW);
-//		_dpy->delete_property(_dpy->root(), _NET_NUMBER_OF_DESKTOPS);
-//		_dpy->delete_property(_dpy->root(), _NET_DESKTOP_GEOMETRY);
-//		_dpy->delete_property(_dpy->root(), _NET_DESKTOP_VIEWPORT);
-//		_dpy->delete_property(_dpy->root(), _NET_CURRENT_DESKTOP);
-//		_dpy->delete_property(_dpy->root(), _NET_DESKTOP_NAMES);
-//		_dpy->delete_property(_dpy->root(), _NET_WORKAREA);
-//		_dpy->delete_property(_dpy->root(), _NET_SUPPORTING_WM_CHECK);
-//		_dpy->delete_property(_dpy->root(), _NET_SHOWING_DESKTOP);
-//
-//		delete _dpy; _dpy = nullptr;
-//	}
-
-}
-
-
 void page_t::start()
 {
+	_screen = meta_plugin_get_screen(_plugin);
+	_display = meta_screen_get_display(_screen);
+
 	printf("call %s\n", __PRETTY_FUNCTION__);
 
 	if (_theme_engine == "tiny") {
@@ -401,10 +334,8 @@ void page_t::start()
 		_theme = new simple2_theme_t{_conf};
 	}
 
-	MetaScreen * screen = meta_plugin_get_screen(_plugin);
-
 	MetaRectangle area;
-	auto workspace_list = meta_screen_get_workspaces(screen);
+	auto workspace_list = meta_screen_get_workspaces(_screen);
 	for (auto l = workspace_list; l != NULL; l = l->next) {
 		auto meta_workspace = META_WORKSPACE(l->data);
 		auto d = make_shared<workspace_t>(this, meta_workspace);
@@ -418,14 +349,14 @@ void page_t::start()
 	_theme->update(area.width, area.height);
 
 	{
-		auto windows = meta_get_window_actors(screen);
+		auto windows = meta_get_window_actors(_screen);
 		for (auto l = windows; l != NULL; l = l->next) {
 			auto meta_window_actor = META_WINDOW_ACTOR(l->data);
 			printf("XXXfound\n");
 			xmap(meta_window_actor);
 		}
 
-		auto wgroup = meta_get_window_group_for_screen(screen);
+		auto wgroup = meta_get_window_group_for_screen(_screen);
 		auto actors = clutter_actor_get_children(wgroup);
 		for (auto l = actors; l != NULL; l = l->next) {
 			auto cactor = CLUTTER_ACTOR(l->data);
@@ -436,8 +367,8 @@ void page_t::start()
 		}
 	}
 
-	auto stage = meta_get_stage_for_screen(screen);
-	auto window_group = meta_get_window_group_for_screen(screen);
+	auto stage = meta_get_stage_for_screen(_screen);
+	auto window_group = meta_get_window_group_for_screen(_screen);
 
 	viewport_group = clutter_actor_new();
 	clutter_actor_insert_child_below(stage, viewport_group, window_group);
@@ -446,20 +377,39 @@ void page_t::start()
 	sync_tree_view();
 
 
-	ClutterColor actor_color = { 0, 255, 0, 255 };
-	auto rect = clutter_actor_new();
-	clutter_actor_set_background_color(rect, &actor_color);
-	clutter_actor_set_size(rect, 100, 100);
-	clutter_actor_set_position(rect, 100, 100);
-	clutter_actor_add_child(viewport_group, rect);
-	clutter_actor_show(rect);
-	clutter_actor_set_rotation_angle(rect, CLUTTER_Z_AXIS, 60);
-	clutter_actor_set_reactive(rect, TRUE);
+//	ClutterColor actor_color = { 0, 255, 0, 255 };
+//	auto rect = clutter_actor_new();
+//	clutter_actor_set_background_color(rect, &actor_color);
+//	clutter_actor_set_size(rect, 100, 100);
+//	clutter_actor_set_position(rect, 100, 100);
+//	clutter_actor_add_child(viewport_group, rect);
+//	clutter_actor_show(rect);
+//	clutter_actor_set_rotation_angle(rect, CLUTTER_Z_AXIS, 60);
+//	clutter_actor_set_reactive(rect, TRUE);
 
 //	g_signal_connect(rect, "enter-event", G_CALLBACK(on_rect_enter), NULL);
 //	g_signal_connect(rect, "leave-event", G_CALLBACK(on_rect_leave), NULL);
 //	g_signal_connect(rect, "button-press-event", G_CALLBACK(on_button_press_event), NULL);
 //	g_signal_connect(rect, "button-release-event", G_CALLBACK(on_button_release_event), NULL);
+
+	set_keybinding_custom_helper("switch-to-workspace-down", &page_t::_handler_key_switch_to_workspace_down);
+	set_keybinding_custom_helper("switch-to-workspace-up", &page_t::_handler_key_switch_to_workspace_up);
+
+	GSettings * setting_keybindings = g_settings_new("net.hzog.page.keybindings");
+	add_keybinding_helper(setting_keybindings, "make-notebook-window", &page_t::_handler_key_make_notebook_window);
+	add_keybinding_helper(setting_keybindings, "make-fullscreen-window", &page_t::_handler_key_make_fullscreen_window);
+	add_keybinding_helper(setting_keybindings, "make-floating-window", &page_t::_handler_key_make_floating_window);
+	add_keybinding_helper(setting_keybindings, "toggle-fullscreen-window", &page_t::_handler_key_toggle_fullscreen);
+	add_keybinding_helper(setting_keybindings, "debug-1", &page_t::_handler_key_debug_1);
+	add_keybinding_helper(setting_keybindings, "debug-2", &page_t::_handler_key_debug_2);
+	add_keybinding_helper(setting_keybindings, "debug-3", &page_t::_handler_key_debug_3);
+	add_keybinding_helper(setting_keybindings, "debug-4", &page_t::_handler_key_debug_4);
+	add_keybinding_helper(setting_keybindings, "run-cmd-0", &page_t::_handler_key_run_cmd_0);
+	add_keybinding_helper(setting_keybindings, "run-cmd-1", &page_t::_handler_key_run_cmd_1);
+	add_keybinding_helper(setting_keybindings, "run-cmd-2", &page_t::_handler_key_run_cmd_2);
+	add_keybinding_helper(setting_keybindings, "run-cmd-3", &page_t::_handler_key_run_cmd_3);
+	add_keybinding_helper(setting_keybindings, "run-cmd-4", &page_t::_handler_key_run_cmd_4);
+
 
 	clutter_actor_show(stage);
 
@@ -467,8 +417,8 @@ void page_t::start()
 	g_connect(stage, "button-release-event", &page_t::_button_release_event);
 	g_connect(stage, "motion-event", &page_t::_motion_event);
 
-	g_connect(screen, "monitors-changed", &page_t::_handler_monitors_changed);
-	g_connect(screen, "workareas-changed", &page_t::_handler_workareas_changed);
+	g_connect(_screen, "monitors-changed", &page_t::_handler_monitors_changed);
+	g_connect(_screen, "workareas-changed", &page_t::_handler_workareas_changed);
 	update_viewport_layout();
 
 }
@@ -503,20 +453,12 @@ void page_t::unminimize(MetaWindowActor * actor)
 void page_t::size_change(MetaWindowActor * window_actor, MetaSizeChange which_change, MetaRectangle * old_frame_rect, MetaRectangle * old_buffer_rect)
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
-	auto meta_window = meta_window_actor_get_meta_window(window_actor);
-	auto screen = meta_plugin_get_screen(_plugin);
-	auto main_actor = meta_get_stage_for_screen(screen);
 
 	printf("olf_frame_rect x=%d, y=%d, w=%d, h=%d\n", old_frame_rect->x, old_frame_rect->y, old_frame_rect->width, old_frame_rect->height);
 	printf("old_buffer_rect x=%d, y=%d, w=%d, h=%d\n", old_buffer_rect->x, old_buffer_rect->y, old_buffer_rect->width, old_buffer_rect->height);
 
 	switch(which_change) {
 	case META_SIZE_CHANGE_MAXIMIZE:
-		printf("maximize\n");
-		meta_window_move_resize_frame(meta_window, FALSE, 0, 0, 400, 400);
-		clutter_actor_add_child(main_actor, CLUTTER_ACTOR(window_actor));
-		clutter_actor_show(CLUTTER_ACTOR(window_actor));
-		break;
 	case META_SIZE_CHANGE_UNMAXIMIZE:
 	case META_SIZE_CHANGE_FULLSCREEN:
 	case META_SIZE_CHANGE_UNFULLSCREEN:
@@ -574,6 +516,9 @@ void page_t::destroy(MetaWindowActor * actor)
 void page_t::switch_workspace(gint from, gint to, MetaMotionDirection direction)
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+
+	switch_to_workspace(to, 0);
+
 	meta_plugin_switch_workspace_completed(_plugin);
 }
 
@@ -616,6 +561,7 @@ auto page_t::xevent_filter(XEvent * event) -> gboolean
 auto page_t::keybinding_filter(MetaKeyBinding * binding) -> gboolean
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+	printf("call %s %d\n", meta_key_binding_get_name(binding), meta_key_binding_get_modifiers(binding));
 	return FALSE;
 }
 
@@ -2652,14 +2598,13 @@ void page_t::print_state() const {
 //}
 
 void page_t::switch_to_workspace(unsigned int workspace, xcb_timestamp_t time) {
-//	assert(workspace < _workspace_list.size());
-//	if (workspace != _current_workspace and workspace != ALL_DESKTOP) {
+	assert(workspace < _workspace_list.size());
+	if (workspace != _current_workspace and workspace != ALL_DESKTOP) {
 //		//std::cout << "switch to workspace #" << workspace << std::endl;
 //		start_switch_to_workspace_animation(workspace);
-//		_current_workspace = workspace;
-//		update_current_workspace();
-//		update_workspace_visibility(time);
-//	}
+		_current_workspace = workspace;
+		update_workspace_visibility(time);
+	}
 }
 
 void page_t::start_switch_to_workspace_animation(unsigned int workspace) {
@@ -2687,7 +2632,7 @@ void page_t::update_workspace_visibility(xcb_timestamp_t time) {
 
 	/** and show the workspace that have to be show **/
 	_workspace_list[_current_workspace]->enable(time);
-	_need_restack = true;
+	sync_tree_view();
 }
 
 void page_t::_event_handler_bind(int type, callback_event_t f) {
@@ -3190,7 +3135,7 @@ theme_t const * page_t::theme() const {
 
 auto page_t::dpy() const -> MetaDisplay *
 {
-	return _dpy;
+	return _display;
 }
 
 void page_t::grab_start(shared_ptr<grab_handler_t> handler, guint32 time)

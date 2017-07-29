@@ -169,7 +169,7 @@ auto view_t::get_transients() -> vector<view_p>
  * unsafe: need to lock the _orig window to use it.
  **/
 void view_t::_grab_button_focused_unsafe() {
-	auto _dpy = _root->_ctx->_dpy;
+	auto _dpy = _root->_ctx->_display;
 
 	/** First ungrab all **/
 	_ungrab_all_button_unsafe();
@@ -191,7 +191,7 @@ void view_t::_grab_button_focused_unsafe() {
  * unsafe: need to lock the _orig window to use it.
  **/
 void view_t::_grab_button_unfocused_unsafe() {
-	auto _dpy = _root->_ctx->_dpy;
+	auto _dpy = _root->_ctx->_display;
 
 	/** First ungrab all **/
 	_ungrab_all_button_unsafe();
@@ -293,6 +293,8 @@ void view_t::on_workspace_enable()
 void view_t::on_workspace_disable()
 {
 	release_client();
+	clutter_actor_hide(CLUTTER_ACTOR(_client->meta_window_actor()));
+	meta_window_minimize(_client->meta_window());
 }
 
 void view_t::hide()
