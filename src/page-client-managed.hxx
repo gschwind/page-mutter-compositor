@@ -42,7 +42,7 @@ enum managed_window_type_e {
 struct client_managed_t :
 		public enable_shared_from_this<client_managed_t>,
 		public connectable_t,
-		public g_connectable<client_managed_t>
+		public g_connectable_t
 {
 	static long const MANAGED_ORIG_WINDOW_EVENT_MASK =
 			  XCB_EVENT_MASK_STRUCTURE_NOTIFY

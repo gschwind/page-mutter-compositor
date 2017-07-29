@@ -528,8 +528,11 @@ void page_t::xmap(MetaWindowActor * window_actor)
 		printf("normal window\n");
 
 		auto mw = make_shared<client_managed_t>(this, window_actor);
+		_net_client_list.push_back(mw);
 
-		g_connect(meta_window_actor_get_meta_window(window_actor), "focus", &page_t::_handler_focus);
+		auto meta_window = meta_window_actor_get_meta_window(window_actor);
+		g_connect(meta_window, "focus", &page_t::_handler_focus);
+		g_connect(meta_window, "unmanaged", &page_t::_handler_unmanaged);
 
 		insert_as_notebook(mw, 0);
 		//g_signal_connect(meta_window, "position-changed", G_CALLBACK(on_position_changed), NULL);
@@ -612,7 +615,7 @@ auto page_t::plugin_info() -> MetaPluginInfo const *
 
 auto page_t::_button_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	//printf("call %s\n", __PRETTY_FUNCTION__);
 
 	if (_grab_handler)
 		_grab_handler->button_press(event);
@@ -622,7 +625,7 @@ auto page_t::_button_press_event(ClutterActor * actor, ClutterEvent * event) -> 
 
 auto page_t::_button_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	//printf("call %s\n", __PRETTY_FUNCTION__);
 
 	if (_grab_handler)
 		_grab_handler->button_release(event);
@@ -632,7 +635,7 @@ auto page_t::_button_release_event(ClutterActor * actor, ClutterEvent * event) -
 
 auto page_t::_motion_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	//printf("call %s\n", __PRETTY_FUNCTION__);
 
 	if (_grab_handler)
 		_grab_handler->button_motion(event);
@@ -664,8 +667,18 @@ void page_t::_handler_focus(MetaWindow * window)
 
 }
 
+void page_t::_handler_unmanaged(MetaWindow * window)
+{
+	printf("call %s\n", __PRETTY_FUNCTION__);
+	auto mw = lookup_client_managed_with_meta_window(window);
+	if(mw) {
+		unmanage(mw);
+	}
+}
+
 void page_t::unmanage(client_managed_p mw)
 {
+	printf("call %s\n", __PRETTY_FUNCTION__);
 	assert(mw != nullptr);
 	_net_client_list.remove(mw);
 

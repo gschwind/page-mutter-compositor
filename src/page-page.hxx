@@ -80,7 +80,10 @@ struct key_bind_cmd_t {
 	string cmd;
 };
 
-class page_t : public connectable_t, public g_connectable<page_t> {
+class page_t:
+		public connectable_t,
+		public g_connectable_t
+{
 	static uint32_t const DEFAULT_BUTTON_EVENT_MASK = XCB_EVENT_MASK_BUTTON_PRESS|XCB_EVENT_MASK_BUTTON_RELEASE|XCB_EVENT_MASK_BUTTON_MOTION|XCB_EVENT_MASK_POINTER_MOTION;
 	static uint32_t const ROOT_EVENT_MASK = XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_FOCUS_CHANGE;
 	static time64_t const default_wait;
@@ -220,6 +223,7 @@ public:
 	void _handler_monitors_changed(MetaScreen * screen);
 
 	void _handler_focus(MetaWindow * window);
+	void _handler_unmanaged(MetaWindow * window);
 
 
 	/** user inputs **/

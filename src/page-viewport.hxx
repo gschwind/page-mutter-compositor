@@ -24,7 +24,9 @@ namespace page {
 
 using namespace std;
 
-class viewport_t: public page_component_t, public g_connectable<viewport_t> {
+class viewport_t:
+		public page_component_t
+{
 
 	static uint32_t const DEFAULT_BUTTON_EVENT_MASK =
 			 XCB_EVENT_MASK_BUTTON_PRESS

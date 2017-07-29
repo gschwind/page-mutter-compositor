@@ -141,6 +141,8 @@ void view_rebased_t::_reconfigure_windows()
 //		_client->_client_proxy->move_resize(_orig_position);
 //		_client->fake_configure_unsafe(_client->_absolute_position);
 
+		if(meta_window_is_fullscreen(_client->meta_window()))
+			meta_window_unmake_fullscreen(_client->meta_window());
 		meta_window_unminimize(_client->meta_window());
 		meta_window_move_resize_frame(_client->_meta_window, FALSE, _client->_absolute_position.x, _client->_absolute_position.y, _client->_absolute_position.w, _client->_absolute_position.h);
 		clutter_actor_show(CLUTTER_ACTOR(_client->meta_window_actor()));

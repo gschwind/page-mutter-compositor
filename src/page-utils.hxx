@@ -905,20 +905,19 @@ struct g_connect_wrapper : g_connect_wapper_base {
 
 };
 
-template<typename T>
-class g_connectable {
+class g_connectable_t {
 	using key_t = std::pair<void*, guint>;
 	map<key_t, g_connect_wapper_base *> _connected_handler;
 
 public:
-	~g_connectable() {
+	~g_connectable_t() {
 		for(auto &i: _connected_handler) {
 			g_signal_handlers_disconnect_by_data(i.first.first, i.second);
 			delete i.second;
 		}
 	}
 
-	template<typename X, typename T0, typename ... Args>
+	template<typename X, typename T0, typename ... Args, typename T>
 	void g_connect(T0 * obj, char const * s, X (T::* f)(T0 * _0, Args ... args)) {
 		auto x = new g_connect_wrapper<X, T0, T, Args...>{static_cast<T*>(this), f};
 		guint signum = g_signal_lookup(s, G_TYPE_FROM_INSTANCE(obj));
