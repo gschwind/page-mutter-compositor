@@ -102,10 +102,10 @@ auto view_notebook_t::title() const -> string const &
 	return _client->title();
 }
 
-auto view_notebook_t::icon() const -> shared_ptr<icon16>
-{
-	return _client->icon();
-}
+//auto view_notebook_t::icon() const -> shared_ptr<icon16>
+//{
+//	return _client->icon();
+//}
 
 void view_notebook_t::delete_window(xcb_timestamp_t t) {
 	printf("request close for '%s'\n", title().c_str());

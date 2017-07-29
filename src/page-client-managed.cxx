@@ -30,7 +30,7 @@ client_managed_t::client_managed_t(page_t * ctx, MetaWindowActor * actor) :
 	_net_wm_type{0},
 	_floating_wished_position{},
 	_absolute_position{},
-	_icon(nullptr),
+	//_icon(nullptr),
 	_has_focus{false},
 	_demands_attention{false},
 	_current_owner_view{nullptr},
@@ -57,7 +57,7 @@ client_managed_t::client_managed_t(page_t * ctx, MetaWindowActor * actor) :
 //	_client_proxy->select_input(MANAGED_ORIG_WINDOW_EVENT_MASK);
 //	_client_proxy->select_input_shape(true);
 
-	update_icon();
+	//update_icon();
 
 }
 
@@ -297,13 +297,13 @@ void client_managed_t::release(view_t * v)
 	_current_owner_view = nullptr;
 }
 
-shared_ptr<icon16> client_managed_t::icon() const {
-	return _icon;
-}
-
-void client_managed_t::update_icon() {
-	_icon = make_shared<icon16>(this);
-}
+//shared_ptr<icon16> client_managed_t::icon() const {
+//	return _icon;
+//}
+//
+//void client_managed_t::update_icon() {
+//	//_icon = make_shared<icon16>(this);
+//}
 
 void client_managed_t::set_current_workspace(unsigned int n) {
 	// TODO

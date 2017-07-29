@@ -81,7 +81,7 @@ struct client_managed_t :
 	string _title;
 
 	// icon cache
-	shared_ptr<icon16> _icon;
+	//shared_ptr<icon16> _icon;
 
 	// track the current view that own the window.
 	view_t * _current_owner_view;
@@ -110,7 +110,7 @@ struct client_managed_t :
 
 	cairo_t * get_cairo_context();
 
-	void update_icon();
+	//void update_icon();
 	void set_theme(theme_t const * theme);
 
 	void icccm_focus_unsafe(xcb_timestamp_t t);
@@ -156,7 +156,7 @@ struct client_managed_t :
 	void set_floating_wished_position(rect const & pos);
 	rect get_base_position() const;
 	void delete_window(xcb_timestamp_t);
-	auto icon() const -> shared_ptr<icon16>;
+//	auto icon() const -> shared_ptr<icon16>;
 	void set_current_workspace(unsigned int n);
 	void focus(guint32 timestamp);
 
