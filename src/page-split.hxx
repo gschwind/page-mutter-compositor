@@ -80,10 +80,10 @@ public:
 	virtual auto get_visible_region() -> region;
 	virtual auto get_damaged() -> region;
 
-	virtual auto button_press(xcb_button_press_event_t const * ev) -> button_action_e;
+	virtual auto button_press(ClutterEvent const * ev) -> button_action_e override;
 	//virtual bool button_release(xcb_button_release_event_t const * ev);
-	virtual bool button_motion(xcb_motion_notify_event_t const * ev);
-	virtual bool leave(xcb_leave_notify_event_t const * ev);
+	virtual bool button_motion(ClutterEvent const * ev) override;
+	virtual bool leave(ClutterEvent const * ev) override;
 	//virtual bool enter(xcb_enter_notify_event_t const * ev);
 	//virtual void expose(xcb_expose_event_t const * ev);
 	//virtual void trigger_redraw();

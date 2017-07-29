@@ -237,17 +237,19 @@ rect split_t::compute_split_bar_location() const {
 	return compute_split_bar_location(_bpack0, _bpack1);
 }
 
-auto split_t::button_press(xcb_button_press_event_t const * e)  -> button_action_e
+auto split_t::button_press(ClutterEvent const * e)  -> button_action_e
 {
-//	if (e->event == get_component_xid()
-//			and e->child == _wid
-//			and e->detail == XCB_BUTTON_INDEX_1
-//			and _split_bar_area.is_inside(e->event_x, e->event_y)) {
-//		_ctx->grab_start(make_shared<grab_split_t>(_ctx, shared_from_this()), e->time);
-//		return BUTTON_ACTION_HAS_ACTIVE_GRAB;
-//	} else {
-//		return BUTTON_ACTION_CONTINUE;
-//	}
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto button = clutter_event_get_button(e);
+	auto time = clutter_event_get_time(e);
+
+	if (button == 1 and _split_bar_area.is_inside(x, y)) {
+		_ctx->grab_start(make_shared<grab_split_t>(_ctx, shared_from_this()), time);
+		return BUTTON_ACTION_HAS_ACTIVE_GRAB;
+	} else {
+		return BUTTON_ACTION_CONTINUE;
+	}
 }
 
 shared_ptr<split_t> split_t::shared_from_this() {
@@ -326,24 +328,13 @@ void split_t::compute_children_root_allocation(double split, rect & bpack0, rect
 	bpack1 = to_root_position(bpack1);
 }
 
-bool split_t::button_motion(xcb_motion_notify_event_t const * ev) {
-	if(ev->event != get_component_xid()) {
-		if(_has_mouse_over) {
-			_has_mouse_over = false;
-			queue_redraw();
-		}
-		return false;
-	}
+bool split_t::button_motion(ClutterEvent const * e) {
+	gfloat x, y;
+	clutter_event_get_coords(e, &x, &y);
+	auto button = clutter_event_get_button(e);
+	auto time = clutter_event_get_time(e);
 
-//	if(ev->child != _wid) {
-//		if(_has_mouse_over) {
-//			_has_mouse_over = false;
-//			queue_redraw();
-//		}
-//		return false;
-//	}
-
-	if(_split_bar_area.is_inside(ev->event_x, ev->event_y)) {
+	if(_split_bar_area.is_inside(x, y)) {
 		if(not _has_mouse_over) {
 			_has_mouse_over = true;
 			queue_redraw();
@@ -360,12 +351,10 @@ bool split_t::button_motion(xcb_motion_notify_event_t const * ev) {
 }
 
 
-bool split_t::leave(xcb_leave_notify_event_t const * ev) {
-	if(ev->event == get_component_xid()) {
-		if(_has_mouse_over) {
-			_has_mouse_over = false;
-			queue_redraw();
-		}
+bool split_t::leave(ClutterEvent const * ev) {
+	if(_has_mouse_over) {
+		_has_mouse_over = false;
+		queue_redraw();
 	}
 	return false;
 }
