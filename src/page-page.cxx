@@ -182,7 +182,7 @@ page_t::page_t(MetaPlugin * plugin) :
 	_display{nullptr}
 {
 
-	viewport_group = nullptr;
+	_viewport_group = nullptr;
 	frame_alarm = 0;
 	_current_workspace = 0;
 	_grab_handler = nullptr;
@@ -370,9 +370,13 @@ void page_t::start()
 	auto stage = meta_get_stage_for_screen(_screen);
 	auto window_group = meta_get_window_group_for_screen(_screen);
 
-	viewport_group = clutter_actor_new();
-	clutter_actor_insert_child_below(stage, viewport_group, window_group);
-	clutter_actor_show(viewport_group);
+	_viewport_group = clutter_actor_new();
+	clutter_actor_insert_child_below(stage, _viewport_group, window_group);
+	clutter_actor_show(_viewport_group);
+
+	_overlay_group = clutter_actor_new();
+	clutter_actor_insert_child_above(stage, _overlay_group, NULL);
+	clutter_actor_show(_overlay_group);
 
 	sync_tree_view();
 
@@ -2094,6 +2098,11 @@ void page_t::update_viewport_layout() {
 	meta_workspace_get_work_area_all_monitors(META_WORKSPACE(get_current_workspace()->_meta_workspace), &area);
 	_theme->update(area.width, area.height);
 
+	clutter_actor_set_position(_overlay_group, 0.0, 0.0);
+	clutter_actor_set_size(_overlay_group, area.width, area.height);
+	clutter_actor_set_position(_viewport_group, 0.0, 0.0);
+	clutter_actor_set_size(_viewport_group, area.width, area.height);
+
 }
 
 void page_t::remove_viewport(shared_ptr<workspace_t> d, shared_ptr<viewport_t> v) {
@@ -2601,24 +2610,74 @@ void page_t::switch_to_workspace(unsigned int workspace, xcb_timestamp_t time) {
 	assert(workspace < _workspace_list.size());
 	if (workspace != _current_workspace and workspace != ALL_DESKTOP) {
 //		//std::cout << "switch to workspace #" << workspace << std::endl;
-//		start_switch_to_workspace_animation(workspace);
+		start_switch_to_workspace_animation(workspace);
 		_current_workspace = workspace;
 		update_workspace_visibility(time);
 	}
 }
 
-void page_t::start_switch_to_workspace_animation(unsigned int workspace) {
-//	auto new_workspace = _workspace_list[workspace];
-//
-//	for(auto const & v : new_workspace->get_viewports()) {
-//		auto pix = theme()->workspace_switch_popup(new_workspace->name());
-//		auto loc = v->allocation();
-//		auto rnd = make_shared<renderable_fadeout_pixmap_t>(new_workspace.get(), pix, loc.x + (loc.w-pix->witdh())/2.0, loc.y + (loc.h-pix->height())/2.0);
-//		new_workspace->add_overlay(rnd);
-//		rnd->show();
-//	}
-//
-//	schedule_repaint();
+void page_t::start_switch_to_workspace_animation(unsigned int workspace)
+{
+	auto new_workspace = _workspace_list[workspace];
+
+	auto pix = theme()->workspace_switch_popup(new_workspace->name());
+
+	printf("xxx pos x=%f, y=%f\n", clutter_actor_get_x(_overlay_group), clutter_actor_get_y(_overlay_group));
+
+	for(auto const & v : new_workspace->get_viewports()) {
+
+		GError * err = NULL;
+		auto image = clutter_image_new();
+		if (not clutter_image_set_data(CLUTTER_IMAGE(image),
+				cairo_image_surface_get_data(pix),
+				cairo_image_surface_get_format(pix)==CAIRO_FORMAT_ARGB32
+					?COGL_PIXEL_FORMAT_RGBA_8888
+					:COGL_PIXEL_FORMAT_RGB_888,
+				cairo_image_surface_get_width(pix),
+				cairo_image_surface_get_height(pix),
+				cairo_image_surface_get_stride(pix),
+				&err
+		)) {
+			g_error("%s\n", err->message);
+		}
+
+		auto loc = v->allocation();
+		auto actor = clutter_actor_new();
+		clutter_actor_set_size(actor, cairo_image_surface_get_width(pix),
+				cairo_image_surface_get_height(pix));
+		clutter_actor_set_content(actor, image);
+		clutter_actor_set_content_scaling_filters(actor,
+				CLUTTER_SCALING_FILTER_NEAREST, CLUTTER_SCALING_FILTER_NEAREST);
+		clutter_actor_set_position(actor,
+				loc.x + (loc.w-cairo_image_surface_get_width(pix))/2,
+				loc.y + (loc.h-cairo_image_surface_get_height(pix))/2);
+
+		printf("yyy pos x=%f, y=%f\n", clutter_actor_get_x(actor), clutter_actor_get_y(actor));
+
+		clutter_actor_set_opacity(actor, 255);
+		clutter_actor_insert_child_above(_overlay_group, actor, NULL);
+		clutter_actor_show(actor);
+		clutter_actor_queue_redraw(actor);
+
+		g_signal_connect(actor, "transitions-completed",
+				([](ClutterActor * actor, gpointer user_data) {
+					printf("XXXXX\n");
+					clutter_actor_remove_child(clutter_actor_get_parent(actor), actor);
+					clutter_actor_destroy(actor);
+				}), nullptr);
+
+		clutter_actor_save_easing_state(actor);
+		clutter_actor_set_easing_duration(actor, 1000);
+		clutter_actor_set_easing_mode(actor, CLUTTER_LINEAR);
+		clutter_actor_set_opacity(actor, 0);
+		clutter_actor_restore_easing_state(actor);
+
+		g_object_unref(image);
+
+	}
+
+	cairo_surface_destroy(pix);
+	schedule_repaint();
 
 }
 
@@ -3380,11 +3439,11 @@ void page_t::activate(view_p c, xcb_timestamp_t time)
 void page_t::sync_tree_view()
 {
 
-	clutter_actor_remove_all_children(viewport_group);
+	clutter_actor_remove_all_children(_viewport_group);
 	auto viewport = get_current_workspace()->gather_children_root_first<viewport_t>();
 	for (auto x : viewport) {
 		if (x->get_default_view()) {
-			clutter_actor_add_child(viewport_group, x->get_default_view());
+			clutter_actor_add_child(_viewport_group, x->get_default_view());
 		}
 	}
 

@@ -126,7 +126,8 @@ public:
 	MetaScreen * _screen;
 	theme_t * _theme;
 
-	ClutterActor * viewport_group;
+	ClutterActor * _viewport_group;
+	ClutterActor * _overlay_group;
 
 	page_configuration_t configuration;
 
