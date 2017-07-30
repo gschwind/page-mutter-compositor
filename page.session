@@ -1,0 +1,4 @@
+[GNOME Session]
+Name=PAGE
+Name[fr]=PAGE
+RequiredComponents=net.hzog.Shell;gnome-settings-daemon;

@@ -5,6 +5,8 @@ LT_PREREQ([2.4.6])
 LT_INIT([disable-static])
 LT_LANG([C++])
 
+PKG_PROG_PKG_CONFIG([0.22])
+
 AM_INIT_AUTOMAKE([-Wall])
 AC_CONFIG_SRCDIR([src/main.cxx])
 
@@ -35,9 +37,13 @@ PKG_CHECK_MODULES(PANGO, pangocairo >= 0.28)
 AC_SUBST(PANGO_CFLAGS)
 AC_SUBST(PANGO_LIBS)
 
+MUTTER_TYPELIB_DIR=`$PKG_CONFIG --variable=typelibdir libmutter`
+AC_SUBST(MUTTER_TYPELIB_DIR)
+
 AC_CONFIG_FILES([
   Makefile
   src/Makefile
   gschemas/Makefile
+  net.hzog.Shell.desktop
   ])
 AC_OUTPUT

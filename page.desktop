@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=PAGE
+Name[fr]=PAGE
+Comment=This session logs you into GNOME
+Comment[fr]=Cette session vous connecte dans GNOME
+Exec=gnome-session --session=page
+TryExec=gnome-session
+Icon=
+Type=Application
+#Have some importance :
+DesktopNames=GNOME

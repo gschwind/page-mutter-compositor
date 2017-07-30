@@ -70,5 +70,7 @@ page_mutter_compositor_SOURCES = \
 	main.cxx 
 
 page_mutter_compositor_LDADD = \
-	@MUTTER_LIBS@ 
+	@MUTTER_LIBS@
+page_mutter_compositor_LDFLAGS = \
+	-rpath @MUTTER_TYPELIB_DIR@ 
 
