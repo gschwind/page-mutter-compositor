@@ -1,0 +1,49 @@
+<schemalist>
+
+<schema id="net.hzog.page.keybindings" path="/net/hzog/page/keybindings/">
+
+	<key name="make-notebook-window" type="as">
+		<default><![CDATA[['<Super>b']]]></default>
+	</key>
+	<key name="make-fullscreen-window" type="as">
+		<default><![CDATA[['<Super>v']]]></default>
+	</key>
+	<key name="make-floating-window" type="as">
+		<default><![CDATA[['<Super>c']]]></default>
+	</key>
+	<key name="toggle-fullscreen-window" type="as">
+		<default><![CDATA[['<Super>f']]]></default>
+	</key>
+
+	<key name="debug-1" type="as">
+		<default><![CDATA[['<Super>1']]]></default>
+	</key>
+	<key name="debug-2" type="as">
+		<default><![CDATA[['<Super>2']]]></default>
+	</key>
+	<key name="debug-3" type="as">
+		<default><![CDATA[['<Super>3']]]></default>
+	</key>
+	<key name="debug-4" type="as">
+		<default><![CDATA[['<Super>4']]]></default>
+	</key>
+
+	<key name="run-cmd-0" type="as">
+		<default><![CDATA[[]]]></default>
+	</key>
+	<key name="run-cmd-1" type="as">
+		<default><![CDATA[[]]]></default>
+	</key>
+	<key name="run-cmd-2" type="as">
+		<default><![CDATA[[]]]></default>
+	</key>
+	<key name="run-cmd-3" type="as">
+		<default><![CDATA[[]]]></default>
+	</key>
+	<key name="run-cmd-4" type="as">
+		<default><![CDATA[[]]]></default>
+	</key>
+</schema>
+
+</schemalist>
+
