@@ -114,6 +114,15 @@ void page_t::_handler_key_switch_to_workspace_up(MetaDisplay * display, MetaScre
 void page_t::_handler_key_make_notebook_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+	auto mw = lookup_client_managed_with_meta_window(window);
+	if (not mw) {
+		return;
+	}
+	auto v = get_current_workspace()->lookup_view_for(mw);
+	if (not v) {
+		return;
+	}
+	get_current_workspace()->switch_view_to_notebook(v, 0);
 }
 
 void page_t::_handler_key_make_fullscreen_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
@@ -154,26 +163,31 @@ void page_t::_handler_key_debug_4(MetaDisplay * display, MetaScreen * screen, Me
 void page_t::_handler_key_run_cmd_0(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+	run_cmd(bind_cmd[0].cmd);
 }
 
 void page_t::_handler_key_run_cmd_1(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+	run_cmd(bind_cmd[1].cmd);
 }
 
 void page_t::_handler_key_run_cmd_2(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+	run_cmd(bind_cmd[2].cmd);
 }
 
 void page_t::_handler_key_run_cmd_3(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+	run_cmd(bind_cmd[3].cmd);
 }
 
 void page_t::_handler_key_run_cmd_4(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
 	printf("call %s\n", __PRETTY_FUNCTION__);
+	run_cmd(bind_cmd[4].cmd);
 }
 
 page_t::page_t(MetaPlugin * plugin) :
@@ -437,13 +451,13 @@ void page_t::minimize(MetaWindowActor * actor)
 		return;
 	}
 
-	auto fv = dynamic_pointer_cast<view_floating_t>(get_current_workspace()->lookup_view_for(mw));
+	auto fv = get_current_workspace()->lookup_view_for(mw);
 	if (not fv) {
 		meta_plugin_minimize_completed(_plugin, actor);
 		return;
 	}
 
-	get_current_workspace()->switch_floating_to_notebook(fv, 0);
+	get_current_workspace()->switch_view_to_notebook(fv, 0);
 	meta_plugin_minimize_completed(_plugin, actor);
 
 }

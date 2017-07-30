@@ -69,7 +69,7 @@ class grab_bind_view_notebook_t : public grab_default_t {
 	xcb_button_t _button;
 	notebook_area_e zone;
 	notebook_w target_notebook;
-	shared_ptr<popup_notebook0_t> pn0;
+	ClutterActor * pn0;
 
 	void _find_target_notebook(int x, int y, notebook_p & target, notebook_area_e & zone);
 

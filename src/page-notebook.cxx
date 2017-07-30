@@ -177,6 +177,7 @@ void notebook_t::_add_client_view(view_notebook_p vn, xcb_timestamp_t time)
 		_selected->hide();
 	}
 
+	_selected->reconfigure();
 	_update_all_layout();
 }
 

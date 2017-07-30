@@ -398,9 +398,8 @@ void workspace_t::insert_as_notebook(client_managed_p mw, xcb_timestamp_t time)
 	}
 
 	ensure_default_notebook()->add_client(mw, time);
+	_ctx->sync_tree_view();
 
-	_ctx->_need_update_client_list = true;
-	_ctx->_need_restack = true;
 }
 
 void workspace_t::insert_as_fullscreen(shared_ptr<client_managed_t> mw, shared_ptr<viewport_t> v) {

@@ -161,13 +161,17 @@ grab_bind_view_notebook_t::grab_bind_view_notebook_t(page_t * ctx,
 		pn0{},
 		_button{button}
 {
-	pn0 = make_shared<popup_notebook0_t>(x.get());
+	pn0 = clutter_actor_new();
+	ClutterColor c{128u, 128u, 128u, 128u};
+	clutter_actor_set_background_color(pn0, &c);
+
 }
 
 grab_bind_view_notebook_t::~grab_bind_view_notebook_t() {
 	if(pn0 != nullptr) {
-		_ctx->add_global_damage(pn0->get_visible_region());
-		pn0->detach_myself();
+		if (clutter_actor_get_parent(pn0) != NULL)
+			clutter_actor_remove_child(clutter_actor_get_parent(pn0), pn0);
+		g_object_unref(pn0);
 	}
 }
 
@@ -224,9 +228,9 @@ void grab_bind_view_notebook_t::button_motion(ClutterEvent const * e)
 	}
 
 	/* do not start drag&drop for small move */
-	if (not start_position.is_inside(x, y) and pn0->parent() == nullptr) {
-		_ctx->overlay_add(pn0);
-		pn0->show();
+	if (not start_position.is_inside(x, y) and clutter_actor_get_parent(pn0) == NULL) {
+		clutter_actor_insert_child_above(_ctx->_overlay_group, pn0, NULL);
+		clutter_actor_show(pn0);
 	}
 
 	if (pn0 == nullptr)
@@ -236,30 +240,41 @@ void grab_bind_view_notebook_t::button_motion(ClutterEvent const * e)
 	notebook_area_e new_zone;
 	_find_target_notebook(x, y, new_target, new_zone);
 
+
 	if((new_target != target_notebook.lock() or new_zone != zone) and new_zone != NOTEBOOK_AREA_NONE) {
 		target_notebook = new_target;
 		zone = new_zone;
+		ClutterGeometry geo{0, 0, 0u, 0u};
 		switch(zone) {
 		case NOTEBOOK_AREA_TAB:
-			pn0->move_resize(new_target->_area.tab);
+			geo = new_target->_area.tab;
 			break;
 		case NOTEBOOK_AREA_RIGHT:
-			pn0->move_resize(new_target->_area.popup_right);
+			geo = new_target->_area.popup_right;
 			break;
 		case NOTEBOOK_AREA_TOP:
-			pn0->move_resize(new_target->_area.popup_top);
+			geo = new_target->_area.popup_top;
 			break;
 		case NOTEBOOK_AREA_BOTTOM:
-			pn0->move_resize(new_target->_area.popup_bottom);
+			geo = new_target->_area.popup_bottom;
 			break;
 		case NOTEBOOK_AREA_LEFT:
-			pn0->move_resize(new_target->_area.popup_left);
+			geo = new_target->_area.popup_left;
 			break;
 		case NOTEBOOK_AREA_CENTER:
-			pn0->move_resize(new_target->_area.popup_center);
+			geo = new_target->_area.popup_center;
 			break;
 		}
+		clutter_actor_save_easing_state(pn0);
+		clutter_actor_set_easing_mode(pn0, CLUTTER_EASE_IN_CUBIC);
+		clutter_actor_set_easing_duration(pn0, 100);
+		clutter_actor_set_position(pn0, geo.x, geo.y);
+		clutter_actor_set_size(pn0, geo.width, geo.height);
+		clutter_actor_restore_easing_state(pn0);
+
 	}
+
+
 }
 
 void grab_bind_view_notebook_t::button_release(ClutterEvent const * e)

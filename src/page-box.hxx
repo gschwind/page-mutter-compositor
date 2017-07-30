@@ -155,6 +155,11 @@ struct i_rect_t {
 		return i_rect_t<U>(x, y, w, h);
 	}
 
+	operator ClutterGeometry() {
+		ClutterGeometry ret = {x, y, w, h};
+		return ret;
+	}
+
 };
 
 //typedef i_rect_t<double> i_rect;
