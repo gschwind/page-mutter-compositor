@@ -803,32 +803,32 @@ void workspace_t::_insert_view_fullscreen(view_fullscreen_p vf, xcb_timestamp_t 
 
 void workspace_t::_insert_view_floating(view_floating_p fv, xcb_timestamp_t time)
 {
-//	auto c = fv->_client;
-//	c->set_managed_type(MANAGED_FLOATING);
-//
+	auto c = fv->_client;
+	c->set_managed_type(MANAGED_FLOATING);
+
 //	auto wid = c->ensure_workspace();
 //	if (wid != ALL_DESKTOP) {
 //		//c->set_net_wm_desktop(_id);
 //	}
-//
-//	if (is_enable())
-//		fv->acquire_client();
-//
-//	view_p v;
+
+	if (is_enable())
+		fv->acquire_client();
+
+	view_p v;
 //	auto transient_for = dynamic_pointer_cast<client_managed_t>(_ctx->get_transient_for(c));
 //	if (transient_for != nullptr)
 //		v = lookup_view_for(transient_for);
-//
-//	if (v != nullptr) {
-//		v->add_transient(fv);
-//	} else {
-//		add_floating(fv);
-//	}
-//
-//	fv->raise();
-//	fv->show();
-//	set_focus(fv, time);
-//	_ctx->_need_restack = true;
+
+	if (v != nullptr) {
+		v->add_transient(fv);
+	} else {
+		add_floating(fv);
+	}
+
+	fv->raise();
+	fv->show();
+	set_focus(fv, time);
+	_ctx->_need_restack = true;
 }
 
 }

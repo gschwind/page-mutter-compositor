@@ -968,6 +968,7 @@ struct log {
 	template<typename ... Args>
 	static void printf(Args ... args) {
 		std::fprintf(log_file, args...);
+		std::fflush(log_file);
 	}
 
 	static void set_file(char const * filename) {
