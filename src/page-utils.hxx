@@ -14,6 +14,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <cstdio>
+
 #include <X11/keysym.h>
 #include <xcb/sync.h>
 #include <xcb/xcb_util.h>
@@ -46,7 +48,7 @@ extern uint32_t g_log_flags;
 #define warn(test) \
 	do { \
 		if(not (test)) { \
-			printf("WARN %s:%d (%s) fail!\n", __FILE__, __LINE__, #test); \
+			log::printf("WARN %s:%d (%s) fail!\n", __FILE__, __LINE__, #test); \
 		} \
 	} while(false)
 
@@ -960,7 +962,19 @@ public:
 
 };
 
+struct log {
+	static FILE * log_file;
 
+	template<typename ... Args>
+	static void printf(Args ... args) {
+		std::fprintf(log_file, args...);
+	}
+
+	static void set_file(char const * filename) {
+		log_file = std::fopen(filename, "w");
+	}
+
+};
 
 
 

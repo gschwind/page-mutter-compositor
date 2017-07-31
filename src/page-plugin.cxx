@@ -28,11 +28,13 @@ G_DEFINE_TYPE(PagePlugin, page_plugin, META_TYPE_PLUGIN);
 
 namespace page_plugin {
 
+using namespace page;
+
 gboolean
 on_rect_enter (ClutterActor *actor,
                ClutterEvent *event,
                gpointer      user_data) {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	static ClutterColor actor_color = { 255, 0, 0, 255 };
 	clutter_actor_set_easing_mode (actor, CLUTTER_LINEAR);
 	clutter_actor_set_easing_duration (actor, 10000);
@@ -44,7 +46,7 @@ gboolean
 on_rect_leave (ClutterActor *actor,
                ClutterEvent *event,
                gpointer      user_data) {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	static ClutterColor actor_color = { 0, 255, 0, 255 };
 	clutter_actor_set_easing_mode (actor, CLUTTER_LINEAR);
 	clutter_actor_set_easing_duration (actor, 10000);
@@ -58,7 +60,7 @@ gboolean
 on_motion_event (ClutterActor *actor,
                ClutterEvent *event,
                gpointer      user_data) {
-	printf("motion x=%f, y=%f\n", event->motion.x, event->motion.y);
+	log::printf("motion x=%f, y=%f\n", event->motion.x, event->motion.y);
 
 	clutter_actor_set_easing_mode (actor, CLUTTER_LINEAR);
 	clutter_actor_set_easing_duration (actor, 0);
@@ -71,7 +73,7 @@ gboolean
 on_button_press_event(ClutterActor *actor,
                ClutterEvent *event,
                gpointer      user_data) {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
 	clutter_grab_pointer(actor);
 
@@ -83,7 +85,7 @@ gboolean
 on_button_release_event(ClutterActor *actor,
                ClutterEvent *event,
                gpointer      user_data) {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	g_signal_handler_disconnect(actor, xxid);
 	clutter_ungrab_pointer();
 }
@@ -156,7 +158,7 @@ static void size_change(MetaPlugin * plugin, MetaWindowActor * window_actor,
 }
 
 static void on_position_changed(MetaWindow * w, guint user_data) {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	meta_window_move_resize_frame(w, FALSE, 0, 0, 400, 400);
 }
 

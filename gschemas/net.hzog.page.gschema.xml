@@ -14,6 +14,10 @@
 	<key name="toggle-fullscreen-window" type="as">
 		<default><![CDATA[['<Super>f']]]></default>
 	</key>
+	
+		<key name="page-quit" type="as">
+		<default><![CDATA[['<Super>q']]]></default>
+	</key>
 
 	<key name="debug-1" type="as">
 		<default><![CDATA[['<Super>1']]]></default>

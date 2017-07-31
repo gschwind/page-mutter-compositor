@@ -78,7 +78,7 @@ auto client_managed_t::meta_window_actor() -> MetaWindowActor *
 }
 
 void client_managed_t::delete_window(xcb_timestamp_t t) {
-	printf("request close for '%s'\n", title().c_str());
+	log(LOG_NONE, "request close for '%s'\n", title().c_str());
 	meta_window_delete(_meta_window, t);
 }
 

@@ -35,7 +35,7 @@ tiny_theme_t::tiny_theme_t(config_handler_t & conf) :
 	{
 	cairo_surface_destroy(pop_button_s);
 	string filename = conf_img_dir + "/tiny_pop.png";
-	printf("Load: %s\n", filename.c_str());
+	log::printf("Load: %s\n", filename.c_str());
 	if(not exists(filename.c_str()))
 		throw wrong_config_file_t("file not found!");
 	pop_button_s = cairo_image_surface_create_from_png(filename.c_str());
@@ -46,7 +46,7 @@ tiny_theme_t::tiny_theme_t(config_handler_t & conf) :
 	{
 	cairo_surface_destroy(pops_button_s);
 	string filename = conf_img_dir + "/tiny_pops.png";
-	printf("Load: %s\n", filename.c_str());
+	log::printf("Load: %s\n", filename.c_str());
 	if(not exists(filename.c_str()))
 		throw wrong_config_file_t("file not found!");
 	pops_button_s = cairo_image_surface_create_from_png(filename.c_str());
@@ -57,7 +57,7 @@ tiny_theme_t::tiny_theme_t(config_handler_t & conf) :
 	{
 	cairo_surface_destroy(vsplit_button_s);
 	string filename = conf_img_dir + "/tiny_vsplit_button.png";
-	printf("Load: %s\n", filename.c_str());
+	log::printf("Load: %s\n", filename.c_str());
 	if(not exists(filename.c_str()))
 		throw wrong_config_file_t("file not found!");
 	vsplit_button_s = cairo_image_surface_create_from_png(filename.c_str());
@@ -68,7 +68,7 @@ tiny_theme_t::tiny_theme_t(config_handler_t & conf) :
 	{
 	cairo_surface_destroy(hsplit_button_s);
 	string filename = conf_img_dir + "/tiny_hsplit_button.png";
-	printf("Load: %s\n", filename.c_str());
+	log::printf("Load: %s\n", filename.c_str());
 	if(not exists(filename.c_str()))
 		throw wrong_config_file_t("file not found!");
 	hsplit_button_s = cairo_image_surface_create_from_png(filename.c_str());
@@ -79,7 +79,7 @@ tiny_theme_t::tiny_theme_t(config_handler_t & conf) :
 	{
 	cairo_surface_destroy(close_button_s);
 	string filename = conf_img_dir + "/window-close-3.png";
-	printf("Load: %s\n", filename.c_str());
+	log::printf("Load: %s\n", filename.c_str());
 	if(not exists(filename.c_str()))
 		throw wrong_config_file_t("file not found!");
 	close_button_s = cairo_image_surface_create_from_png(filename.c_str());

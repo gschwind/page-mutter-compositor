@@ -857,7 +857,7 @@ auto notebook_t::button_press(ClutterEvent const * e) -> button_action_e
 	clutter_event_get_coords(e, &x, &y);
 	auto time = clutter_event_get_time(e);
 
-	printf("button_press_event time = %u, x = %f, y = %f, button = 0x%x\n", time, x, y, button);
+	log::printf("button_press_event time = %u, x = %f, y = %f, button = 0x%x\n", time, x, y, button);
 
 	/* left click on page window */
 	if (button == 1 /* TODO: find emun or define */) {
@@ -895,7 +895,6 @@ auto notebook_t::button_press(ClutterEvent const * e) -> button_action_e
 		} else {
 			for(auto & i: _client_buttons) {
 				if(std::get<0>(i).is_inside(x, y)) {
-					printf("XXX found %f, %f\n", x, y);
 					if (not std::get<1>(i).expired()) {
 						auto c = std::get<1>(i).lock();
 						_ctx->grab_start(make_shared<grab_bind_view_notebook_t>(_ctx, c, XCB_BUTTON_INDEX_1, to_root_position(std::get<0>(i))), time);

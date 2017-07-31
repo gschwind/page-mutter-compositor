@@ -42,10 +42,10 @@ void split_t::set_allocation(rect const & allocation) {
 
 void split_t::replace(shared_ptr<page_component_t> src, shared_ptr<page_component_t> by) {
 	if (_pack0 == src) {
-		printf("replace %p by %p\n", src.get(), by.get());
+		log::printf("replace %p by %p\n", src.get(), by.get());
 		set_pack0(by);
 	} else if (_pack1 == src) {
-		printf("replace %p by %p\n", src.get(), by.get());
+		log::printf("replace %p by %p\n", src.get(), by.get());
 		set_pack1(by);
 	} else {
 		throw std::runtime_error("split: bad child replacement!");

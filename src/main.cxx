@@ -5,6 +5,7 @@ extern "C" {
 }
 
 #include "page-plugin.hxx"
+#include "page-utils.hxx"
 
 static gboolean
 print_version (const gchar    *option_name,
@@ -16,8 +17,11 @@ print_version (const gchar    *option_name,
 	return true;
 }
 
+static char const * log_file = NULL;
+
 GOptionEntry mutter_options[] = {
-  { NULL }
+		{ "log", 'l', 0, G_OPTION_ARG_FILENAME, &log_file, "log file, stdout if not set" },
+		{ NULL }
 };
 
 int main(int argc, char ** argv)
@@ -32,6 +36,10 @@ int main(int argc, char ** argv)
 		return 1;
 	}
 	g_option_context_free(ctx);
+
+	if(log_file != NULL) {
+		page::log::set_file(log_file);
+	}
 
 	meta_plugin_manager_set_plugin_type(page_plugin_get_type());
 	meta_set_wm_name("page-mutter-compositor");

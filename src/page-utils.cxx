@@ -11,11 +11,13 @@ namespace page {
 
 uint32_t g_log_flags = 0u;
 
+FILE * log::log_file = stdout;
+
 void log(log_module_e module, char const * fmt, ...) {
 	if (module == LOG_NONE or (module&g_log_flags)) {
 		va_list l;
 		va_start(l, fmt);
-		vprintf(fmt, l);
+		std:vfprintf(log::log_file, fmt, l);
 		va_end(l);
 	}
 }

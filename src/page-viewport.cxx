@@ -160,7 +160,7 @@ void viewport_t::show() {
 }
 
 void viewport_t::draw(ClutterCanvas * _, cairo_t * cr, int width, int height) {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 //	if(not _is_durty)
 //		return;
 
@@ -230,7 +230,7 @@ gboolean viewport_t::wrapper_draw_callback(ClutterCanvas *canvas, cairo_t *cr, i
 
 auto viewport_t::_handler_button_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
 	broadcast_button_press(event);
 
@@ -239,7 +239,7 @@ auto viewport_t::_handler_button_press_event(ClutterActor * actor, ClutterEvent 
 
 auto viewport_t::_handler_button_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
 	broadcast_button_release(event);
 
@@ -248,7 +248,7 @@ auto viewport_t::_handler_button_release_event(ClutterActor * actor, ClutterEven
 
 auto viewport_t::_handler_motion_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
 	broadcast_button_motion(event);
 
@@ -257,7 +257,7 @@ auto viewport_t::_handler_motion_event(ClutterActor * actor, ClutterEvent * even
 
 auto viewport_t::_handler_enter_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
 	broadcast_enter(event);
 
@@ -266,7 +266,7 @@ auto viewport_t::_handler_enter_event(ClutterActor * actor, ClutterEvent * event
 
 auto viewport_t::_handler_leave_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
 	broadcast_leave(event);
 

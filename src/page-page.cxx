@@ -93,7 +93,7 @@ void page_t::set_keybinding_custom_helper(char const * name, key_handler_func fu
 
 void page_t::_handler_key_switch_to_workspace_down(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	if(_current_workspace < _workspace_list.size()-1) {
 		auto from = get_current_workspace()->_meta_workspace;
 		auto to = _workspace_list[_current_workspace+1]->_meta_workspace;
@@ -103,8 +103,8 @@ void page_t::_handler_key_switch_to_workspace_down(MetaDisplay * display, MetaSc
 
 void page_t::_handler_key_switch_to_workspace_up(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	if(_current_workspace > 0) {
 		auto from = get_current_workspace()->_meta_workspace;
 		auto to = _workspace_list[_current_workspace-1]->_meta_workspace;
@@ -113,7 +113,7 @@ void page_t::_handler_key_switch_to_workspace_up(MetaDisplay * display, MetaScre
 
 void page_t::_handler_key_make_notebook_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	auto mw = lookup_client_managed_with_meta_window(window);
 	if (not mw) {
 		return;
@@ -127,66 +127,71 @@ void page_t::_handler_key_make_notebook_window(MetaDisplay * display, MetaScreen
 
 void page_t::_handler_key_make_fullscreen_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 void page_t::_handler_key_make_floating_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_key_page_quit(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 void page_t::_handler_key_toggle_fullscreen(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 void page_t::_handler_key_debug_1(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 void page_t::_handler_key_debug_2(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 void page_t::_handler_key_debug_3(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 void page_t::_handler_key_debug_4(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 void page_t::_handler_key_run_cmd_0(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	run_cmd(bind_cmd[0].cmd);
 }
 
 void page_t::_handler_key_run_cmd_1(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	run_cmd(bind_cmd[1].cmd);
 }
 
 void page_t::_handler_key_run_cmd_2(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	run_cmd(bind_cmd[2].cmd);
 }
 
 void page_t::_handler_key_run_cmd_3(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	run_cmd(bind_cmd[3].cmd);
 }
 
 void page_t::_handler_key_run_cmd_4(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	run_cmd(bind_cmd[4].cmd);
 }
 
@@ -337,7 +342,7 @@ void page_t::start()
 	_screen = meta_plugin_get_screen(_plugin);
 	_display = meta_screen_get_display(_screen);
 
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
 	if (_theme_engine == "tiny") {
 		cout << "using tiny theme engine" << endl;
@@ -366,7 +371,6 @@ void page_t::start()
 		auto windows = meta_get_window_actors(_screen);
 		for (auto l = windows; l != NULL; l = l->next) {
 			auto meta_window_actor = META_WINDOW_ACTOR(l->data);
-			printf("XXXfound\n");
 			xmap(meta_window_actor);
 		}
 
@@ -375,7 +379,6 @@ void page_t::start()
 		for (auto l = actors; l != NULL; l = l->next) {
 			auto cactor = CLUTTER_ACTOR(l->data);
 			if(META_IS_WINDOW_ACTOR(cactor)) {
-				printf("YYYYfound\n");
 				xmap(META_WINDOW_ACTOR(cactor));
 			}
 		}
@@ -443,7 +446,7 @@ void page_t::start()
 
 void page_t::minimize(MetaWindowActor * actor)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
 	auto mw = lookup_client_managed_with_meta_window_actor(actor);
 	if (not mw) {
@@ -464,16 +467,16 @@ void page_t::minimize(MetaWindowActor * actor)
 
 void page_t::unminimize(MetaWindowActor * actor)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	meta_plugin_unminimize_completed(_plugin, actor);
 }
 
 void page_t::size_change(MetaWindowActor * window_actor, MetaSizeChange which_change, MetaRectangle * old_frame_rect, MetaRectangle * old_buffer_rect)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
-	printf("olf_frame_rect x=%d, y=%d, w=%d, h=%d\n", old_frame_rect->x, old_frame_rect->y, old_frame_rect->width, old_frame_rect->height);
-	printf("old_buffer_rect x=%d, y=%d, w=%d, h=%d\n", old_buffer_rect->x, old_buffer_rect->y, old_buffer_rect->width, old_buffer_rect->height);
+	log::printf("olf_frame_rect x=%d, y=%d, w=%d, h=%d\n", old_frame_rect->x, old_frame_rect->y, old_frame_rect->width, old_frame_rect->height);
+	log::printf("old_buffer_rect x=%d, y=%d, w=%d, h=%d\n", old_buffer_rect->x, old_buffer_rect->y, old_buffer_rect->width, old_buffer_rect->height);
 
 	switch(which_change) {
 	case META_SIZE_CHANGE_MAXIMIZE:
@@ -490,7 +493,7 @@ void page_t::size_change(MetaWindowActor * window_actor, MetaSizeChange which_ch
 
 void page_t::xmap(MetaWindowActor * window_actor)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	MetaWindowType type;
 	ClutterActor * actor = CLUTTER_ACTOR(window_actor);
 	MetaWindow *meta_window = meta_window_actor_get_meta_window(window_actor);
@@ -502,7 +505,7 @@ void page_t::xmap(MetaWindowActor * window_actor)
 	type = meta_window_get_window_type(meta_window);
 
 	if (type == META_WINDOW_NORMAL) {
-		printf("normal window\n");
+		log::printf("normal window\n");
 
 		auto mw = make_shared<client_managed_t>(this, window_actor);
 		_net_client_list.push_back(mw);
@@ -523,7 +526,7 @@ void page_t::xmap(MetaWindowActor * window_actor)
 
 void page_t::destroy(MetaWindowActor * actor)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	auto mw = lookup_client_managed_with_meta_window_actor(actor);
 	if(mw) {
 		unmanage(mw);
@@ -533,7 +536,7 @@ void page_t::destroy(MetaWindowActor * actor)
 
 void page_t::switch_workspace(gint from, gint to, MetaMotionDirection direction)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
 	switch_to_workspace(to, 0);
 
@@ -542,32 +545,32 @@ void page_t::switch_workspace(gint from, gint to, MetaMotionDirection direction)
 
 void page_t::show_tile_preview(MetaWindow * window, MetaRectangle *tile_rect, int tile_monitor_number)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 void page_t::hide_tile_preview()
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 void page_t::show_window_menu(MetaWindow * window, MetaWindowMenuType menu, int x, int y)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 void page_t::show_window_menu_for_rect(MetaWindow * window, MetaWindowMenuType menu, MetaRectangle * rect)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 void page_t::kill_window_effects(MetaWindowActor * actor)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 void page_t::kill_switch_workspace()
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 auto page_t::xevent_filter(XEvent * event) -> gboolean
@@ -578,20 +581,20 @@ auto page_t::xevent_filter(XEvent * event) -> gboolean
 
 auto page_t::keybinding_filter(MetaKeyBinding * binding) -> gboolean
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
-	printf("call %s %d\n", meta_key_binding_get_name(binding), meta_key_binding_get_modifiers(binding));
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s %d\n", meta_key_binding_get_name(binding), meta_key_binding_get_modifiers(binding));
 	return FALSE;
 }
 
 void page_t::confirm_display_change()
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	meta_plugin_complete_display_change(_plugin, TRUE);
 }
 
 auto page_t::plugin_info() -> MetaPluginInfo const *
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	PagePluginPrivate *priv = PAGE_PLUGIN(_plugin)->priv;
 	return &priv->info;
 }
@@ -628,19 +631,19 @@ auto page_t::_motion_event(ClutterActor * actor, ClutterEvent * event) -> gboole
 
 void page_t::_handler_monitors_changed(MetaScreen * screen)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	update_viewport_layout();
 }
 
 void page_t::_handler_workareas_changed(MetaScreen * screen)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	update_viewport_layout();
 }
 
 void page_t::_handler_focus(MetaWindow * window)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
 	auto w = get_current_workspace();
 	if (not w->_net_active_window.expired()) {
@@ -660,7 +663,7 @@ void page_t::_handler_focus(MetaWindow * window)
 
 void page_t::_handler_unmanaged(MetaWindow * window)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	auto mw = lookup_client_managed_with_meta_window(window);
 	if(mw) {
 		unmanage(mw);
@@ -669,7 +672,7 @@ void page_t::_handler_unmanaged(MetaWindow * window)
 
 void page_t::unmanage(client_managed_p mw)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	assert(mw != nullptr);
 	_net_client_list.remove(mw);
 
@@ -2636,7 +2639,7 @@ void page_t::start_switch_to_workspace_animation(unsigned int workspace)
 
 	auto pix = theme()->workspace_switch_popup(new_workspace->name());
 
-	printf("xxx pos x=%f, y=%f\n", clutter_actor_get_x(_overlay_group), clutter_actor_get_y(_overlay_group));
+	log::printf("xxx pos x=%f, y=%f\n", clutter_actor_get_x(_overlay_group), clutter_actor_get_y(_overlay_group));
 
 	for(auto const & v : new_workspace->get_viewports()) {
 
@@ -2666,7 +2669,7 @@ void page_t::start_switch_to_workspace_animation(unsigned int workspace)
 				loc.x + (loc.w-cairo_image_surface_get_width(pix))/2,
 				loc.y + (loc.h-cairo_image_surface_get_height(pix))/2);
 
-		printf("yyy pos x=%f, y=%f\n", clutter_actor_get_x(actor), clutter_actor_get_y(actor));
+		log::printf("yyy pos x=%f, y=%f\n", clutter_actor_get_x(actor), clutter_actor_get_y(actor));
 
 		clutter_actor_set_opacity(actor, 255);
 		clutter_actor_insert_child_above(_overlay_group, actor, NULL);
@@ -2675,7 +2678,6 @@ void page_t::start_switch_to_workspace_animation(unsigned int workspace)
 
 		g_signal_connect(actor, "transitions-completed",
 				([](ClutterActor * actor, gpointer user_data) {
-					printf("XXXXX\n");
 					clutter_actor_remove_child(clutter_actor_get_parent(actor), actor);
 					clutter_actor_destroy(actor);
 				}), nullptr);
@@ -3053,7 +3055,7 @@ void page_t::_bind_all_default_event() {
 /* Inspired from openbox */
 void page_t::run_cmd(std::string const & cmd_with_args)
 {
-	printf("executing %s\n", cmd_with_args.c_str());
+	log::printf("executing %s\n", cmd_with_args.c_str());
 
     GError *e;
     gchar **argv = NULL;
@@ -3064,13 +3066,13 @@ void page_t::run_cmd(std::string const & cmd_with_args)
 
     cmd = g_filename_from_utf8(cmd_with_args.c_str(), -1, NULL, NULL, NULL);
     if (!cmd) {
-        printf("Failed to convert the path \"%s\" from utf8\n", cmd_with_args.c_str());
+    	log::printf("Failed to convert the path \"%s\" from utf8\n", cmd_with_args.c_str());
         return;
     }
 
     e = NULL;
     if (!g_shell_parse_argv(cmd, NULL, &argv, &e)) {
-        printf("%s\n", e->message);
+    	log::printf("%s\n", e->message);
         g_error_free(e);
     } else {
         gchar *program = NULL;
@@ -3082,7 +3084,7 @@ void page_t::run_cmd(std::string const & cmd_with_args)
                            G_SPAWN_DO_NOT_REAP_CHILD),
                            NULL, NULL, NULL, &e);
         if (!ok) {
-            printf("%s\n", e->message);
+        	log::printf("%s\n", e->message);
             g_error_free(e);
         }
 
@@ -3213,13 +3215,13 @@ auto page_t::dpy() const -> MetaDisplay *
 
 void page_t::grab_start(shared_ptr<grab_handler_t> handler, guint32 time)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
 	assert(_grab_handler == nullptr);
 	if (meta_plugin_begin_modal(_plugin, (MetaModalOptions)0, time)) {
 		_grab_handler = handler;
 	} else {
-		printf("FAIL GRAB\n");
+		log::printf("FAIL GRAB\n");
 	}
 
 
@@ -3277,7 +3279,7 @@ void page_t::grab_start(shared_ptr<grab_handler_t> handler, guint32 time)
 
 void page_t::grab_stop(guint32 time)
 {
-	printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
 	assert(_grab_handler != nullptr);
 	_grab_handler = nullptr;
@@ -3469,14 +3471,14 @@ void page_t::sync_tree_view()
 	/* create the list of weston views */
 	list<ClutterActor *> views;
 	auto children = get_current_workspace()->gather_children_root_first<view_t>();
-	printf("found %lu children\n", children.size());
+	log::printf("found %lu children\n", children.size());
 	for(auto x: children) {
 		auto v = x->get_default_view();
 		if(v)
 			views.push_back(v);
 	}
 
-	printf("found %lu views\n", views.size());
+	log::printf("found %lu views\n", views.size());
 
 	for(auto actor: views) {
 		if (clutter_actor_get_parent(actor) != window_group) {
