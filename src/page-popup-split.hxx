@@ -32,7 +32,7 @@ struct popup_split_t : public tree_t {
 	region _damaged;
 	region _visible_region;
 
-	xcb_window_t _wid;
+	ClutterActor * _actor[2];
 
 	void _paint_exposed();
 
@@ -69,9 +69,9 @@ public:
 	//virtual bool button_motion(xcb_motion_notify_event_t const * ev);
 	//virtual bool leave(xcb_leave_notify_event_t const * ev);
 	//virtual bool enter(xcb_enter_notify_event_t const * ev);
-	virtual void expose(xcb_expose_event_t const * ev) override;
+	//virtual void expose(xcb_expose_event_t const * ev) override;
 
-	virtual auto get_toplevel_xid() const -> xcb_window_t override;
+	//virtual auto get_toplevel_xid() const -> xcb_window_t override;
 	//virtual rect get_window_position() const;
 	//virtual void queue_redraw();
 
