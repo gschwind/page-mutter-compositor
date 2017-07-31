@@ -127,7 +127,7 @@ void page_t::_handler_key_make_notebook_window(MetaDisplay * display, MetaScreen
 		log::printf("view not found\n");
 		return;
 	}
-	get_current_workspace()->switch_view_to_notebook(v, 0);
+	get_current_workspace()->switch_view_to_notebook(v, event->time);
 }
 
 void page_t::_handler_key_make_fullscreen_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
@@ -138,6 +138,18 @@ void page_t::_handler_key_make_fullscreen_window(MetaDisplay * display, MetaScre
 void page_t::_handler_key_make_floating_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
+	auto focussed = meta_display_get_focus_window(display);
+	auto mw = lookup_client_managed_with_meta_window(focussed);
+	if (mw == nullptr) {
+		log::printf("managed client not found\n");
+		return;
+	}
+	auto v = get_current_workspace()->lookup_view_for(mw);
+	if (v == nullptr) {
+		log::printf("view not found\n");
+		return;
+	}
+	get_current_workspace()->switch_view_to_floating(v, event->time);
 }
 
 void page_t::_handler_key_page_quit(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
@@ -663,6 +675,8 @@ void page_t::_handler_focus(MetaWindow * window)
 			schedule_repaint();
 		}
 	}
+
+	sync_tree_view();
 
 }
 
