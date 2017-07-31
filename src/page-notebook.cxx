@@ -196,10 +196,10 @@ void notebook_t::update_client_position(view_notebook_p c) {
 	c->_client->_absolute_position = to_root_position(_client_position);
 
 	// Hack to include client shadow.
-//	c->_client->_absolute_position.x += 4;
-//	c->_client->_absolute_position.y += 4;
-//	c->_client->_absolute_position.w -= 8;
-//	c->_client->_absolute_position.h -= 8;
+	c->_client->_absolute_position.x += 10;
+	c->_client->_absolute_position.y += 10;
+	c->_client->_absolute_position.w -= 20;
+	c->_client->_absolute_position.h -= 20;
 
 
 	//printf("update position to %d,%d\n", c->_client->_absolute_position.w, c->_client->_absolute_position.h);
