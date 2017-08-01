@@ -455,8 +455,8 @@ void page_t::start()
 	g_connect(stage, "button-release-event", &page_t::_button_release_event);
 	g_connect(stage, "motion-event", &page_t::_motion_event);
 
-	g_connect(_screen, "monitors-changed", &page_t::_handler_monitors_changed);
-	g_connect(_screen, "workareas-changed", &page_t::_handler_workareas_changed);
+	g_connect(_screen, "monitors-changed", &page_t::_handler_screen_monitors_changed);
+	g_connect(_screen, "workareas-changed", &page_t::_handler_screen_workareas_changed);
 
 	g_connect(_display, "accelerator-activated", &page_t::_handler_meta_display_accelerator_activated);
 	g_connect(_display, "grab-op-begin”", &page_t::_handler_meta_display_grab_op_begin);
@@ -685,16 +685,56 @@ auto page_t::_key_release_event(ClutterActor * actor, ClutterEvent * event) -> g
 	return FALSE;
 }
 
-void page_t::_handler_monitors_changed(MetaScreen * screen)
+void page_t::_handler_screen_in_fullscreen_changed(MetaScreen *metascreen)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_screen_monitors_changed(MetaScreen * screen)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	update_viewport_layout();
 }
 
-void page_t::_handler_workareas_changed(MetaScreen * screen)
+void page_t::_handler_screen_restacked(MetaScreen * screen)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_screen_startup_sequence_changed(MetaScreen * screen, gpointer arg1)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_screen_window_entered_monitor(MetaScreen *metascreen, gint arg1, MetaWindow *arg2)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_screen_window_left_monitor(MetaScreen *metascreen, gint arg1, MetaWindow *arg2)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_screen_workareas_changed(MetaScreen * screen)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	update_viewport_layout();
+}
+
+void page_t::_handler_screen_workspace_added(MetaScreen * screen, gint arg1)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_screen_workspace_removed(MetaScreen * screen, gint arg1)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_screen_workspace_switched(MetaScreen * screen, gint arg1, gint arg2, MetaMotionDirection arg3)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 void page_t::_handler_focus(MetaWindow * window)

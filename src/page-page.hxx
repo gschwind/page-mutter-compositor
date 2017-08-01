@@ -254,8 +254,16 @@ public:
 	auto _key_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
 	auto _key_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
 
-	void _handler_monitors_changed(MetaScreen * screen);
-	void _handler_workareas_changed(MetaScreen * screen);
+	void _handler_screen_in_fullscreen_changed(MetaScreen *metascreen);
+	void _handler_screen_monitors_changed(MetaScreen * screen);
+	void _handler_screen_restacked(MetaScreen * screen);
+	void _handler_screen_startup_sequence_changed(MetaScreen * screen, gpointer arg1);
+	void _handler_screen_window_entered_monitor(MetaScreen *metascreen, gint arg1, MetaWindow *arg2);
+	void _handler_screen_window_left_monitor(MetaScreen *metascreen, gint arg1, MetaWindow *arg2);
+	void _handler_screen_workareas_changed(MetaScreen * screen);
+	void _handler_screen_workspace_added(MetaScreen * screen, gint arg1);
+	void _handler_screen_workspace_removed(MetaScreen * screen, gint arg1);
+	void _handler_screen_workspace_switched(MetaScreen * screen, gint arg1, gint arg2, MetaMotionDirection arg3);
 
 	void _handler_focus(MetaWindow * window);
 	void _handler_unmanaged(MetaWindow * window);
@@ -266,6 +274,8 @@ public:
 	auto _handler_meta_display_modifiers_accelerator_activated(MetaDisplay * display) -> gboolean;
 	void _handler_meta_display_overlay_key(MetaDisplay * display);
 	auto _handler_meta_display_restart(MetaDisplay * display) -> gboolean;
+
+
 
 	/** user inputs **/
 //	void process_key_press_event(xcb_generic_event_t const * e);
