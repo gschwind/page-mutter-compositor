@@ -123,6 +123,7 @@ void view_t::move_all_window()
 
 		} else {
 			meta_window_minimize(_client->_meta_window);
+			//clutter_actor_hide(_client->_meta_window_actor);
 //			_client->net_wm_state_remove(_NET_WM_STATE_FOCUSED);
 //			_client->_client_proxy->set_wm_state(IconicState);
 //			rect hidden_position{ _ctx->left_most_border() - 1 -

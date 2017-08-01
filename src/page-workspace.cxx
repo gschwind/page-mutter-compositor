@@ -483,6 +483,7 @@ void workspace_t::switch_notebook_to_floating(view_notebook_p vn, xcb_timestamp_
 {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 	vn->remove_this_view();
+	meta_window_move_resize_frame(vn->_client->meta_window(), FALSE, vn->_client->_floating_wished_position.x, vn->_client->_floating_wished_position.y, vn->_client->_floating_wished_position.w, vn->_client->_floating_wished_position.h);
 	auto vf = make_shared<view_floating_t>(vn.get());
 	_insert_view_floating(vf, time);
 }

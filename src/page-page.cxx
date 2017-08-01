@@ -457,6 +457,15 @@ void page_t::start()
 
 	g_connect(_screen, "monitors-changed", &page_t::_handler_monitors_changed);
 	g_connect(_screen, "workareas-changed", &page_t::_handler_workareas_changed);
+
+	g_connect(_display, "accelerator-activated", &page_t::_handler_meta_display_accelerator_activated);
+	g_connect(_display, "grab-op-begin”", &page_t::_handler_meta_display_grab_op_begin);
+	g_connect(_display, "grab-op-end", &page_t::_handler_meta_display_grab_op_end);
+	g_connect(_display, "modifiers-accelerator-activated", &page_t::_handler_meta_display_modifiers_accelerator_activated);
+	g_connect(_display, "overlay-key", &page_t::_handler_meta_display_overlay_key);
+	g_connect(_display, "restart", &page_t::_handler_meta_display_restart);
+
+
 	update_viewport_layout();
 
 }
@@ -620,8 +629,10 @@ auto page_t::_button_press_event(ClutterActor * actor, ClutterEvent * event) -> 
 {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 
-	if (_grab_handler)
+	if (_grab_handler) {
 		_grab_handler->button_press(event);
+		return TRUE;
+	}
 
 	return FALSE;
 }
@@ -630,8 +641,10 @@ auto page_t::_button_release_event(ClutterActor * actor, ClutterEvent * event) -
 {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 
-	if (_grab_handler)
+	if (_grab_handler) {
 		_grab_handler->button_release(event);
+		return TRUE;
+	}
 
 	return FALSE;
 }
@@ -640,8 +653,34 @@ auto page_t::_motion_event(ClutterActor * actor, ClutterEvent * event) -> gboole
 {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 
-	if (_grab_handler)
+	if (_grab_handler) {
 		_grab_handler->button_motion(event);
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+auto page_t::_key_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
+{
+	//printf("call %s\n", __PRETTY_FUNCTION__);
+
+	if (_grab_handler) {
+		_grab_handler->key_press(event);
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+auto page_t::_key_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
+{
+	//printf("call %s\n", __PRETTY_FUNCTION__);
+
+	if (_grab_handler) {
+		_grab_handler->key_release(event);
+		return TRUE;
+	}
 
 	return FALSE;
 }
@@ -669,10 +708,13 @@ void page_t::_handler_focus(MetaWindow * window)
 
 	auto mw = lookup_client_managed_with_meta_window(window);
 	if (mw) {
-		auto v = get_current_workspace()->lookup_view_for(mw);
-		if (v) {
-			v->set_focus_state(true);
-			schedule_repaint();
+		_net_active_window = mw;
+		for(auto w: _workspace_list) {
+			auto v = w->lookup_view_for(mw);
+			if (v) {
+				v->set_focus_state(true);
+				schedule_repaint();
+			}
 		}
 	}
 
@@ -687,6 +729,38 @@ void page_t::_handler_unmanaged(MetaWindow * window)
 	if(mw) {
 		unmanage(mw);
 	}
+}
+
+void page_t::_handler_meta_display_accelerator_activated(MetaDisplay * metadisplay, guint arg1, guint arg2, guint arg3)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_meta_display_grab_op_begin(MetaDisplay * metadisplay, MetaScreen * arg1, MetaWindow * arg2, MetaGrabOp arg3)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_meta_display_grab_op_end(MetaDisplay * metadisplay, MetaScreen * arg1, MetaWindow * arg2, MetaGrabOp arg3)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+auto page_t::_handler_meta_display_modifiers_accelerator_activated(MetaDisplay * display) -> gboolean
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+	return FALSE;
+}
+
+void page_t::_handler_meta_display_overlay_key(MetaDisplay * display)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+auto page_t::_handler_meta_display_restart(MetaDisplay * display) -> gboolean
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+	return FALSE;
 }
 
 void page_t::unmanage(client_managed_p mw)
@@ -1591,13 +1665,11 @@ void page_t::insert_as_notebook(client_managed_p c, xcb_timestamp_t time)
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 	c->set_managed_type(MANAGED_NOTEBOOK);
 
-	auto wid = c->ensure_workspace();
 	workspace_p workspace;
-	if(wid == ALL_DESKTOP) {
+	if(not meta_window_is_always_on_all_workspaces(c->meta_window()))
+		workspace = lookup_workspace(meta_window_get_workspace(c->meta_window()));
+	else
 		workspace = get_current_workspace();
-	} else {
-		workspace = get_workspace(wid);
-	}
 
 	workspace->insert_as_notebook(c, time);
 	_need_restack = true;
@@ -1704,6 +1776,11 @@ void page_t::apply_focus(xcb_timestamp_t time) {
 //		focus->focus(time);
 //		xcb_flush(_dpy->xcb());
 //	}
+
+	auto w = get_current_workspace();
+	if(not w->_net_active_window.expired()) {
+		meta_window_focus(w->_net_active_window.lock()->_client->meta_window(), time);
+	}
 }
 
 void page_t::split_left(notebook_p nbk, view_p c, xcb_timestamp_t time) {
@@ -2508,6 +2585,16 @@ auto page_t::lookup_client_managed_with_meta_window_actor(MetaWindowActor * w) c
 	return nullptr;
 }
 
+auto page_t::lookup_workspace(MetaWorkspace * w) const -> workspace_p
+{
+	for (auto & i: _workspace_list) {
+		if (i->_meta_workspace == w) {
+			return i;
+		}
+	}
+	return nullptr;
+}
+
 
 void replace(shared_ptr<page_component_t> const & src, shared_ptr<page_component_t> by) {
 	throw exception_t{"Unexpectected use of page::replace function\n"};
@@ -2695,11 +2782,11 @@ void page_t::start_switch_to_workspace_animation(unsigned int workspace)
 		clutter_actor_show(actor);
 		clutter_actor_queue_redraw(actor);
 
-		g_signal_connect(actor, "transitions-completed",
-				([](ClutterActor * actor, gpointer user_data) {
-					clutter_actor_remove_child(clutter_actor_get_parent(actor), actor);
-					clutter_actor_destroy(actor);
-				}), nullptr);
+		auto func = [](ClutterActor * actor, gpointer user_data) {
+			clutter_actor_remove_child(clutter_actor_get_parent(actor), actor);
+			clutter_actor_destroy(actor);
+		};
+		g_signal_connect(actor, "transitions-completed", G_CALLBACK(&func), nullptr);
 
 		clutter_actor_save_easing_state(actor);
 		clutter_actor_set_easing_duration(actor, 1000);
@@ -3473,7 +3560,6 @@ void page_t::activate(view_p c, xcb_timestamp_t time)
 
 void page_t::sync_tree_view()
 {
-
 	clutter_actor_remove_all_children(_viewport_group);
 	auto viewport = get_current_workspace()->gather_children_root_first<viewport_t>();
 	for (auto x : viewport) {
@@ -3487,33 +3573,12 @@ void page_t::sync_tree_view()
 
 	//_root->print_tree(0);
 
-	/* create the list of weston views */
-	list<ClutterActor *> views;
 	auto children = get_current_workspace()->gather_children_root_first<view_t>();
 	log::printf("found %lu children\n", children.size());
 	for(auto x: children) {
-		auto v = x->get_default_view();
-		if(v)
-			views.push_back(v);
+		log::printf("raise %p\n", x->_client->meta_window());
+		meta_window_raise(x->_client->meta_window());
 	}
-
-	log::printf("found %lu views\n", views.size());
-
-	for(auto actor: views) {
-		if (clutter_actor_get_parent(actor) != window_group) {
-			continue;
-		}
-
-		clutter_actor_set_child_below_sibling(window_group, actor, NULL);
-
-		clutter_actor_set_opacity(actor, 255);
-		clutter_actor_show(actor);
-	}
-
-	clutter_actor_set_opacity(window_group, 255);
-	clutter_actor_show(window_group);
-
-	schedule_repaint();
 
 }
 

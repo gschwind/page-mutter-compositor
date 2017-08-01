@@ -251,6 +251,8 @@ public:
 	auto _button_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
 	auto _button_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
 	auto _motion_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
+	auto _key_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
+	auto _key_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
 
 	void _handler_monitors_changed(MetaScreen * screen);
 	void _handler_workareas_changed(MetaScreen * screen);
@@ -258,6 +260,12 @@ public:
 	void _handler_focus(MetaWindow * window);
 	void _handler_unmanaged(MetaWindow * window);
 
+	void _handler_meta_display_accelerator_activated(MetaDisplay * metadisplay, guint arg1, guint arg2, guint arg3);
+	void _handler_meta_display_grab_op_begin(MetaDisplay * metadisplay, MetaScreen * arg1, MetaWindow * arg2, MetaGrabOp arg3);
+	void _handler_meta_display_grab_op_end(MetaDisplay * metadisplay, MetaScreen * arg1, MetaWindow * arg2, MetaGrabOp arg3);
+	auto _handler_meta_display_modifiers_accelerator_activated(MetaDisplay * display) -> gboolean;
+	void _handler_meta_display_overlay_key(MetaDisplay * display);
+	auto _handler_meta_display_restart(MetaDisplay * display) -> gboolean;
 
 	/** user inputs **/
 //	void process_key_press_event(xcb_generic_event_t const * e);
@@ -375,6 +383,7 @@ public:
 
 	auto lookup_client_managed_with_meta_window(MetaWindow * w) const -> client_managed_p;
 	auto lookup_client_managed_with_meta_window_actor(MetaWindowActor * actor) const -> client_managed_p;
+	auto lookup_workspace(MetaWorkspace * w) const -> workspace_p;
 
 	void raise_child(shared_ptr<tree_t> t);
 	void process_notebook_client_menu(shared_ptr<client_managed_t> c, int selected);

@@ -105,6 +105,9 @@ void view_floating_t::_init()
 //		_NET_WM_ACTION_CLOSE
 //	});
 
+	g_connect(_client->meta_window(), "position-changed", &view_floating_t::_handler_position_changed);
+	g_connect(_client->meta_window(), "size-changed", &view_floating_t::_handler_size_changed);
+
 	connect(_client->on_opaque_region_change, this, &view_floating_t::_on_opaque_region_change);
 	connect(_client->on_title_change, this, &view_floating_t::_on_client_title_change);
 	connect(_client->on_configure_request, this, &view_floating_t::_on_configure_request);
@@ -503,6 +506,22 @@ void view_floating_t::_on_configure_request(client_managed_t * c, xcb_configure_
 {
 	if (_root->is_enable())
 		reconfigure();
+}
+
+void view_floating_t::_handler_position_changed(MetaWindow * window)
+{
+	MetaRectangle xrect;
+	meta_window_get_frame_rect(_client->_meta_window, &xrect);
+	_client->_floating_wished_position = rect(xrect.x, xrect.y, xrect.width,
+			xrect.height);
+}
+
+void view_floating_t::_handler_size_changed(MetaWindow * window)
+{
+	MetaRectangle xrect;
+	meta_window_get_frame_rect(_client->_meta_window, &xrect);
+	_client->_floating_wished_position = rect(xrect.x, xrect.y, xrect.width,
+			xrect.height);
 }
 
 void view_floating_t::remove_this_view()

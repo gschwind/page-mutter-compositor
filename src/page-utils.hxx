@@ -971,6 +971,12 @@ struct log {
 		std::fflush(log_file);
 	}
 
+	static void printf(char const * str) {
+		std::fprintf(log_file, str);
+		std::fflush(log_file);
+	}
+
+
 	static void set_file(char const * filename) {
 		log_file = std::fopen(filename, "w");
 	}
