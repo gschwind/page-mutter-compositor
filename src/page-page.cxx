@@ -3600,6 +3600,12 @@ void page_t::activate(view_p c, xcb_timestamp_t time)
 
 void page_t::sync_tree_view()
 {
+	/* Not thread safe */
+	static bool guard = false;
+	if (guard)
+		return;
+	guard = true;
+
 	clutter_actor_remove_all_children(_viewport_group);
 	auto viewport = get_current_workspace()->gather_children_root_first<viewport_t>();
 	for (auto x : viewport) {
@@ -3619,6 +3625,8 @@ void page_t::sync_tree_view()
 		log::printf("raise %p\n", x->_client->meta_window());
 		meta_window_raise(x->_client->meta_window());
 	}
+
+	guard = false;
 
 }
 

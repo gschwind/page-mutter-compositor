@@ -142,6 +142,13 @@ struct client_managed_t :
 	auto meta_window() -> MetaWindow *;
 	auto meta_window_actor() -> MetaWindowActor *;
 
+	void _handler_meta_window_focus(MetaWindow * metawindow);
+	void _handler_meta_window_position_changed(MetaWindow * window);
+	void _handler_meta_window_raised(MetaWindow * metawindow);
+	void _handler_meta_window_size_changed(MetaWindow * window);
+	void _handler_meta_window_unmanaged(MetaWindow * metawindow);
+	void _handler_meta_window_workspace_changed(MetaWindow * metawindow);
+
 	signal_t<client_managed_t *> on_destroy;
 	signal_t<client_managed_t *> on_title_change;
 	signal_t<client_managed_t *> on_configure_notify;

@@ -59,6 +59,12 @@ client_managed_t::client_managed_t(page_t * ctx, MetaWindowActor * actor) :
 
 	//update_icon();
 
+	g_connect(_meta_window, "focus", &client_managed_t::_handler_meta_window_focus);
+	g_connect(_meta_window, "position-changed", &client_managed_t::_handler_meta_window_position_changed);
+	g_connect(_meta_window, "raised", &client_managed_t::_handler_meta_window_raised);
+	g_connect(_meta_window, "size-changed", &client_managed_t::_handler_meta_window_size_changed);
+	g_connect(_meta_window, "unmanaged", &client_managed_t::_handler_meta_window_unmanaged);
+	g_connect(_meta_window, "workspace-changed", &client_managed_t::_handler_meta_window_workspace_changed);
 }
 
 client_managed_t::~client_managed_t()
@@ -76,6 +82,40 @@ auto client_managed_t::meta_window_actor() -> MetaWindowActor *
 {
 	return _meta_window_actor;
 }
+
+void client_managed_t::_handler_meta_window_focus(MetaWindow * metawindow)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void client_managed_t::_handler_meta_window_position_changed(MetaWindow * window)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void client_managed_t::_handler_meta_window_raised(MetaWindow * metawindow)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+
+	/* ensure preservation of stack */
+	_ctx->sync_tree_view();
+}
+
+void client_managed_t::_handler_meta_window_size_changed(MetaWindow * window)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void client_managed_t::_handler_meta_window_unmanaged(MetaWindow * metawindow)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void client_managed_t::_handler_meta_window_workspace_changed(MetaWindow * metawindow)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
 
 void client_managed_t::delete_window(xcb_timestamp_t t) {
 	log(LOG_NONE, "request close for '%s'\n", title().c_str());
