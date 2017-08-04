@@ -34,7 +34,17 @@ popup_alt_tab_t::popup_alt_tab_t(tree_t * ref, list<view_p> client_list, viewpor
 		_position_intern = rect{_position.x+80, _position.y+80, _position.w-160, _position.h-160};
 	}
 
-	_create_composite_window();
+	_actor = clutter_actor_new();
+	ClutterColor c0 = { 0, 0, 0, 128 };
+	clutter_actor_set_background_color(_actor, &c0);
+	clutter_actor_set_position(_actor, _position_extern.x, _position_extern.y);
+	clutter_actor_set_size(_actor, _position_extern.w, _position_extern.h);
+	clutter_actor_add_child(_ctx->_overlay_group, _actor);
+
+	_select_actor = clutter_actor_new();
+	ClutterColor c1 = { 255, 0, 0, 128 };
+	clutter_actor_set_background_color(_select_actor, &c1);
+	clutter_actor_add_child(_ctx->_overlay_group, _select_actor);
 
 	for(auto const & c: client_list) {
 		cycle_window_entry_t entry;
@@ -110,7 +120,7 @@ void popup_alt_tab_t::_reconfigure() {
 		rect pos{x*width+20+_position_intern.x+x_offset, y*height+20+_position_intern.y, width-40, height-40};
 
 		entry.title = c->_client->title();
-		entry.icon = make_shared<icon64>(c->_client.get());
+		//entry.icon = make_shared<icon64>(c->_client.get());
 		entry._thumbnail = make_shared<renderable_thumbnail_t>(this, c, pos, ANCHOR_CENTER);
 		++i;
 	}
@@ -122,21 +132,9 @@ popup_alt_tab_t::~popup_alt_tab_t() {
 //	_root->_ctx->_page_windows.erase(_wid);
 //	_client_list.clear();
 //	_selected = _client_list.end();
-}
 
-void popup_alt_tab_t::_create_composite_window() {
-//		uint32_t value_mask = 0;
-//		uint32_t value[2];
-//		value_mask |= XCB_CW_OVERRIDE_REDIRECT;
-//		value[0] = True;
-//		value_mask |= XCB_CW_EVENT_MASK;
-//		value[1] = XCB_EVENT_MASK_BUTTON_MOTION | XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE;
-//		_wid = xcb_generate_id(_ctx->dpy()->xcb());
-//		_root->_ctx->_page_windows.insert(_wid);
-//		xcb_create_window(_ctx->dpy()->xcb(), 0, _wid, _ctx->dpy()->root(),
-//				_position_intern.x, _position_intern.y, _position_intern.w, _position_intern.h, 0,
-//				XCB_WINDOW_CLASS_INPUT_ONLY, _ctx->dpy()->root_visual()->visual_id,
-//				value_mask, value);
+	clutter_actor_remove_child(_ctx->_overlay_group, _select_actor);
+	clutter_actor_remove_child(_ctx->_overlay_group, _actor);
 }
 
 void popup_alt_tab_t::show() {
@@ -165,6 +163,7 @@ void popup_alt_tab_t::_clear_selected() {
 		auto & xc = (*_selected);
 		if(not xc.client.expired() and xc._thumbnail != nullptr) {
 			xc._thumbnail->set_mouse_over(false);
+			clutter_actor_hide(_select_actor);
 		}
 	}
 	_selected = _client_list.end();
@@ -194,6 +193,9 @@ view_w popup_alt_tab_t::selected(view_w wc) {
 	if(xc != _client_list.end()) {
 		xc->_thumbnail->set_mouse_over(true);
 		_selected = xc;
+		clutter_actor_set_position(_select_actor, _selected->_thumbnail->target_position().x, _selected->_thumbnail->target_position().y);
+		clutter_actor_set_size(_select_actor, _selected->_thumbnail->target_position().w, _selected->_thumbnail->target_position().h);
+		clutter_actor_show(_select_actor);
 	}
 	return selected();
 }
@@ -265,10 +267,6 @@ void popup_alt_tab_t::destroy_client(client_managed_t * c) {
 
 }
 
-//xcb_window_t popup_alt_tab_t::get_toplevel_xid() const {
-//	return _wid;
-//}
-
 string popup_alt_tab_t::get_node_name() const {
 	return string{"popup_alt_tab_t"};
 }
@@ -295,12 +293,12 @@ void popup_alt_tab_t::expose(xcb_expose_event_t const * ev) {
 }
 
 void popup_alt_tab_t::_select_from_mouse(int x, int y) {
-//	for(auto & i: _client_list) {
-//		if(i._thumbnail->get_visible_region().is_inside(x, y)) {
-//			selected(i.client);
-//			break;
-//		}
-//	}
+	for(auto & i: _client_list) {
+		if(i._thumbnail->target_position().is_inside(x, y)) {
+			selected(i.client);
+			break;
+		}
+	}
 }
 
 void popup_alt_tab_t::grab_button_press(ClutterEvent const * ev)
@@ -318,7 +316,6 @@ void popup_alt_tab_t::grab_button_motion(ClutterEvent const * ev)
 {
 	gfloat x, y;
 	clutter_event_get_coords(ev, &x, &y);
-	auto button = clutter_event_get_button(ev);
 	auto time = clutter_event_get_time(ev);
 	_select_from_mouse(x, y);
 	_ctx->schedule_repaint();

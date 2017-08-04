@@ -37,11 +37,9 @@ class renderable_thumbnail_t : public tree_t {
 	double _ratio;
 
 	view_w _c;
-	client_view_p _client_view;
+	ClutterActor * _client_view;
 	theme_thumbnail_t _tt;
 	bool _is_mouse_over;
-
-	region _damaged_cache;
 
 	renderable_thumbnail_t(renderable_thumbnail_t const &) = delete;
 	renderable_thumbnail_t & operator=(renderable_thumbnail_t const &) = delete;
@@ -49,18 +47,19 @@ public:
 
 	renderable_thumbnail_t(tree_t * ref, view_p c, rect const & target_position, thumnail_anchor_e target_anchor);
 	virtual ~renderable_thumbnail_t();
+	void update_layout();
 
 	/** @return scale factor */
 	static double fit_to(double target_width, double target_height, double src_width, double src_height);
 	virtual void render(cairo_t * cr, region const & area) override;
 
+	auto target_position() -> rect const &;
 	rect get_real_position();
 	void set_mouse_over(bool x);
 	void update_title();
 	void move_to(rect const & target_position);
 	void render_finished();
 
-	virtual void update_layout(time64_t const time) override;
 	virtual void show() override;
 	virtual void hide() override;
 

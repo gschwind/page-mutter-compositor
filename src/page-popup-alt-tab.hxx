@@ -30,7 +30,6 @@ using namespace std;
 class cycle_window_entry_t {
 	view_w client;
 	string title;
-	shared_ptr<icon64> icon;
 	shared_ptr<renderable_thumbnail_t> _thumbnail;
 
 public:
@@ -39,7 +38,6 @@ public:
 	cycle_window_entry_t(cycle_window_entry_t const & x) :
 		client{x.client},
 		title{x.title},
-		icon{x.icon},
 		_thumbnail{x._thumbnail}
 	{ }
 
@@ -61,7 +59,9 @@ class popup_alt_tab_t : public tree_t {
 	bool _exposed;
 	bool _damaged;
 
-	void _create_composite_window();
+	ClutterActor * _actor;
+	ClutterActor * _select_actor;
+
 	void update_backbuffer();
 	void paint_exposed();
 

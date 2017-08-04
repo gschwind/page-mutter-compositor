@@ -38,9 +38,15 @@ renderable_thumbnail_t::renderable_thumbnail_t(tree_t * ref, view_p c, rect cons
 	_client_view{nullptr}
 {
 
+	auto meta_window_actor = c->_client->meta_window_actor();
+	_client_view = clutter_clone_new(CLUTTER_ACTOR(meta_window_actor));
+	clutter_actor_add_child(_ctx->_overlay_group, _client_view);
+	update_layout();
+
 }
 
 renderable_thumbnail_t::~renderable_thumbnail_t() {
+	clutter_actor_remove_child(_ctx->_overlay_group, _client_view);
 	_ctx->schedule_repaint();
 }
 
@@ -107,12 +113,16 @@ void renderable_thumbnail_t::render(cairo_t * cr, region const & area) {
 
 }
 
+auto renderable_thumbnail_t::target_position() -> rect const &
+{
+	return _target_position;
+}
+
 rect renderable_thumbnail_t::get_real_position() {
 	return rect{_thumbnail_position.x, _thumbnail_position.y, _thumbnail_position.w, _thumbnail_position.h + 20};
 }
 
 void renderable_thumbnail_t::renderable_thumbnail_t::set_mouse_over(bool x) {
-	_damaged_cache += region{get_real_position()};
 	_is_mouse_over = x;
 }
 
@@ -125,72 +135,67 @@ void renderable_thumbnail_t::update_title() {
 
 
 void renderable_thumbnail_t::move_to(rect const & target_position) {
-	_damaged_cache += get_real_position();
 	_target_position = target_position;
+	clutter_actor_set_position(_client_view, target_position.x, target_position.y);
 	update_title();
 }
 
 void renderable_thumbnail_t::render_finished() {
-	_damaged_cache.clear();
+
 }
 
-void renderable_thumbnail_t::update_layout(time64_t const time) {
-//	if(_c.expired() or not _is_visible)
-//		return;
-//
-//	_tt.pix = _client_view->get_pixmap();
-//
-//	if (_tt.pix != nullptr) {
-//
-//		int src_width = _tt.pix->witdh();
-//		int src_height = _tt.pix->height();
-//
-//		_ratio = fit_to(_target_position.w, _target_position.h, src_width, src_height);
-//
-//		_thumbnail_position = rect(0, 0, src_width  * _ratio, src_height * _ratio);
-//
-//
-//		switch(_target_anchor) {
-//		case ANCHOR_TOP:
-//		case ANCHOR_TOP_LEFT:
-//		case ANCHOR_TOP_RIGHT:
-//			_thumbnail_position.y = _target_position.y;
-//			break;
-//		case ANCHOR_LEFT:
-//		case ANCHOR_CENTER:
-//		case ANCHOR_RIGHT:
-//			_thumbnail_position.y = _target_position.y + ((_target_position.h - 20) - src_height * _ratio) / 2.0;
-//			break;
-//		case ANCHOR_BOTTOM:
-//		case ANCHOR_BOTTOM_LEFT:
-//		case ANCHOR_BOTTOM_RIGHT:
-//			_thumbnail_position.y = _target_position.y + (_target_position.h - 20) - src_height * _ratio;
-//			break;
-//		}
-//
-//		switch(_target_anchor) {
-//		case ANCHOR_LEFT:
-//		case ANCHOR_TOP_LEFT:
-//		case ANCHOR_BOTTOM_LEFT:
-//			_thumbnail_position.x = _target_position.x;
-//			break;
-//		case ANCHOR_TOP:
-//		case ANCHOR_BOTTOM:
-//		case ANCHOR_CENTER:
-//			_thumbnail_position.x = _target_position.x + (_target_position.w - src_width * _ratio) / 2.0;
-//			break;
-//		case ANCHOR_RIGHT:
-//		case ANCHOR_TOP_RIGHT:
-//		case ANCHOR_BOTTOM_RIGHT:
-//			_thumbnail_position.x = _target_position.x + _target_position.w - src_width * _ratio;
-//			break;
-//		}
-//	}
-//
-//	if(_client_view->has_damage()) {
-//		_damaged_cache += region{get_real_position()};
-//		_client_view->clear_damaged();
-//	}
+void renderable_thumbnail_t::update_layout() {
+	if(_c.expired())
+		return;
+
+	auto c = _c.lock();
+
+	int src_width = clutter_actor_get_width(CLUTTER_ACTOR(c->_client->meta_window_actor()));
+	int src_height = clutter_actor_get_height(CLUTTER_ACTOR(c->_client->meta_window_actor()));
+
+	_ratio = fit_to(_target_position.w, _target_position.h, src_width, src_height);
+
+	_thumbnail_position = rect(0, 0, src_width  * _ratio, src_height * _ratio);
+
+	switch(_target_anchor) {
+	case ANCHOR_TOP:
+	case ANCHOR_TOP_LEFT:
+	case ANCHOR_TOP_RIGHT:
+		_thumbnail_position.y = _target_position.y;
+		break;
+	case ANCHOR_LEFT:
+	case ANCHOR_CENTER:
+	case ANCHOR_RIGHT:
+		_thumbnail_position.y = _target_position.y + ((_target_position.h - 20) - src_height * _ratio) / 2.0;
+		break;
+	case ANCHOR_BOTTOM:
+	case ANCHOR_BOTTOM_LEFT:
+	case ANCHOR_BOTTOM_RIGHT:
+		_thumbnail_position.y = _target_position.y + (_target_position.h - 20) - src_height * _ratio;
+		break;
+	}
+
+	switch(_target_anchor) {
+	case ANCHOR_LEFT:
+	case ANCHOR_TOP_LEFT:
+	case ANCHOR_BOTTOM_LEFT:
+		_thumbnail_position.x = _target_position.x;
+		break;
+	case ANCHOR_TOP:
+	case ANCHOR_BOTTOM:
+	case ANCHOR_CENTER:
+		_thumbnail_position.x = _target_position.x + (_target_position.w - src_width * _ratio) / 2.0;
+		break;
+	case ANCHOR_RIGHT:
+	case ANCHOR_TOP_RIGHT:
+	case ANCHOR_BOTTOM_RIGHT:
+		_thumbnail_position.x = _target_position.x + _target_position.w - src_width * _ratio;
+		break;
+	}
+
+	clutter_actor_set_position(_client_view, _thumbnail_position.x, _thumbnail_position.y);
+	clutter_actor_set_scale(_client_view, _ratio, _ratio);
+
 }
 
 void renderable_thumbnail_t::show() {

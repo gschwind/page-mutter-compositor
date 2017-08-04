@@ -243,11 +243,11 @@ public:
 	/* scan current root window status, finding mapped windows */
 //	void scan();
 
-	auto _button_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
-	auto _button_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
-	auto _motion_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
-	auto _key_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
-	auto _key_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
+	auto _handler_stage_button_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
+	auto _handler_stage_button_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
+	auto _handler_stage_motion_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
+	auto _handler_stage_key_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
+	auto _handler_stage_key_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
 
 	void _handler_screen_in_fullscreen_changed(MetaScreen *metascreen);
 	void _handler_screen_monitors_changed(MetaScreen * screen);

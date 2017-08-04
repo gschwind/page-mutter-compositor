@@ -423,9 +423,9 @@ void page_t::_handler_plugin_start()
 
 	clutter_actor_show(stage);
 
-	g_connect(stage, "button-press-event", &page_t::_button_press_event);
-	g_connect(stage, "button-release-event", &page_t::_button_release_event);
-	g_connect(stage, "motion-event", &page_t::_motion_event);
+	g_connect(stage, "button-press-event", &page_t::_handler_stage_button_press_event);
+	g_connect(stage, "button-release-event", &page_t::_handler_stage_button_release_event);
+	g_connect(stage, "motion-event", &page_t::_handler_stage_motion_event);
 
 	g_connect(_screen, "monitors-changed", &page_t::_handler_screen_monitors_changed);
 	g_connect(_screen, "workareas-changed", &page_t::_handler_screen_workareas_changed);
@@ -627,7 +627,7 @@ auto page_t::_handler_plugin_plugin_info() -> MetaPluginInfo const *
 	return &priv->info;
 }
 
-auto page_t::_button_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
+auto page_t::_handler_stage_button_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 
@@ -639,7 +639,7 @@ auto page_t::_button_press_event(ClutterActor * actor, ClutterEvent * event) -> 
 	return FALSE;
 }
 
-auto page_t::_button_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
+auto page_t::_handler_stage_button_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 
@@ -651,9 +651,19 @@ auto page_t::_button_release_event(ClutterActor * actor, ClutterEvent * event) -
 	return FALSE;
 }
 
-auto page_t::_motion_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
+auto page_t::_handler_stage_motion_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
+
+	gfloat x, y;
+	clutter_event_get_coords(event, &x, &y);
+	auto time = clutter_event_get_time(event);
+
+	if(x == 0.0 and y == 0.0) {
+		start_alt_tab(time);
+		return TRUE;
+	}
+
 
 	if (_grab_handler) {
 		_grab_handler->button_motion(event);
@@ -663,7 +673,7 @@ auto page_t::_motion_event(ClutterActor * actor, ClutterEvent * event) -> gboole
 	return FALSE;
 }
 
-auto page_t::_key_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
+auto page_t::_handler_stage_key_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 
@@ -675,7 +685,7 @@ auto page_t::_key_press_event(ClutterActor * actor, ClutterEvent * event) -> gbo
 	return FALSE;
 }
 
-auto page_t::_key_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
+auto page_t::_handler_stage_key_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
 {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 
