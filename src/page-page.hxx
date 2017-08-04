@@ -260,7 +260,7 @@ public:
 	void _handler_screen_workspace_removed(MetaScreen * screen, gint arg1);
 	void _handler_screen_workspace_switched(MetaScreen * screen, gint arg1, gint arg2, MetaMotionDirection arg3);
 
-	void _handler_focus(MetaWindow * window);
+	void _handler_meta_window_focus(MetaWindow * window);
 	void _handler_unmanaged(MetaWindow * window);
 
 	void _handler_meta_display_accelerator_activated(MetaDisplay * metadisplay, guint arg1, guint arg2, guint arg3);

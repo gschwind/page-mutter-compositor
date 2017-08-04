@@ -539,14 +539,10 @@ void page_t::_handler_plugin_map(MetaWindowActor * window_actor)
 		_net_client_list.push_back(mw);
 
 		auto meta_window = meta_window_actor_get_meta_window(window_actor);
-		g_connect(meta_window, "focus", &page_t::_handler_focus);
+		g_connect(meta_window, "focus", &page_t::_handler_meta_window_focus);
 		g_connect(meta_window, "unmanaged", &page_t::_handler_unmanaged);
 
 		insert_as_notebook(mw, 0);
-		//g_signal_connect(meta_window, "position-changed", G_CALLBACK(on_position_changed), NULL);
-		//sync_tree_view();
-		//meta_window_maximize(meta_window, META_MAXIMIZE_BOTH);
-		//meta_window_move_resize_frame(meta_window, FALSE, 0, 0, 400, 400);
 		meta_plugin_map_completed(_plugin, window_actor);
 	} else
 		meta_plugin_map_completed(_plugin, window_actor);
@@ -556,9 +552,11 @@ void page_t::_handler_plugin_destroy(MetaWindowActor * actor)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	auto mw = lookup_client_managed_with(actor);
-	if(mw) {
+	if (mw) {
 		unmanage(mw);
 	}
+
+	g_disconnect_from_obj(meta_window_actor_get_meta_window(actor));
 	meta_plugin_destroy_completed(_plugin, actor);
 }
 
@@ -655,19 +653,18 @@ auto page_t::_handler_stage_motion_event(ClutterActor * actor, ClutterEvent * ev
 {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 
-	gfloat x, y;
-	clutter_event_get_coords(event, &x, &y);
-	auto time = clutter_event_get_time(event);
-
-	if(x == 0.0 and y == 0.0) {
-		start_alt_tab(time);
-		return TRUE;
-	}
-
-
 	if (_grab_handler) {
 		_grab_handler->button_motion(event);
 		return TRUE;
+	} else {
+		gfloat x, y;
+		clutter_event_get_coords(event, &x, &y);
+		auto time = clutter_event_get_time(event);
+
+		if(x == 0.0 and y == 0.0) {
+			start_alt_tab(time);
+			return TRUE;
+		}
 	}
 
 	return FALSE;
@@ -749,7 +746,7 @@ void page_t::_handler_screen_workspace_switched(MetaScreen * screen, gint arg1, 
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
-void page_t::_handler_focus(MetaWindow * window)
+void page_t::_handler_meta_window_focus(MetaWindow * window)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
@@ -761,6 +758,10 @@ void page_t::_handler_focus(MetaWindow * window)
 	auto mw = lookup_client_managed_with(window);
 	if (mw) {
 		_net_active_window = mw;
+		auto v = w->lookup_view_for(mw);
+		if (v)
+			w->client_focus_history_move_front(v);
+
 		for(auto w: _workspace_list) {
 			auto v = w->lookup_view_for(mw);
 			if (v) {

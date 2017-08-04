@@ -164,7 +164,7 @@ grab_bind_view_notebook_t::grab_bind_view_notebook_t(page_t * ctx,
 	pn0 = clutter_actor_new();
 	ClutterColor c{128u, 128u, 128u, 128u};
 	clutter_actor_set_background_color(pn0, &c);
-
+	g_object_ref(pn0);
 }
 
 grab_bind_view_notebook_t::~grab_bind_view_notebook_t() {
