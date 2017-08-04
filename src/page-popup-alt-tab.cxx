@@ -265,9 +265,9 @@ void popup_alt_tab_t::destroy_client(client_managed_t * c) {
 
 }
 
-xcb_window_t popup_alt_tab_t::get_toplevel_xid() const {
-	return _wid;
-}
+//xcb_window_t popup_alt_tab_t::get_toplevel_xid() const {
+//	return _wid;
+//}
 
 string popup_alt_tab_t::get_node_name() const {
 	return string{"popup_alt_tab_t"};
@@ -295,12 +295,12 @@ void popup_alt_tab_t::expose(xcb_expose_event_t const * ev) {
 }
 
 void popup_alt_tab_t::_select_from_mouse(int x, int y) {
-	for(auto & i: _client_list) {
-		if(i._thumbnail->get_visible_region().is_inside(x, y)) {
-			selected(i.client);
-			break;
-		}
-	}
+//	for(auto & i: _client_list) {
+//		if(i._thumbnail->get_visible_region().is_inside(x, y)) {
+//			selected(i.client);
+//			break;
+//		}
+//	}
 }
 
 void popup_alt_tab_t::grab_button_press(ClutterEvent const * ev)

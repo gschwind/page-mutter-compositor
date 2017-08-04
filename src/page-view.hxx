@@ -30,14 +30,8 @@
 namespace page {
 
 struct view_t : public tree_t {
-	static uint32_t const DEFAULT_BUTTON_EVENT_MASK =  XCB_EVENT_MASK_BUTTON_PRESS|XCB_EVENT_MASK_BUTTON_MOTION|XCB_EVENT_MASK_BUTTON_RELEASE;
 
 	client_managed_p _client;
-	client_view_p _client_view;
-
-	mutable region _opaque_region_cache;
-	mutable region _visible_region_cache;
-	mutable region _damage_cache;
 
 	tree_p _popup;
 	tree_p _transiant;
@@ -47,31 +41,21 @@ struct view_t : public tree_t {
 
 	auto shared_from_this() -> view_p;
 
-	void _update_visible_region();
-	void _update_opaque_region();
-
 	void focus(xcb_timestamp_t t);
 	void add_transient(view_floating_p v);
 	void add_popup(view_popup_p v);
 	void move_all_window();
 
-	void on_opaque_region_change(client_managed_t * c);
-	void _on_configure_request(client_managed_t * c, xcb_configure_request_event_t const * e);
-
 	auto get_popups() -> vector<view_p>;
 	auto get_transients() -> vector<view_p>;
 
-	void _grab_button_focused_unsafe();
-	void _grab_button_unfocused_unsafe();
-	void _ungrab_all_button_unsafe();
-
 	void _on_focus_change(client_managed_t * c);
+	bool _is_client_owner();
 
 	/**
 	 * view_t API
 	 **/
 
-	virtual auto create_surface() -> client_view_p;
 	virtual void xxactivate(xcb_timestamp_t time);
 	virtual void remove_this_view();
 	virtual void acquire_client();
@@ -95,10 +79,6 @@ struct view_t : public tree_t {
 	virtual void on_workspace_enable() override;
 	virtual void on_workspace_disable() override;
 
-	virtual auto get_opaque_region() -> region override;
-	virtual auto get_visible_region() -> region override;
-	virtual auto get_damaged() -> region override;
-
 	// virtual auto button_press(xcb_button_press_event_t const * ev)  -> button_action_e;
 	// virtual auto button_release(xcb_button_release_event_t const * ev)  -> button_action_e;
 	// virtual bool button_motion(xcb_motion_notify_event_t const * ev);
@@ -106,7 +86,7 @@ struct view_t : public tree_t {
 	// virtual bool enter(xcb_enter_notify_event_t const * ev);
 	// virtual void expose(xcb_expose_event_t const * ev);
 
-	virtual auto get_toplevel_xid() const -> xcb_window_t override;
+	//virtual auto get_toplevel_xid() const -> xcb_window_t override;
 	// virtual rect get_window_position() const;
 
 	//virtual void queue_redraw();

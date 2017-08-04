@@ -94,7 +94,7 @@ on_button_release_event(ClutterActor *actor,
 
 static void start(MetaPlugin * plugin)
 {
-	PAGE_PLUGIN(plugin)->priv->core->start();
+	PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_start();
 
 //	printf("call %s\n", __PRETTY_FUNCTION__);
 //	PagePlugin * self = PAGE_PLUGIN(plugin);
@@ -121,40 +121,19 @@ static void start(MetaPlugin * plugin)
 
 static void minimize(MetaPlugin * plugin, MetaWindowActor * actor)
 {
-	PAGE_PLUGIN(plugin)->priv->core->minimize(actor);
+	PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_minimize(actor);
 }
 
 static void unminimize(MetaPlugin * plugin, MetaWindowActor * actor)
 {
-	PAGE_PLUGIN(plugin)->priv->core->unminimize(actor);
+	PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_unminimize(actor);
 }
 
 static void size_change(MetaPlugin * plugin, MetaWindowActor * window_actor,
 		MetaSizeChange which_change, MetaRectangle * old_frame_rect,
 		MetaRectangle * old_buffer_rect)
 {
-	PAGE_PLUGIN(plugin)->priv->core->size_change(window_actor, which_change, old_frame_rect, old_buffer_rect);
-
-//	printf("call %s\n", __PRETTY_FUNCTION__);
-//	auto meta_window = meta_window_actor_get_meta_window(window_actor);
-//	auto screen = meta_plugin_get_screen (plugin);
-//	auto main_actor = meta_get_stage_for_screen(screen);
-//
-//	printf("olf_frame_rect x=%d, y=%d, w=%d, h=%d\n", old_frame_rect->x, old_frame_rect->y, old_frame_rect->width, old_frame_rect->height);
-//	printf("old_buffer_rect x=%d, y=%d, w=%d, h=%d\n", old_buffer_rect->x, old_buffer_rect->y, old_buffer_rect->width, old_buffer_rect->height);
-//
-//	switch(which_change) {
-//	case META_SIZE_CHANGE_MAXIMIZE:
-//		printf("maximize\n");
-//		meta_window_move_resize_frame(meta_window, FALSE, 0, 0, 400, 400);
-//		clutter_actor_add_child(main_actor, CLUTTER_ACTOR(window_actor));
-//		clutter_actor_show(CLUTTER_ACTOR(window_actor));
-//		break;
-//	default:
-//		break;
-//	}
-//
-//	meta_plugin_size_change_completed(plugin, window_actor);
+	PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_size_change(window_actor, which_change, old_frame_rect, old_buffer_rect);
 }
 
 static void on_position_changed(MetaWindow * w, guint user_data) {
@@ -164,7 +143,7 @@ static void on_position_changed(MetaWindow * w, guint user_data) {
 
 static void map(MetaPlugin * plugin, MetaWindowActor * window_actor)
 {
-	PAGE_PLUGIN(plugin)->priv->core->xmap(window_actor);
+	PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_map(window_actor);
 
 //	printf("call %s\n", __PRETTY_FUNCTION__);
 //	MetaWindowType type;
@@ -191,7 +170,7 @@ static void map(MetaPlugin * plugin, MetaWindowActor * window_actor)
 
 static void destroy(MetaPlugin * plugin, MetaWindowActor * actor)
 {
-	PAGE_PLUGIN(plugin)->priv->core->destroy(actor);
+	PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_destroy(actor);
 //	printf("call %s\n", __PRETTY_FUNCTION__);
 //	meta_plugin_destroy_completed(plugin, actor);
 }
@@ -199,61 +178,61 @@ static void destroy(MetaPlugin * plugin, MetaWindowActor * actor)
 static void switch_workspace(MetaPlugin * plugin, gint from, gint to,
 		MetaMotionDirection direction)
 {
-	PAGE_PLUGIN(plugin)->priv->core->switch_workspace(from, to, direction);
+	PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_switch_workspace(from, to, direction);
 }
 
 static void show_tile_preview(MetaPlugin * plugin, MetaWindow * window,
 		MetaRectangle *tile_rect, int tile_monitor_number)
 {
-	PAGE_PLUGIN(plugin)->priv->core->show_tile_preview(window, tile_rect, tile_monitor_number);
+	PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_show_tile_preview(window, tile_rect, tile_monitor_number);
 }
 
 static void hide_tile_preview(MetaPlugin * plugin)
 {
-	PAGE_PLUGIN(plugin)->priv->core->hide_tile_preview();
+	PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_hide_tile_preview();
 }
 
 static void show_window_menu(MetaPlugin * plugin, MetaWindow * window,
 		MetaWindowMenuType menu, int x, int y)
 {
-	PAGE_PLUGIN(plugin)->priv->core->show_window_menu(window, menu, x, y);
+	PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_show_window_menu(window, menu, x, y);
 }
 
 static void show_window_menu_for_rect(MetaPlugin * plugin, MetaWindow * window,
 		MetaWindowMenuType menu, MetaRectangle * rect)
 {
-	PAGE_PLUGIN(plugin)->priv->core->show_window_menu_for_rect(window, menu, rect);
+	PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_show_window_menu_for_rect(window, menu, rect);
 }
 
 static void kill_window_effects(MetaPlugin * plugin, MetaWindowActor * actor)
 {
-	PAGE_PLUGIN(plugin)->priv->core->kill_window_effects(actor);
+	PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_kill_window_effects(actor);
 }
 
 static void kill_switch_workspace(MetaPlugin * plugin)
 {
-	PAGE_PLUGIN(plugin)->priv->core->kill_switch_workspace();
+	PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_kill_switch_workspace();
 }
 
 static gboolean xevent_filter(MetaPlugin * plugin, XEvent * event)
 {
-	return PAGE_PLUGIN(plugin)->priv->core->xevent_filter(event);
+	return PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_xevent_filter(event);
 }
 
 static gboolean keybinding_filter(MetaPlugin * plugin, MetaKeyBinding * binding)
 {
-	return PAGE_PLUGIN(plugin)->priv->core->keybinding_filter(binding);
+	return PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_keybinding_filter(binding);
 }
 
 static void confirm_display_change(MetaPlugin * plugin)
 {
-	PAGE_PLUGIN(plugin)->priv->core->confirm_display_change();
+	PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_confirm_display_change();
 }
 
 
 static MetaPluginInfo const * plugin_info(MetaPlugin * plugin)
 {
-	return PAGE_PLUGIN(plugin)->priv->core->plugin_info();
+	return PAGE_PLUGIN(plugin)->priv->core->_handler_plugin_plugin_info();
 }
 
 }

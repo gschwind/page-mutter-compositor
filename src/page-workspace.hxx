@@ -37,7 +37,6 @@ private:
 	//rect _allocation;
 	rect _workarea;
 
-	unsigned const _id;
 	string _name;
 
 	/* list of viewports in creation order, to make a sane reconfiguration */
@@ -81,7 +80,6 @@ public:
 
 	auto get_any_viewport() const -> shared_ptr<viewport_t>;
 	void set_default_pop(notebook_p n);
-	int  id();
 	auto primary_viewport() const -> shared_ptr<viewport_t>;
 	void start_switch(workspace_switch_direction_e direction);
 	void set_workarea(rect const & r);

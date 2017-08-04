@@ -31,13 +31,10 @@ view_popup_t::view_popup_t(tree_t * ref, client_managed_p client) :
 	_is_visible = true;
 
 	connect(_client->on_configure_notify, this, &view_popup_t::_on_configure_notify);
-	_client->set_managed_type(MANAGED_POPUP);
 
 	MetaRectangle xrect;
 	meta_window_get_frame_rect(_client->_meta_window, &xrect);
 	_client->_absolute_position = rect(xrect);
-	if(_client_view == nullptr)
-		_client_view = create_surface();
 }
 
 view_popup_t::~view_popup_t()
@@ -54,12 +51,12 @@ void view_popup_t::_on_configure_notify(client_managed_t * c)
 void view_popup_t::remove_this_view()
 {
 	view_t::remove_this_view();
-	_root->_ctx->add_global_damage(_client->_absolute_position);
+	_root->_ctx->schedule_repaint();
 }
 
 void view_popup_t::set_focus_state(bool is_focused)
 {
-	_client->_has_focus = true;
+
 }
 
 void view_popup_t::reconfigure()
@@ -67,8 +64,6 @@ void view_popup_t::reconfigure()
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 	auto _ctx = _root->_ctx;
 	auto _dpy = _root->_ctx->dpy();
-
-	_damage_cache += get_visible_region();
 
 	MetaRectangle xrect;
 	meta_window_get_frame_rect(_client->_meta_window, &xrect);
@@ -82,17 +77,10 @@ void view_popup_t::reconfigure()
 
 	if(_is_visible) {
 		//_client->map_unsafe();
-		if(_client_view == nullptr)
-			_client_view = create_surface();
 	} else {
 		//_client->unmap_unsafe();
-		_client_view = nullptr;
-		_root->_ctx->add_global_damage(get_visible_region());
+		_root->_ctx->schedule_repaint();
 	}
-
-	_update_opaque_region();
-	_update_visible_region();
-	_damage_cache += get_visible_region();
 
 }
 

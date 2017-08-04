@@ -59,11 +59,10 @@ struct view_notebook_t : public view_rebased_t {
 	 * view_t virtual API
 	 **/
 
-	using view_rebased_t::create_surface;
 	virtual void xxactivate(xcb_timestamp_t time) override;
 	virtual void remove_this_view() override;
-	using view_rebased_t::acquire_client;
-	using view_rebased_t::release_client;
+	using view_t::acquire_client;
+	using view_t::release_client;
 	virtual void set_focus_state(bool is_focused) override;
 
 
@@ -82,10 +81,6 @@ struct view_notebook_t : public view_rebased_t {
 	using view_rebased_t::on_workspace_enable;
 	using view_rebased_t::on_workspace_disable;
 
-	using view_t::get_opaque_region;
-	using view_t::get_visible_region;
-	using view_t::get_damaged;
-
 	//virtual auto button_press(xcb_button_press_event_t const * ev) -> button_action_e override;
 	//virtual bool button_release(xcb_button_release_event_t const * ev);
 	//virtual bool button_motion(xcb_motion_notify_event_t const * ev);
@@ -94,7 +89,7 @@ struct view_notebook_t : public view_rebased_t {
 	//virtual void expose(xcb_expose_event_t const * ev);
 	//virtual void trigger_redraw();
 
-	using view_rebased_t::get_toplevel_xid;
+	//using view_rebased_t::get_toplevel_xid;
 	//virtual rect get_window_position() const;
 	//virtual void queue_redraw();
 

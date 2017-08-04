@@ -120,106 +120,20 @@ void view_rebased_t::_reconfigure_windows()
 	auto _ctx = _root->_ctx;
 	auto _dpy = _ctx->_display;
 
-//	if (not _root->is_enable()) {
-//		_client_view = nullptr;
-//		if (_client->current_owner_view() == static_cast<view_t*>(this))
-//			_base->_window->unmap();
-//		return;
-//	}
+	if(not _is_client_owner())
+		return;
 
-	if (_is_visible) {
-//		_client->_client_proxy->set_wm_state(NormalState);
-//		if(_client->_has_focus)
-//			_client->net_wm_state_add(_NET_WM_STATE_FOCUSED);
-//		else
-//			_client->net_wm_state_remove(_NET_WM_STATE_FOCUSED);
-//		if(_client_view == nullptr)
-//			_client_view = create_surface();
-//		_base->_window->move_resize(_base_position);
-//		_client->_client_proxy->xmap();
-//		_base->_window->xmap();
-//		_client->_client_proxy->move_resize(_orig_position);
-//		_client->fake_configure_unsafe(_client->_absolute_position);
-
+	if (_is_visible and _root->is_enable()) {
 		if(meta_window_is_fullscreen(_client->meta_window()))
 			meta_window_unmake_fullscreen(_client->meta_window());
 		meta_window_unminimize(_client->meta_window());
 		meta_window_move_resize_frame(_client->_meta_window, FALSE, _client->_absolute_position.x, _client->_absolute_position.y, _client->_absolute_position.w, _client->_absolute_position.h);
-		clutter_actor_show(CLUTTER_ACTOR(_client->meta_window_actor()));
+		//clutter_actor_show(CLUTTER_ACTOR(_client->meta_window_actor()));
 		log::printf("%s\n", _client->_absolute_position.to_string().c_str());
-
 	} else {
-		clutter_actor_hide(CLUTTER_ACTOR(_client->meta_window_actor()));
 		meta_window_minimize(_client->meta_window());
-//		_client->_client_proxy->set_wm_state(IconicState);
-//		_client->net_wm_state_remove(_NET_WM_STATE_FOCUSED);
-//		rect hidden_position{
-//			_ctx->left_most_border() - 1 - _base_position.w,
-//			_ctx->top_most_border(),
-//			_base_position.w,
-//			_base_position.h };
-//		/* if iconic move outside visible area */
-//		_base->_window->move_resize(hidden_position);
-//		_client_view = nullptr;
-//		_root->_ctx->add_global_damage(get_visible_region());
-//		_client->_client_proxy->move_resize(_orig_position);
-//		_client->fake_configure_unsafe(_client->_absolute_position);
 	}
 
-}
-
-void view_rebased_t::_update_visible_region() {
-	/** update visible cache **/
-	_visible_region_cache = region{_base_position};
-}
-
-void view_rebased_t::_ungrab_button_unsafe()
-{
-	auto _dpy = _root->_ctx->_display;
-
-	/** First ungrab all **/
-	_ungrab_all_button_unsafe();
-
-//	/** grab alt-button1 move **/
-//	_base->_window->grab_button(true, DEFAULT_BUTTON_EVENT_MASK,
-//			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
-//			XCB_NONE, XCB_BUTTON_INDEX_1, XCB_MOD_MASK_1/*ALT*/);
-//
-//	/** grab alt-button3 resize **/
-//	_base->_window->grab_button(true, DEFAULT_BUTTON_EVENT_MASK,
-//			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
-//			XCB_NONE, XCB_BUTTON_INDEX_3, XCB_MOD_MASK_1/*ALT*/);
-//
-//	_base->_window->grab_button(true, DEFAULT_BUTTON_EVENT_MASK,
-//			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
-//			XCB_NONE, XCB_BUTTON_INDEX_1, XCB_MOD_MASK_ANY);
-//
-//	_base->_window->grab_button(true, DEFAULT_BUTTON_EVENT_MASK,
-//			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
-//			XCB_NONE, XCB_BUTTON_INDEX_2, XCB_MOD_MASK_ANY);
-//
-//	_base->_window->grab_button(true, DEFAULT_BUTTON_EVENT_MASK,
-//			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
-//			XCB_NONE, XCB_BUTTON_INDEX_3, XCB_MOD_MASK_ANY);
-
-}
-
-void view_rebased_t::_grab_button_unsafe() {
-//	auto _dpy = _root->_ctx->_dpy;
-//
-//	/** First ungrab all **/
-//	_ungrab_all_button_unsafe();
-//
-//	_base->_window->grab_button(true, DEFAULT_BUTTON_EVENT_MASK,
-//			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
-//			XCB_NONE, XCB_BUTTON_INDEX_ANY, XCB_MOD_MASK_ANY);
-
-}
-
-void view_rebased_t::_ungrab_all_button_unsafe() {
-//	auto _dpy = _root->_ctx->_dpy;
-//	_base->_window->ungrab_button(XCB_BUTTON_INDEX_ANY, XCB_MOD_MASK_ANY);
-//	_client->_client_proxy->ungrab_button(XCB_BUTTON_INDEX_ANY, XCB_MOD_MASK_ANY);
 }
 
 void view_rebased_t::_on_focus_change(client_managed_t * c)
@@ -233,44 +147,14 @@ void view_rebased_t::_on_focus_change(client_managed_t * c)
 //	}
 }
 
-auto view_rebased_t::create_surface() -> client_view_p
-{
-	//return _client->create_surface(_base->id());
-}
-
-void view_rebased_t::acquire_client()
-{
-//	if(_client->current_owner_view() == static_cast<view_t*>(this))
-//		return;
-//	auto _dpy = _root->_ctx->dpy();
-//	_client->acquire(this);
-//	_dpy->reparentwindow(_client->_client_proxy->id(), _base->id(),
-//			_orig_position.x, _orig_position.y);
-}
-
-void view_rebased_t::release_client()
-{
-//	_client_view = nullptr;
-//
-//	if (_client->current_owner_view() != static_cast<view_t*>(this))
-//		return;
-//
-//	auto _ctx = _root->_ctx;
-//	auto _dpy = _ctx->dpy();
-//	_client->release(this);
-//	_dpy->reparentwindow(_client->_client_proxy->id(),_dpy->root(),
-//			_ctx->left_most_border() - 1 - _orig_position.w,
-//			_ctx->top_most_border());
-}
-
 void view_rebased_t::set_focus_state(bool is_focused)
 {
-	view_t::set_focus_state(is_focused);
-	if (_client->_has_focus) {
-		_ungrab_button_unsafe();
-	} else {
-		_grab_button_unsafe();
-	}
+//	view_t::set_focus_state(is_focused);
+//	if (_client->_has_focus) {
+//		_ungrab_button_unsafe();
+//	} else {
+//		_grab_button_unsafe();
+//	}
 }
 
 void view_rebased_t::update_layout(time64_t const time)
@@ -306,28 +190,17 @@ void view_rebased_t::render(cairo_t * cr, region const & area)
 
 void view_rebased_t::on_workspace_enable()
 {
-	auto _ctx = _root->_ctx;
-	auto _dpy = _root->_ctx->dpy();
 	acquire_client();
-	//_base->_window->xmap();
 	reconfigure();
-	_grab_button_unsafe();
 }
 
 void view_rebased_t::on_workspace_disable()
 {
 	auto _ctx = _root->_ctx;
 	auto _dpy = _root->_ctx->dpy();
-	release_client();
-	//if (_client->current_owner_view() == static_cast<view_t*>(this)) {
-		clutter_actor_hide(CLUTTER_ACTOR(_client->meta_window_actor()));
+	if (_is_client_owner()) {
 		meta_window_minimize(_client->meta_window());
-	//}
-}
-
-auto view_rebased_t::get_toplevel_xid() const -> xcb_window_t
-{
-	return 0;
+	}
 }
 
 auto view_rebased_t::get_default_view() const -> ClutterActor *

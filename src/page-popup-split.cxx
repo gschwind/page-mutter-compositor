@@ -27,34 +27,10 @@ namespace page {
 
 void popup_split_t::show() {
 	tree_t::show();
-	_damaged += get_visible_region();
 }
 
 rect const & popup_split_t::position() {
 	return _position;
-}
-
-/**
- * Derived class must return opaque region for this object,
- * If unknown it's safe to leave this empty.
- **/
-region popup_split_t::get_opaque_region() {
-	return region{};
-}
-
-/**
- * Derived class must return visible region,
- * If unknow the whole screen can be returned, but draw will be called each time.
- **/
-region popup_split_t::get_visible_region() {
-	return _visible_region;
-}
-
-/**
- * return currently damaged area (absolute)
- **/
-region popup_split_t::get_damaged()  {
-	return _damaged;
 }
 
 popup_split_t::popup_split_t(tree_t * ref, shared_ptr<split_t> split) :
@@ -169,23 +145,19 @@ void popup_split_t::update_layout() {
 	rects[7].width = border_width;
 	rects[7].height = rect1.h;
 
-	_visible_region.clear();
-	_visible_region += _position;
-
 	rect inner0(rect0.x+20, rect0.y+20, rect0.w-40, rect0.h-40);
 	rect inner1(rect1.x+20, rect1.y+20, rect1.w-40, rect1.h-40);
 
-	if (inner0.w > 0 and inner0.h > 0)
-		_visible_region -= inner0;
-	if (inner1.w > 0 and inner1.h > 0)
-		_visible_region -= inner1;
+//	if (inner0.w > 0 and inner0.h > 0)
+//		_visible_region -= inner0;
+//	if (inner1.w > 0 and inner1.h > 0)
+//		_visible_region -= inner1;
 
 	clutter_actor_set_position(_actor[0], rect0.x, rect0.y);
 	clutter_actor_set_size(_actor[0], rect0.w, rect0.h);
 	clutter_actor_set_position(_actor[1], rect1.x, rect1.y);
 	clutter_actor_set_size(_actor[1], rect1.w, rect1.h);
 
-	_damaged += get_visible_region();
 
 }
 
@@ -193,29 +165,28 @@ void popup_split_t::set_position(double pos) {
 	// avoid too mutch updates
 	if(std::fabs(_current_split - pos) < 10e-4)
 		return;
-	_damaged += get_visible_region();
 	_current_split = pos;
 	update_layout();
 }
 
 void popup_split_t::render(cairo_t * cr, region const & area) {
-	if(_s_base.expired())
-		return;
-
-	auto s = _s_base.lock();
-
-	theme_split_t ts;
-	ts.split = s->ratio();
-	ts.type = s->type();
-	ts.allocation = s->to_root_position(s->allocation());
-
-	region r = area & get_visible_region();
-	for (auto const & a : area.rects()) {
-		cairo_save(cr);
-		cairo_clip(cr, a);
-		_ctx->theme()->render_popup_split(cr, &ts, _current_split);
-		cairo_restore(cr);
-	}
+//	if(_s_base.expired())
+//		return;
+//
+//	auto s = _s_base.lock();
+//
+//	theme_split_t ts;
+//	ts.split = s->ratio();
+//	ts.type = s->type();
+//	ts.allocation = s->to_root_position(s->allocation());
+//
+//	region r = area & get_visible_region();
+//	for (auto const & a : area.rects()) {
+//		cairo_save(cr);
+//		cairo_clip(cr, a);
+//		_ctx->theme()->render_popup_split(cr, &ts, _current_split);
+//		cairo_restore(cr);
+//	}
 
 }
 
@@ -291,7 +262,7 @@ void popup_split_t::trigger_redraw() {
 }
 
 void popup_split_t::render_finished() {
-	_damaged.clear();
+
 }
 
 }

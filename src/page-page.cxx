@@ -94,9 +94,9 @@ void page_t::set_keybinding_custom_helper(char const * name, key_handler_func fu
 void page_t::_handler_key_switch_to_workspace_down(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
-	if(_current_workspace < _workspace_list.size()-1) {
-		auto from = get_current_workspace()->_meta_workspace;
-		auto to = _workspace_list[_current_workspace+1]->_meta_workspace;
+	auto from = current_workspace()->_meta_workspace;
+	auto to = meta_workspace_get_neighbor(from, META_MOTION_LEFT);
+	if (to != NULL) {
 		meta_compositor_switch_workspace(meta_display_get_compositor(_display), from, to, META_MOTION_DOWN);
 	}
 }
@@ -104,12 +104,12 @@ void page_t::_handler_key_switch_to_workspace_down(MetaDisplay * display, MetaSc
 void page_t::_handler_key_switch_to_workspace_up(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
-	log::printf("call %s\n", __PRETTY_FUNCTION__);
-	if(_current_workspace > 0) {
-		auto from = get_current_workspace()->_meta_workspace;
-		auto to = _workspace_list[_current_workspace-1]->_meta_workspace;
-		meta_compositor_switch_workspace(meta_display_get_compositor(_display), from, to, META_MOTION_UP);
-	}}
+	auto from = current_workspace()->_meta_workspace;
+	auto to = meta_workspace_get_neighbor(from, META_MOTION_RIGHT);
+	if (to != NULL) {
+		meta_compositor_switch_workspace(meta_display_get_compositor(_display), from, to, META_MOTION_DOWN);
+	}
+}
 
 void page_t::_handler_key_make_notebook_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
@@ -117,17 +117,17 @@ void page_t::_handler_key_make_notebook_window(MetaDisplay * display, MetaScreen
 	log::printf("window = %p\n", window);
 	log::printf("focus = %p\n", meta_display_get_focus_window(display));
 	auto focussed = meta_display_get_focus_window(display);
-	auto mw = lookup_client_managed_with_meta_window(focussed);
+	auto mw = lookup_client_managed_with(focussed);
 	if (mw == nullptr) {
 		log::printf("managed client not found\n");
 		return;
 	}
-	auto v = get_current_workspace()->lookup_view_for(mw);
+	auto v = current_workspace()->lookup_view_for(mw);
 	if (v == nullptr) {
 		log::printf("view not found\n");
 		return;
 	}
-	get_current_workspace()->switch_view_to_notebook(v, event->time);
+	current_workspace()->switch_view_to_notebook(v, event->time);
 }
 
 void page_t::_handler_key_make_fullscreen_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
@@ -139,17 +139,17 @@ void page_t::_handler_key_make_floating_window(MetaDisplay * display, MetaScreen
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	auto focussed = meta_display_get_focus_window(display);
-	auto mw = lookup_client_managed_with_meta_window(focussed);
+	auto mw = lookup_client_managed_with(focussed);
 	if (mw == nullptr) {
 		log::printf("managed client not found\n");
 		return;
 	}
-	auto v = get_current_workspace()->lookup_view_for(mw);
+	auto v = current_workspace()->lookup_view_for(mw);
 	if (v == nullptr) {
 		log::printf("view not found\n");
 		return;
 	}
-	get_current_workspace()->switch_view_to_floating(v, event->time);
+	current_workspace()->switch_view_to_floating(v, event->time);
 }
 
 void page_t::_handler_key_page_quit(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
@@ -220,7 +220,7 @@ page_t::page_t(MetaPlugin * plugin) :
 
 	_viewport_group = nullptr;
 	frame_alarm = 0;
-	_current_workspace = 0;
+	_current_workspace = nullptr;
 	_grab_handler = nullptr;
 	_schedule_repaint = false;
 
@@ -229,9 +229,6 @@ page_t::page_t(MetaPlugin * plugin) :
 	char const * conf_file_name = 0;
 
 	configuration._replace_wm = false;
-
-	_need_restack = false;
-	_need_update_client_list = false;
 
 	configuration._menu_drop_down_shadow = false;
 
@@ -354,7 +351,7 @@ page_t::~page_t() {
 	//cairo_debug_reset_static_data();
 }
 
-void page_t::start()
+void page_t::_handler_plugin_start()
 {
 	_screen = meta_plugin_get_screen(_plugin);
 	_display = meta_screen_get_display(_screen);
@@ -382,13 +379,15 @@ void page_t::start()
 		meta_workspace_get_work_area_all_monitors(meta_workspace, &area);
 	}
 
+	_current_workspace = _workspace_list[0];
+
 	_theme->update(area.width, area.height);
 
 	{
 		auto windows = meta_get_window_actors(_screen);
 		for (auto l = windows; l != NULL; l = l->next) {
 			auto meta_window_actor = META_WINDOW_ACTOR(l->data);
-			xmap(meta_window_actor);
+			_handler_plugin_map(meta_window_actor);
 		}
 
 		auto wgroup = meta_get_window_group_for_screen(_screen);
@@ -396,7 +395,7 @@ void page_t::start()
 		for (auto l = actors; l != NULL; l = l->next) {
 			auto cactor = CLUTTER_ACTOR(l->data);
 			if(META_IS_WINDOW_ACTOR(cactor)) {
-				xmap(META_WINDOW_ACTOR(cactor));
+				_handler_plugin_map(META_WINDOW_ACTOR(cactor));
 			}
 		}
 	}
@@ -411,9 +410,6 @@ void page_t::start()
 	_overlay_group = clutter_actor_new();
 	clutter_actor_insert_child_above(stage, _overlay_group, NULL);
 	clutter_actor_show(_overlay_group);
-
-	sync_tree_view();
-
 
 //	ClutterColor actor_color = { 0, 255, 0, 255 };
 //	auto rect = clutter_actor_new();
@@ -448,7 +444,6 @@ void page_t::start()
 	add_keybinding_helper(setting_keybindings, "run-cmd-3", &page_t::_handler_key_run_cmd_3);
 	add_keybinding_helper(setting_keybindings, "run-cmd-4", &page_t::_handler_key_run_cmd_4);
 
-
 	clutter_actor_show(stage);
 
 	g_connect(stage, "button-press-event", &page_t::_button_press_event);
@@ -467,37 +462,38 @@ void page_t::start()
 
 
 	update_viewport_layout();
+	sync_tree_view();
 
 }
 
-void page_t::minimize(MetaWindowActor * actor)
+void page_t::_handler_plugin_minimize(MetaWindowActor * actor)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
-	auto mw = lookup_client_managed_with_meta_window_actor(actor);
+	auto mw = lookup_client_managed_with(actor);
 	if (not mw) {
 		meta_plugin_minimize_completed(_plugin, actor);
 		return;
 	}
 
-	auto fv = get_current_workspace()->lookup_view_for(mw);
+	auto fv = current_workspace()->lookup_view_for(mw);
 	if (not fv) {
 		meta_plugin_minimize_completed(_plugin, actor);
 		return;
 	}
 
-	get_current_workspace()->switch_view_to_notebook(fv, 0);
+	current_workspace()->switch_view_to_notebook(fv, 0);
 	meta_plugin_minimize_completed(_plugin, actor);
 
 }
 
-void page_t::unminimize(MetaWindowActor * actor)
+void page_t::_handler_plugin_unminimize(MetaWindowActor * actor)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	meta_plugin_unminimize_completed(_plugin, actor);
 }
 
-void page_t::size_change(MetaWindowActor * window_actor, MetaSizeChange which_change, MetaRectangle * old_frame_rect, MetaRectangle * old_buffer_rect)
+void page_t::_handler_plugin_size_change(MetaWindowActor * window_actor, MetaSizeChange which_change, MetaRectangle * old_frame_rect, MetaRectangle * old_buffer_rect)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
@@ -506,9 +502,36 @@ void page_t::size_change(MetaWindowActor * window_actor, MetaSizeChange which_ch
 
 	switch(which_change) {
 	case META_SIZE_CHANGE_MAXIMIZE:
+		log::printf("META_SIZE_CHANGE_MAXIMIZE\n");
+		break;
 	case META_SIZE_CHANGE_UNMAXIMIZE:
+		log::printf("META_SIZE_CHANGE_UNMAXIMIZE\n");
+		break;
 	case META_SIZE_CHANGE_FULLSCREEN:
+		log::printf("META_SIZE_CHANGE_FULLSCREEN\n");
+	{
+		auto mw = lookup_client_managed_with(window_actor);
+		if (mw) {
+			for (auto w : _workspace_list) {
+				auto v = w->lookup_view_for(mw);
+				if (v)
+					w->switch_view_to_fullscreen(v, 0);
+			}
+		}
+	}
+		break;
 	case META_SIZE_CHANGE_UNFULLSCREEN:
+		log::printf("META_SIZE_CHANGE_UNFULLSCREEN\n");
+	{
+		auto mw = lookup_client_managed_with(window_actor);
+		if (mw) {
+			for (auto w: _workspace_list) {
+				auto v = w->lookup_view_for(mw);
+				if (v)
+					w->switch_fullscreen_to_prefered_view_mode(v, 0);
+			}
+		}
+	}
 		break;
 	default:
 		break;
@@ -517,7 +540,7 @@ void page_t::size_change(MetaWindowActor * window_actor, MetaSizeChange which_ch
 	meta_plugin_size_change_completed(_plugin, window_actor);
 }
 
-void page_t::xmap(MetaWindowActor * window_actor)
+void page_t::_handler_plugin_map(MetaWindowActor * window_actor)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	MetaWindowType type;
@@ -542,7 +565,7 @@ void page_t::xmap(MetaWindowActor * window_actor)
 
 		insert_as_notebook(mw, 0);
 		//g_signal_connect(meta_window, "position-changed", G_CALLBACK(on_position_changed), NULL);
-		sync_tree_view();
+		//sync_tree_view();
 		//meta_window_maximize(meta_window, META_MAXIMIZE_BOTH);
 		//meta_window_move_resize_frame(meta_window, FALSE, 0, 0, 400, 400);
 		meta_plugin_map_completed(_plugin, window_actor);
@@ -550,17 +573,17 @@ void page_t::xmap(MetaWindowActor * window_actor)
 		meta_plugin_map_completed(_plugin, window_actor);
 }
 
-void page_t::destroy(MetaWindowActor * actor)
+void page_t::_handler_plugin_destroy(MetaWindowActor * actor)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
-	auto mw = lookup_client_managed_with_meta_window_actor(actor);
+	auto mw = lookup_client_managed_with(actor);
 	if(mw) {
 		unmanage(mw);
 	}
 	meta_plugin_destroy_completed(_plugin, actor);
 }
 
-void page_t::switch_workspace(gint from, gint to, MetaMotionDirection direction)
+void page_t::_handler_plugin_switch_workspace(gint from, gint to, MetaMotionDirection direction)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
@@ -569,56 +592,56 @@ void page_t::switch_workspace(gint from, gint to, MetaMotionDirection direction)
 	meta_plugin_switch_workspace_completed(_plugin);
 }
 
-void page_t::show_tile_preview(MetaWindow * window, MetaRectangle *tile_rect, int tile_monitor_number)
+void page_t::_handler_plugin_show_tile_preview(MetaWindow * window, MetaRectangle *tile_rect, int tile_monitor_number)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
-void page_t::hide_tile_preview()
+void page_t::_handler_plugin_hide_tile_preview()
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
-void page_t::show_window_menu(MetaWindow * window, MetaWindowMenuType menu, int x, int y)
+void page_t::_handler_plugin_show_window_menu(MetaWindow * window, MetaWindowMenuType menu, int x, int y)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
-void page_t::show_window_menu_for_rect(MetaWindow * window, MetaWindowMenuType menu, MetaRectangle * rect)
+void page_t::_handler_plugin_show_window_menu_for_rect(MetaWindow * window, MetaWindowMenuType menu, MetaRectangle * rect)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
-void page_t::kill_window_effects(MetaWindowActor * actor)
+void page_t::_handler_plugin_kill_window_effects(MetaWindowActor * actor)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
-void page_t::kill_switch_workspace()
+void page_t::_handler_plugin_kill_switch_workspace()
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
-auto page_t::xevent_filter(XEvent * event) -> gboolean
+auto page_t::_handler_plugin_xevent_filter(XEvent * event) -> gboolean
 {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 	return FALSE;
 }
 
-auto page_t::keybinding_filter(MetaKeyBinding * binding) -> gboolean
+auto page_t::_handler_plugin_keybinding_filter(MetaKeyBinding * binding) -> gboolean
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	log::printf("call %s %d\n", meta_key_binding_get_name(binding), meta_key_binding_get_modifiers(binding));
 	return FALSE;
 }
 
-void page_t::confirm_display_change()
+void page_t::_handler_plugin_confirm_display_change()
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	meta_plugin_complete_display_change(_plugin, TRUE);
 }
 
-auto page_t::plugin_info() -> MetaPluginInfo const *
+auto page_t::_handler_plugin_plugin_info() -> MetaPluginInfo const *
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	PagePluginPrivate *priv = PAGE_PLUGIN(_plugin)->priv;
@@ -741,12 +764,12 @@ void page_t::_handler_focus(MetaWindow * window)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
-	auto w = get_current_workspace();
+	auto w = current_workspace();
 	if (not w->_net_active_window.expired()) {
 		w->_net_active_window.lock()->set_focus_state(false);
 	}
 
-	auto mw = lookup_client_managed_with_meta_window(window);
+	auto mw = lookup_client_managed_with(window);
 	if (mw) {
 		_net_active_window = mw;
 		for(auto w: _workspace_list) {
@@ -765,7 +788,7 @@ void page_t::_handler_focus(MetaWindow * window)
 void page_t::_handler_unmanaged(MetaWindow * window)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
-	auto mw = lookup_client_managed_with_meta_window(window);
+	auto mw = lookup_client_managed_with(window);
 	if(mw) {
 		unmanage(mw);
 	}
@@ -819,7 +842,6 @@ void page_t::unmanage(client_managed_p mw)
 //	mw->_client_proxy->remove_from_save_set();
 //	mw->_client_proxy->set_wm_state(WithdrawnState);
 //	mw->_client_proxy->unmap();
-	_need_update_client_list = true;
 	sync_tree_view();
 	update_workarea();
 }
@@ -1689,13 +1711,11 @@ void page_t::unmanage(client_managed_p mw)
 void page_t::insert_as_fullscreen(client_managed_p c, xcb_timestamp_t time) {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 
-	auto wid = c->ensure_workspace();
 	workspace_p workspace;
-	if(wid == ALL_DESKTOP) {
-		workspace = get_current_workspace();
-	} else {
-		workspace = get_workspace(wid);
-	}
+	if(not meta_window_is_always_on_all_workspaces(c->meta_window()))
+		workspace = lookup_workspace(meta_window_get_workspace(c->meta_window()));
+	else
+		workspace = current_workspace();
 
 	workspace->insert_as_fullscreen(c, time);
 }
@@ -1703,16 +1723,14 @@ void page_t::insert_as_fullscreen(client_managed_p c, xcb_timestamp_t time) {
 void page_t::insert_as_notebook(client_managed_p c, xcb_timestamp_t time)
 {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
-	c->set_managed_type(MANAGED_NOTEBOOK);
-
 	workspace_p workspace;
 	if(not meta_window_is_always_on_all_workspaces(c->meta_window()))
 		workspace = lookup_workspace(meta_window_get_workspace(c->meta_window()));
 	else
-		workspace = get_current_workspace();
+		workspace = current_workspace();
 
 	workspace->insert_as_notebook(c, time);
-	_need_restack = true;
+	sync_tree_view();
 }
 
 void page_t::move_view_to_notebook(view_p v, notebook_p n, xcb_timestamp_t time)
@@ -1771,8 +1789,7 @@ void page_t::insert_window_in_notebook(
 	assert(x != nullptr);
 	assert(n != nullptr);
 	n->add_client(x, prefer_activate);
-	_need_restack = true;
-	_need_update_client_list = true;
+	sync_tree_view();
 }
 
 /* update _viewport and childs allocation */
@@ -1817,7 +1834,7 @@ void page_t::apply_focus(xcb_timestamp_t time) {
 //		xcb_flush(_dpy->xcb());
 //	}
 
-	auto w = get_current_workspace();
+	auto w = current_workspace();
 	if(not w->_net_active_window.expired()) {
 		meta_window_focus(w->_net_active_window.lock()->_client->meta_window(), time);
 	}
@@ -1912,135 +1929,135 @@ void page_t::notebook_close(notebook_p nbk, xcb_timestamp_t time) {
 /*
  * Compute the usable workspace area and dock allocation.
  */
-void page_t::compute_viewport_allocation(workspace_p d, viewport_p v) {
-
-	/* Partial struct content definition */
-	enum : uint32_t {
-		PS_LEFT = 0,
-		PS_RIGHT = 1,
-		PS_TOP = 2,
-		PS_BOTTOM = 3,
-		PS_LEFT_START_Y = 4,
-		PS_LEFT_END_Y = 5,
-		PS_RIGHT_START_Y = 6,
-		PS_RIGHT_END_Y = 7,
-		PS_TOP_START_X = 8,
-		PS_TOP_END_X = 9,
-		PS_BOTTOM_START_X = 10,
-		PS_BOTTOM_END_X = 11,
-		PS_LAST = 12
-	};
-
-	rect const raw_area = v->raw_area();
-
-	int margin_left = _root_position.x + raw_area.x;
-	int margin_top = _root_position.y + raw_area.y;
-	int margin_right = _root_position.w - raw_area.x - raw_area.w;
-	int margin_bottom = _root_position.h - raw_area.y - raw_area.h;
-
-	auto children = d->gather_children_root_first<view_t>();
-	for(auto y: children) {
-		auto j = y->_client;
-		int32_t ps[PS_LAST];
-		bool has_strut{false};
-
-		auto net_wm_strut_partial = j->_net_wm_strut_partial;
-		if(net_wm_strut_partial != nullptr) {
-			if(net_wm_strut_partial->size() == 12) {
-				std::copy(net_wm_strut_partial->begin(), net_wm_strut_partial->end(), &ps[0]);
-				has_strut = true;
-			}
-		}
-
-		auto net_wm_strut = j->_net_wm_strut;
-		if (net_wm_strut != nullptr and not has_strut) {
-			if(net_wm_strut->size() == 4) {
-
-				/** if strut is found, fake strut_partial **/
-
-				std::copy(net_wm_strut->begin(), net_wm_strut->end(), &ps[0]);
-
-				if(ps[PS_TOP] > 0) {
-					ps[PS_TOP_START_X] = _root_position.x;
-					ps[PS_TOP_END_X] = _root_position.x + _root_position.w;
-				}
-
-				if(ps[PS_BOTTOM] > 0) {
-					ps[PS_BOTTOM_START_X] = _root_position.x;
-					ps[PS_BOTTOM_END_X] = _root_position.x + _root_position.w;
-				}
-
-				if(ps[PS_LEFT] > 0) {
-					ps[PS_LEFT_START_Y] = _root_position.y;
-					ps[PS_LEFT_END_Y] = _root_position.y + _root_position.h;
-				}
-
-				if(ps[PS_RIGHT] > 0) {
-					ps[PS_RIGHT_START_Y] = _root_position.y;
-					ps[PS_RIGHT_END_Y] = _root_position.y + _root_position.h;
-				}
-
-				has_strut = true;
-			}
-		}
-
-		if (has_strut) {
-
-			if (ps[PS_LEFT] > 0) {
-				/* check if raw area intersect current _viewport */
-				rect b(0, ps[PS_LEFT_START_Y], ps[PS_LEFT],
-						ps[PS_LEFT_END_Y] - ps[PS_LEFT_START_Y] + 1);
-				rect x = raw_area & b;
-				if (!x.is_null()) {
-					margin_left = std::max(margin_left, ps[PS_LEFT]);
-				}
-			}
-
-			if (ps[PS_RIGHT] > 0) {
-				/* check if raw area intersect current _viewport */
-				rect b(_root_position.w - ps[PS_RIGHT],
-						ps[PS_RIGHT_START_Y], ps[PS_RIGHT],
-						ps[PS_RIGHT_END_Y] - ps[PS_RIGHT_START_Y] + 1);
-				rect x = raw_area & b;
-				if (!x.is_null()) {
-					margin_right = std::max(margin_right, ps[PS_RIGHT]);
-				}
-			}
-
-			if (ps[PS_TOP] > 0) {
-				/* check if raw area intersect current _viewport */
-				rect b(ps[PS_TOP_START_X], 0,
-						ps[PS_TOP_END_X] - ps[PS_TOP_START_X] + 1, ps[PS_TOP]);
-				rect x = raw_area & b;
-				if (!x.is_null()) {
-					margin_top = std::max(margin_top, ps[PS_TOP]);
-				}
-			}
-
-			if (ps[PS_BOTTOM] > 0) {
-				/* check if raw area intersect current _viewport */
-				rect b(ps[PS_BOTTOM_START_X],
-						_root_position.h - ps[PS_BOTTOM],
-						ps[PS_BOTTOM_END_X] - ps[PS_BOTTOM_START_X] + 1,
-						ps[PS_BOTTOM]);
-				rect x = raw_area & b;
-				if (!x.is_null()) {
-					margin_bottom = std::max(margin_bottom, ps[PS_BOTTOM]);
-				}
-			}
-		}
-	}
-
-	rect final_size;
-
-	final_size.x = margin_left;
-	final_size.w = _root_position.w - margin_right - margin_left;
-	final_size.y = margin_top;
-	final_size.h = _root_position.h - margin_bottom - margin_top;
-
-	v->set_allocation(final_size);
-
-}
+//void page_t::compute_viewport_allocation(workspace_p d, viewport_p v) {
+//
+//	/* Partial struct content definition */
+//	enum : uint32_t {
+//		PS_LEFT = 0,
+//		PS_RIGHT = 1,
+//		PS_TOP = 2,
+//		PS_BOTTOM = 3,
+//		PS_LEFT_START_Y = 4,
+//		PS_LEFT_END_Y = 5,
+//		PS_RIGHT_START_Y = 6,
+//		PS_RIGHT_END_Y = 7,
+//		PS_TOP_START_X = 8,
+//		PS_TOP_END_X = 9,
+//		PS_BOTTOM_START_X = 10,
+//		PS_BOTTOM_END_X = 11,
+//		PS_LAST = 12
+//	};
+//
+//	rect const raw_area = v->raw_area();
+//
+//	int margin_left = _root_position.x + raw_area.x;
+//	int margin_top = _root_position.y + raw_area.y;
+//	int margin_right = _root_position.w - raw_area.x - raw_area.w;
+//	int margin_bottom = _root_position.h - raw_area.y - raw_area.h;
+//
+//	auto children = d->gather_children_root_first<view_t>();
+//	for(auto y: children) {
+//		auto j = y->_client;
+//		int32_t ps[PS_LAST];
+//		bool has_strut{false};
+//
+//		auto net_wm_strut_partial = j->_net_wm_strut_partial;
+//		if(net_wm_strut_partial != nullptr) {
+//			if(net_wm_strut_partial->size() == 12) {
+//				std::copy(net_wm_strut_partial->begin(), net_wm_strut_partial->end(), &ps[0]);
+//				has_strut = true;
+//			}
+//		}
+//
+//		auto net_wm_strut = j->_net_wm_strut;
+//		if (net_wm_strut != nullptr and not has_strut) {
+//			if(net_wm_strut->size() == 4) {
+//
+//				/** if strut is found, fake strut_partial **/
+//
+//				std::copy(net_wm_strut->begin(), net_wm_strut->end(), &ps[0]);
+//
+//				if(ps[PS_TOP] > 0) {
+//					ps[PS_TOP_START_X] = _root_position.x;
+//					ps[PS_TOP_END_X] = _root_position.x + _root_position.w;
+//				}
+//
+//				if(ps[PS_BOTTOM] > 0) {
+//					ps[PS_BOTTOM_START_X] = _root_position.x;
+//					ps[PS_BOTTOM_END_X] = _root_position.x + _root_position.w;
+//				}
+//
+//				if(ps[PS_LEFT] > 0) {
+//					ps[PS_LEFT_START_Y] = _root_position.y;
+//					ps[PS_LEFT_END_Y] = _root_position.y + _root_position.h;
+//				}
+//
+//				if(ps[PS_RIGHT] > 0) {
+//					ps[PS_RIGHT_START_Y] = _root_position.y;
+//					ps[PS_RIGHT_END_Y] = _root_position.y + _root_position.h;
+//				}
+//
+//				has_strut = true;
+//			}
+//		}
+//
+//		if (has_strut) {
+//
+//			if (ps[PS_LEFT] > 0) {
+//				/* check if raw area intersect current _viewport */
+//				rect b(0, ps[PS_LEFT_START_Y], ps[PS_LEFT],
+//						ps[PS_LEFT_END_Y] - ps[PS_LEFT_START_Y] + 1);
+//				rect x = raw_area & b;
+//				if (!x.is_null()) {
+//					margin_left = std::max(margin_left, ps[PS_LEFT]);
+//				}
+//			}
+//
+//			if (ps[PS_RIGHT] > 0) {
+//				/* check if raw area intersect current _viewport */
+//				rect b(_root_position.w - ps[PS_RIGHT],
+//						ps[PS_RIGHT_START_Y], ps[PS_RIGHT],
+//						ps[PS_RIGHT_END_Y] - ps[PS_RIGHT_START_Y] + 1);
+//				rect x = raw_area & b;
+//				if (!x.is_null()) {
+//					margin_right = std::max(margin_right, ps[PS_RIGHT]);
+//				}
+//			}
+//
+//			if (ps[PS_TOP] > 0) {
+//				/* check if raw area intersect current _viewport */
+//				rect b(ps[PS_TOP_START_X], 0,
+//						ps[PS_TOP_END_X] - ps[PS_TOP_START_X] + 1, ps[PS_TOP]);
+//				rect x = raw_area & b;
+//				if (!x.is_null()) {
+//					margin_top = std::max(margin_top, ps[PS_TOP]);
+//				}
+//			}
+//
+//			if (ps[PS_BOTTOM] > 0) {
+//				/* check if raw area intersect current _viewport */
+//				rect b(ps[PS_BOTTOM_START_X],
+//						_root_position.h - ps[PS_BOTTOM],
+//						ps[PS_BOTTOM_END_X] - ps[PS_BOTTOM_START_X] + 1,
+//						ps[PS_BOTTOM]);
+//				rect x = raw_area & b;
+//				if (!x.is_null()) {
+//					margin_bottom = std::max(margin_bottom, ps[PS_BOTTOM]);
+//				}
+//			}
+//		}
+//	}
+//
+//	rect final_size;
+//
+//	final_size.x = margin_left;
+//	final_size.w = _root_position.w - margin_right - margin_left;
+//	final_size.y = margin_top;
+//	final_size.h = _root_position.h - margin_bottom - margin_top;
+//
+//	v->set_allocation(final_size);
+//
+//}
 
 //void page_t::process_net_vm_state_client_message(xcb_window_t c, long type, xcb_atom_t state_properties) {
 //	if(state_properties == XCB_ATOM_NONE)
@@ -2157,7 +2174,7 @@ shared_ptr<notebook_t> page_t::get_another_notebook(shared_ptr<tree_t> base, sha
 	vector<shared_ptr<notebook_t>> l;
 
 	if (base == nullptr) {
-		l = get_current_workspace()->gather_children_root_first<notebook_t>();
+		l = current_workspace()->gather_children_root_first<notebook_t>();
 	} else {
 		l = base->gather_children_root_first<notebook_t>();
 	}
@@ -2248,7 +2265,7 @@ void page_t::update_viewport_layout() {
 	}
 
 	MetaRectangle area;
-	meta_workspace_get_work_area_all_monitors(META_WORKSPACE(get_current_workspace()->_meta_workspace), &area);
+	meta_workspace_get_work_area_all_monitors(META_WORKSPACE(current_workspace()->_meta_workspace), &area);
 	_theme->update(area.width, area.height);
 
 	clutter_actor_set_position(_overlay_group, 0.0, 0.0);
@@ -2468,7 +2485,7 @@ void page_t::manage_client(MetaWindow * window) {
 //}
 
 shared_ptr<viewport_t> page_t::find_mouse_viewport(int x, int y) const {
-	auto viewports = get_current_workspace()->get_viewports();
+	auto viewports = current_workspace()->get_viewports();
 	for (auto v: viewports) {
 		if (v->raw_area().is_inside(x, y))
 			return v;
@@ -2484,8 +2501,8 @@ shared_ptr<viewport_t> page_t::find_mouse_viewport(int x, int y) const {
  **/
 bool page_t::get_safe_net_wm_user_time(client_managed_p c, xcb_timestamp_t & time)
 {
-	time = 0;
-	return false;
+	time = meta_window_get_user_time(c->meta_window());
+	return true;
 //	//printf("call %s for %x\n", __PRETTY_FUNCTION__, c->_client_proxy->id());
 //	auto net_wm_user_time = c->get<p_net_wm_user_time>();
 //	if (net_wm_user_time != nullptr) {
@@ -2531,59 +2548,56 @@ bool page_t::get_safe_net_wm_user_time(client_managed_p c, xcb_timestamp_t & tim
 
 void page_t::insert_as_popup(client_managed_p c, xcb_timestamp_t time)
 {
-	//printf("call %s\n", __PRETTY_FUNCTION__);
-	c->set_managed_type(MANAGED_POPUP);
-
-	auto wid = c->ensure_workspace();
-	if(wid == ALL_DESKTOP) {
-		for (auto &w: _workspace_list) {
-			w->insert_as_popup(c, time);
-		}
-	} else {
-		// Ignore net_wm_desktop for popup, use current workspace
-		workspace_p workspace = get_current_workspace();
-		//c->set_net_wm_desktop(workspace->id());
-		workspace->insert_as_popup(c, time);
-	}
-
-	schedule_repaint(0L);
+//	//printf("call %s\n", __PRETTY_FUNCTION__);
+//	c->set_managed_type(MANAGED_POPUP);
+//
+//	auto wid = c->ensure_workspace();
+//	if(wid == ALL_DESKTOP) {
+//		for (auto &w: _workspace_list) {
+//			w->insert_as_popup(c, time);
+//		}
+//	} else {
+//		// Ignore net_wm_desktop for popup, use current workspace
+//		workspace_p workspace = get_current_workspace();
+//		//c->set_net_wm_desktop(workspace->id());
+//		workspace->insert_as_popup(c, time);
+//	}
+//
+//	schedule_repaint(0L);
 
 }
 
 void page_t::insert_as_dock(client_managed_p c, xcb_timestamp_t time) {
-	//printf("call %s\n", __PRETTY_FUNCTION__);
-	c->set_managed_type(MANAGED_DOCK);
-
-	auto wid = c->ensure_workspace();
-	vector<workspace_p> workspace_list;
-	if(wid == ALL_DESKTOP) {
-		workspace_list = _workspace_list;
-	} else {
-		workspace_list.push_back(get_workspace(wid));
-	}
-
-	for (auto & workspace: workspace_list) {
-		workspace->insert_as_dock(c, time);
-	}
-
-	update_workarea();
-	_need_restack = true;
+//	//printf("call %s\n", __PRETTY_FUNCTION__);
+//	c->set_managed_type(MANAGED_DOCK);
+//
+//	auto wid = c->ensure_workspace();
+//	vector<workspace_p> workspace_list;
+//	if(wid == ALL_DESKTOP) {
+//		workspace_list = _workspace_list;
+//	} else {
+//		workspace_list.push_back(get_workspace(wid));
+//	}
+//
+//	for (auto & workspace: workspace_list) {
+//		workspace->insert_as_dock(c, time);
+//	}
+//
+//	update_workarea();
+//	sync_tree_view();
 }
 
 void page_t::insert_as_floating(client_managed_p c, xcb_timestamp_t time) {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
-	c->set_managed_type(MANAGED_FLOATING);
 
-	auto wid = c->ensure_workspace();
 	workspace_p workspace;
-	if(wid == ALL_DESKTOP) {
-		workspace = get_current_workspace();
-	} else {
-		workspace = get_workspace(wid);
-	}
+	if(not meta_window_is_always_on_all_workspaces(c->meta_window()))
+		workspace = lookup_workspace(meta_window_get_workspace(c->meta_window()));
+	else
+		workspace = current_workspace();
 
 	workspace->insert_as_floating(c, time);
-	_need_restack = true;
+	sync_tree_view();
 }
 
 //void page_t::set_workspace_geometry(long width, long height) {
@@ -2606,7 +2620,7 @@ auto page_t::find_client_managed_with(xcb_window_t w) -> client_managed_p
 	return nullptr;
 }
 
-auto page_t::lookup_client_managed_with_meta_window(MetaWindow * w) const -> client_managed_p {
+auto page_t::lookup_client_managed_with(MetaWindow * w) const -> client_managed_p {
 	for (auto & i: _net_client_list) {
 		if (i->meta_window() == w) {
 			return i;
@@ -2615,7 +2629,7 @@ auto page_t::lookup_client_managed_with_meta_window(MetaWindow * w) const -> cli
 	return nullptr;
 }
 
-auto page_t::lookup_client_managed_with_meta_window_actor(MetaWindowActor * w) const -> client_managed_p
+auto page_t::lookup_client_managed_with(MetaWindowActor * w) const -> client_managed_p
 {
 	for (auto & i: _net_client_list) {
 		if (i->meta_window_actor() == w) {
@@ -2751,7 +2765,7 @@ void page_t::update_grabkey() {
 
 /** debug function that try to print the state of page in stdout **/
 void page_t::print_state() const {
-	get_current_workspace()->print_tree(0);
+	current_workspace()->print_tree(0);
 	cout << "_current_workspace = " << _current_workspace << endl;
 
 //	cout << "clients list:" << endl;
@@ -2762,32 +2776,27 @@ void page_t::print_state() const {
 
 }
 
-//void page_t::update_current_workspace() const {
-//	/* set current workspace */
-//	uint32_t current_workspace = _current_workspace;
-//	_dpy->change_property(_dpy->root(), _NET_CURRENT_DESKTOP, CARDINAL,
-//			32, &current_workspace, 1);
-//}
+void page_t::switch_to_workspace(unsigned int workspace_id, xcb_timestamp_t time) {
+	auto meta_workspace = meta_screen_get_workspace_by_index(_screen, workspace_id);
+	auto workspace = lookup_workspace(meta_workspace);
+	if(not workspace)
+		return;
 
-void page_t::switch_to_workspace(unsigned int workspace, xcb_timestamp_t time) {
-	assert(workspace < _workspace_list.size());
-	if (workspace != _current_workspace and workspace != ALL_DESKTOP) {
-//		//std::cout << "switch to workspace #" << workspace << std::endl;
+	if (workspace != current_workspace()) {
+		log::printf("switch to workspace #%p\n", meta_workspace);
 		start_switch_to_workspace_animation(workspace);
 		_current_workspace = workspace;
 		update_workspace_visibility(time);
 	}
 }
 
-void page_t::start_switch_to_workspace_animation(unsigned int workspace)
+void page_t::start_switch_to_workspace_animation(workspace_p workspace)
 {
-	auto new_workspace = _workspace_list[workspace];
-
-	auto pix = theme()->workspace_switch_popup(new_workspace->name());
+	auto pix = theme()->workspace_switch_popup(workspace->name());
 
 	log::printf("xxx pos x=%f, y=%f\n", clutter_actor_get_x(_overlay_group), clutter_actor_get_y(_overlay_group));
 
-	for(auto const & v : new_workspace->get_viewports()) {
+	for(auto const & v : workspace->get_viewports()) {
 
 		GError * err = NULL;
 		auto image = clutter_image_new();
@@ -2823,10 +2832,13 @@ void page_t::start_switch_to_workspace_animation(unsigned int workspace)
 		clutter_actor_queue_redraw(actor);
 
 		auto func = [](ClutterActor * actor, gpointer user_data) {
-			clutter_actor_remove_child(clutter_actor_get_parent(actor), actor);
+			if (actor == NULL)
+				return;
+			if (clutter_actor_get_parent(actor))
+				clutter_actor_remove_child(clutter_actor_get_parent(actor), actor);
 			clutter_actor_destroy(actor);
 		};
-		g_signal_connect(actor, "transitions-completed", G_CALLBACK(&func), nullptr);
+		g_signal_connect(actor, "transitions-completed", G_CALLBACK(static_cast<void(*)(ClutterActor *, gpointer)>(func)), nullptr);
 
 		clutter_actor_save_easing_state(actor);
 		clutter_actor_set_easing_duration(actor, 1000);
@@ -2844,15 +2856,16 @@ void page_t::start_switch_to_workspace_animation(unsigned int workspace)
 }
 
 void page_t::update_workspace_visibility(xcb_timestamp_t time) {
+	/** and show the workspace that have to be show **/
+	_current_workspace->enable(time);
+
 	/** hide only workspace that must be hidden first **/
-	for(unsigned k = 0; k < _workspace_list.size(); ++k) {
-		if(k != _current_workspace) {
-			_workspace_list[k]->disable();
+	for(auto w: _workspace_list) {
+		if(w != _current_workspace) {
+			w->disable();
 		}
 	}
 
-	/** and show the workspace that have to be show **/
-	_workspace_list[_current_workspace]->enable(time);
 	sync_tree_view();
 }
 
@@ -3444,15 +3457,11 @@ void page_t::grab_stop(guint32 time)
 }
 
 void page_t::overlay_add(shared_ptr<tree_t> x) {
-	get_current_workspace()->add_overlay(x);
+	current_workspace()->add_overlay(x);
 }
 
-void page_t::add_global_damage(region const & r) {
-	schedule_repaint();
-}
-
-shared_ptr<workspace_t> const & page_t::get_current_workspace() const {
-	return _workspace_list[_current_workspace];
+shared_ptr<workspace_t> const & page_t::current_workspace() const {
+	return _current_workspace;
 }
 
 shared_ptr<workspace_t> const & page_t::get_workspace(int id) const {
@@ -3463,7 +3472,7 @@ int page_t::get_workspace_count() const {
 	return _workspace_list.size();
 }
 
-int page_t::create_workspace() {
+void page_t::create_workspace() {
 	auto d = make_shared<workspace_t>(this, _workspace_list.size());
 	_workspace_list.push_back(d);
 	d->disable();
@@ -3471,10 +3480,9 @@ int page_t::create_workspace() {
 
 	update_viewport_layout();
 
-	if(d != get_current_workspace()) {
-		for (auto &x: get_current_workspace()->gather_children_root_first<view_t>()) {
-			auto w = x->_client->ensure_workspace();
-			if (w == ALL_DESKTOP) {
+	if(d != current_workspace()) {
+		for (auto &x: current_workspace()->gather_children_root_first<view_t>()) {
+			if (meta_window_is_always_on_all_workspaces(x->_client->meta_window())) {
 				/** TODO: insert desktop **/
 				auto const & type = typeid(*(x.get()));
 				if (type == typeid(view_notebook_t)) {
@@ -3489,14 +3497,6 @@ int page_t::create_workspace() {
 			}
 		}
 	}
-
-	update_workarea();
-	/* update number of workspace */
-	uint32_t number_of_workspace = _workspace_list.size();
-//	_dpy->change_property(_dpy->root(), _NET_NUMBER_OF_DESKTOPS,
-//			CARDINAL, 32, &number_of_workspace, 1);
-//	update_current_workspace();
-	return d->id();
 }
 
 int page_t::left_most_border() {
@@ -3532,10 +3532,10 @@ bool page_t::global_focus_history_is_empty() {
 }
 
 void page_t::start_alt_tab(xcb_timestamp_t time) {
-	auto _x = get_current_workspace()->gather_children_root_first<view_rebased_t>();
+	auto _x = current_workspace()->gather_children_root_first<view_rebased_t>();
 	list<view_p> managed_window{_x.begin(), _x.end()};
 
-	auto focus_history = get_current_workspace()->client_focus_history();
+	auto focus_history = current_workspace()->client_focus_history();
 	/* reorder client to follow focused order */
 	for (auto i = focus_history.rbegin(); i != focus_history.rend(); ++i) {
 		if(i->expired())
@@ -3580,13 +3580,11 @@ void page_t::schedule_repaint(int64_t timeout)
 //		_dpy->change_alarm_delay(frame_alarm, 32);
 //	}
 
-	auto screen = meta_plugin_get_screen(_plugin);
-	auto stage = meta_get_window_group_for_screen(screen);
+	auto stage = meta_get_window_group_for_screen(_screen);
 	clutter_actor_queue_redraw(stage);
 }
 
 void page_t::damage_all() {
-	add_global_damage(_root_position);
 	schedule_repaint();
 }
 
@@ -3594,7 +3592,7 @@ void page_t::activate(view_p c, xcb_timestamp_t time)
 {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 	c->xxactivate(time);
-	_need_restack = true;
+	sync_tree_view();
 
 }
 
@@ -3607,19 +3605,18 @@ void page_t::sync_tree_view()
 	guard = true;
 
 	clutter_actor_remove_all_children(_viewport_group);
-	auto viewport = get_current_workspace()->gather_children_root_first<viewport_t>();
+	auto viewport = current_workspace()->gather_children_root_first<viewport_t>();
 	for (auto x : viewport) {
 		if (x->get_default_view()) {
 			clutter_actor_add_child(_viewport_group, x->get_default_view());
 		}
 	}
 
-	auto screen = meta_plugin_get_screen(_plugin);
-	auto window_group = meta_get_window_group_for_screen(screen);
+	auto window_group = meta_get_window_group_for_screen(_screen);
 
 	//_root->print_tree(0);
 
-	auto children = get_current_workspace()->gather_children_root_first<view_t>();
+	auto children = current_workspace()->gather_children_root_first<view_t>();
 	log::printf("found %lu children\n", children.size());
 	for(auto x: children) {
 		log::printf("raise %p\n", x->_client->meta_window());

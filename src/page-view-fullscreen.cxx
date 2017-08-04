@@ -33,21 +33,6 @@ view_fullscreen_t::view_fullscreen_t(client_managed_p client, viewport_p viewpor
 		revert_type{MANAGED_FLOATING},
 		_viewport{viewport}
 {
-	connect(_client->on_configure_request, this, &view_fullscreen_t::_on_configure_request);
-
-	//printf("create %s\n", __PRETTY_FUNCTION__);
-	_client->set_managed_type(MANAGED_FULLSCREEN);
-//	_client->_client_proxy->net_wm_allowed_actions_set(std::list<atom_e>{
-//		_NET_WM_ACTION_MOVE,
-//		_NET_WM_ACTION_MINIMIZE,
-//		_NET_WM_ACTION_SHADE,
-//		_NET_WM_ACTION_STICK,
-//		_NET_WM_ACTION_FULLSCREEN,
-//		_NET_WM_ACTION_CHANGE_DESKTOP,
-//		_NET_WM_ACTION_CLOSE
-//	});
-
-//	_client->net_wm_state_add(_NET_WM_STATE_FULLSCREEN);
 
 }
 
@@ -56,21 +41,6 @@ view_fullscreen_t::view_fullscreen_t(view_rebased_t * src, viewport_p viewport) 
 	revert_type{MANAGED_FLOATING},
 	_viewport{viewport}
 {
-	connect(_client->on_configure_request, this, &view_fullscreen_t::_on_configure_request);
-
-	_client->set_managed_type(MANAGED_FULLSCREEN);
-
-//	_client->_client_proxy->net_wm_allowed_actions_set(std::list<atom_e>{
-//		_NET_WM_ACTION_MOVE,
-//		_NET_WM_ACTION_MINIMIZE,
-//		_NET_WM_ACTION_SHADE,
-//		_NET_WM_ACTION_STICK,
-//		_NET_WM_ACTION_FULLSCREEN,
-//		_NET_WM_ACTION_CHANGE_DESKTOP,
-//		_NET_WM_ACTION_CLOSE
-//	});
-
-//	_client->net_wm_state_add(_NET_WM_STATE_FULLSCREEN);
 
 }
 
@@ -105,7 +75,6 @@ void view_fullscreen_t::reconfigure()
 	auto _ctx = _root->_ctx;
 	auto _dpy = _root->_ctx->dpy();
 
-	_damage_cache += get_visible_region();
 
 	if(not _viewport.expired())
 		_client->_absolute_position = _viewport.lock()->raw_area();
@@ -120,11 +89,17 @@ void view_fullscreen_t::reconfigure()
 	_orig_position.w = _client->_absolute_position.w;
 	_orig_position.h = _client->_absolute_position.h;
 
-	_reconfigure_windows();
+	if (not _is_client_owner())
+		return;
 
-	_update_opaque_region();
-	_update_visible_region();
-	_damage_cache += get_visible_region();
+	if (_root->is_enable() and _is_visible) {
+		if (not meta_window_is_fullscreen(_client->meta_window()))
+			meta_window_make_fullscreen(_client->meta_window());
+		clutter_actor_show(CLUTTER_ACTOR(_client->meta_window_actor()));
+	} else {
+
+	}
+
 }
 
 //auto view_fullscreen_t::button_press(xcb_button_press_event_t const * e) -> button_action_e

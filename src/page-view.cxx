@@ -35,8 +35,6 @@ view_t::view_t(tree_t * ref, client_managed_p client) :
 {
 	//printf("create %s\n", __PRETTY_FUNCTION__);
 
-	connect(_client->on_opaque_region_change, this, &view_t::on_opaque_region_change);
-	connect(_client->on_configure_request, this, &view_t::_on_configure_request);
 	_stack_is_locked = true;
 
 	_popup = make_shared<tree_t>(_root);
@@ -62,35 +60,8 @@ auto view_t::shared_from_this() -> view_p
 	return static_pointer_cast<view_t>(tree_t::shared_from_this());
 }
 
-void view_t::_update_visible_region() {
-	/** update visible cache **/
-	_visible_region_cache = region{_client->_absolute_position};
-}
-
-void view_t::_update_opaque_region() {
-//	/** update opaque region cache **/
-//	_opaque_region_cache.clear();
-//
-//	auto opaque_region = _client->get<p_net_wm_opaque_region>();
-//	if (opaque_region != nullptr) {
-//		_opaque_region_cache = region{*(opaque_region)};
-//		_opaque_region_cache &= rect{0, 0, _client->_absolute_position.w, _client->_absolute_position.h};
-//	} else {
-//		if (_client->_client_proxy->geometry().depth != 32) {
-//			_opaque_region_cache = rect{0, 0, _client->_absolute_position.w, _client->_absolute_position.h};
-//		}
-//	}
-//
-//	if(_client->shape() != nullptr) {
-//		_opaque_region_cache &= *_client->shape();
-//		_opaque_region_cache &= rect{0, 0, _client->_absolute_position.w, _client->_absolute_position.h};
-//	}
-//
-//	_opaque_region_cache.translate(_client->_absolute_position.x, _client->_absolute_position.y);
-}
-
 void view_t::focus(xcb_timestamp_t t) {
-	_client->icccm_focus_unsafe(t);
+	_client->focus(t);
 }
 
 void view_t::add_transient(view_floating_p v)
@@ -105,54 +76,22 @@ void view_t::add_popup(view_popup_p v)
 
 void view_t::move_all_window()
 {
+	if (not _is_client_owner())
+		return;
+
 	auto _ctx = _root->_ctx;
 	auto _dpy = _root->_ctx->dpy();
 
-	if (_root->is_enable()) {
-
-		if(_is_visible) {
-
-//			if (_client->_has_focus) {
-//				_client->net_wm_state_add(_NET_WM_STATE_FOCUSED);
-//			} else {
-//				_client->net_wm_state_remove(_NET_WM_STATE_FOCUSED);
-//			}
-
-			meta_window_unminimize(_client->_meta_window);
-			meta_window_move_resize_frame(_client->_meta_window, FALSE, _client->_absolute_position.x, _client->_absolute_position.y, _client->_absolute_position.w, _client->_absolute_position.h);
-
-		} else {
-			meta_window_minimize(_client->_meta_window);
-			//clutter_actor_hide(_client->_meta_window_actor);
-//			_client->net_wm_state_remove(_NET_WM_STATE_FOCUSED);
-//			_client->_client_proxy->set_wm_state(IconicState);
-//			rect hidden_position{ _ctx->left_most_border() - 1 -
-//				_client->_absolute_position.w,
-//					_ctx->top_most_border(), _client->_absolute_position.w,
-//					_client->_absolute_position.h };
-//			_client_view = nullptr;
-//			_root->_ctx->add_global_damage(get_visible_region());
-//			_client->_client_proxy->move_resize(hidden_position);
-//			_client->fake_configure_unsafe(_client->_absolute_position);
-		}
-
+	if (_root->is_enable() and _is_visible) {
+		meta_window_unminimize(_client->_meta_window);
+		meta_window_move_resize_frame(_client->_meta_window, FALSE,
+				_client->_absolute_position.x, _client->_absolute_position.y,
+				_client->_absolute_position.w, _client->_absolute_position.h);
 	} else {
-		_client_view = nullptr;
+		meta_window_minimize(_client->_meta_window);
 	}
-}
 
-void view_t::on_opaque_region_change(client_managed_t * c)
-{
-	_update_opaque_region();
 }
-
-void view_t::_on_configure_request(client_managed_t * c, xcb_configure_request_event_t const * e)
-{
-	_client->_absolute_position = _client->_floating_wished_position;
-	if (_is_visible)
-		reconfigure();
-}
-
 
 auto view_t::get_popups() -> vector<view_p>
 {
@@ -164,76 +103,9 @@ auto view_t::get_transients() -> vector<view_p>
 	return filter_class<view_t>(_transiant->children());
 }
 
-/**
- * set usual passive button grab for a focused client.
- *
- * unsafe: need to lock the _orig window to use it.
- **/
-void view_t::_grab_button_focused_unsafe() {
-	auto _dpy = _root->_ctx->_display;
-
-	/** First ungrab all **/
-	_ungrab_all_button_unsafe();
-//	/** for decoration, grab all **/
-//	_client->_client_proxy->grab_button(false, DEFAULT_BUTTON_EVENT_MASK,
-//			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
-//			XCB_NONE, XCB_BUTTON_INDEX_1, XCB_MOD_MASK_ANY);
-//	_client->_client_proxy->grab_button(false, DEFAULT_BUTTON_EVENT_MASK,
-//			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
-//			XCB_NONE, XCB_BUTTON_INDEX_2, XCB_MOD_MASK_ANY);
-//	_client->_client_proxy->grab_button(false, DEFAULT_BUTTON_EVENT_MASK,
-//			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
-//			XCB_NONE, XCB_BUTTON_INDEX_3, XCB_MOD_MASK_ANY);
-}
-
-/**
- * set usual passive button grab for a not focused client.
- *
- * unsafe: need to lock the _orig window to use it.
- **/
-void view_t::_grab_button_unfocused_unsafe() {
-	auto _dpy = _root->_ctx->_display;
-
-	/** First ungrab all **/
-	_ungrab_all_button_unsafe();
-//
-//	_client->_client_proxy->grab_button(false, DEFAULT_BUTTON_EVENT_MASK,
-//			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
-//			XCB_NONE, XCB_BUTTON_INDEX_1, XCB_MOD_MASK_ANY);
-//
-//	_client->_client_proxy->grab_button(false, DEFAULT_BUTTON_EVENT_MASK,
-//			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
-//			XCB_NONE, XCB_BUTTON_INDEX_2, XCB_MOD_MASK_ANY);
-//
-//	_client->_client_proxy->grab_button(false, DEFAULT_BUTTON_EVENT_MASK,
-//			XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC, XCB_WINDOW_NONE,
-//			XCB_NONE, XCB_BUTTON_INDEX_3, XCB_MOD_MASK_ANY);
-
-}
-
-/**
- * Remove all passive grab on windows
- *
- * unsafe: need to lock the _orig window to use it.
- **/
-void view_t::_ungrab_all_button_unsafe() {
-//	_client->_client_proxy->ungrab_button(XCB_BUTTON_INDEX_ANY, XCB_MOD_MASK_ANY);
-}
-
-auto view_t::create_surface() -> client_view_p
+bool view_t::_is_client_owner()
 {
-	//return _client->create_surface(get_toplevel_xid());
-}
-
-void view_t::_on_focus_change(client_managed_t * c)
-{
-	if (_is_visible) {
-		if (_client->_has_focus) {
-			//_grab_button_focused_unsafe();
-		} else {
-			//_grab_button_unfocused_unsafe();
-		}
-	}
+	return _client->current_owner_view() == this;
 }
 
 void view_t::xxactivate(xcb_timestamp_t time)
@@ -250,19 +122,17 @@ void view_t::remove_this_view()
 
 void view_t::acquire_client()
 {
-	if (_client->current_owner_view() != static_cast<view_t*>(this))
-		_client->acquire(this);
+	_client->acquire(this);
 }
 
 void view_t::release_client()
 {
-	if (_client->current_owner_view() == this)
-		_client->release(this);
+	_client->release(this);
 }
 
 void view_t::set_focus_state(bool is_focused)
 {
-	_client->_has_focus = is_focused;
+//	_client->_has_focus = is_focused;
 //	if (_client->_has_focus) {
 //		_client->net_wm_state_add(_NET_WM_STATE_FOCUSED);
 //	} else {
@@ -275,13 +145,7 @@ void view_t::reconfigure()
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 	auto _ctx = _root->_ctx;
 
-	_damage_cache += get_visible_region();
-
 	move_all_window();
-
-	_update_opaque_region();
-	_update_visible_region();
-	_damage_cache += get_visible_region();
 
 }
 
@@ -293,9 +157,10 @@ void view_t::on_workspace_enable()
 
 void view_t::on_workspace_disable()
 {
-	release_client();
-	clutter_actor_hide(CLUTTER_ACTOR(_client->meta_window_actor()));
-	meta_window_minimize(_client->meta_window());
+	if (_is_client_owner()) {
+		clutter_actor_hide(CLUTTER_ACTOR(_client->meta_window_actor()));
+		meta_window_minimize(_client->meta_window());
+	}
 }
 
 void view_t::hide()
@@ -326,22 +191,10 @@ auto view_t::get_node_name() const -> string {
 	return oss.str();
 }
 
-region view_t::get_visible_region() {
-	return _visible_region_cache;
-}
-
-region view_t::get_opaque_region() {
-	return _opaque_region_cache;
-}
-
-region view_t::get_damaged() {
-	return _damage_cache;
-}
-
-auto view_t::get_toplevel_xid() const -> xcb_window_t
-{
-	return meta_window_get_xwindow(_client->_meta_window);
-}
+//auto view_t::get_toplevel_xid() const -> xcb_window_t
+//{
+//	return meta_window_get_xwindow(_client->_meta_window);
+//}
 
 void view_t::update_layout(time64_t const time)
 {
@@ -379,7 +232,7 @@ void view_t::render(cairo_t * cr, region const & area)
 
 void view_t::render_finished()
 {
-	_damage_cache.clear();
+
 }
 
 

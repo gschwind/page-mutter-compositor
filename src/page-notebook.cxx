@@ -149,7 +149,6 @@ void notebook_t::_set_selected(view_notebook_p c) {
 
 void notebook_t::_add_client_view(view_notebook_p vn, xcb_timestamp_t time)
 {
-	vn->_client->set_managed_type(MANAGED_NOTEBOOK);
 	_notebook_view_layer->push_back(vn);
 	if(_root->is_enable())
 		vn->acquire_client();
@@ -187,7 +186,7 @@ void notebook_t::activate(view_notebook_p vn, xcb_timestamp_t time)
 	_set_selected(vn);
 	vn->raise();
 	_root->set_focus(vn, time);
-	_ctx->add_global_damage(to_root_position(_allocation));
+	_ctx->schedule_repaint();
 }
 
 void notebook_t::update_client_position(view_notebook_p c) {
@@ -329,7 +328,7 @@ void notebook_t::_update_all_layout() {
 	_update_theme_notebook(_theme_notebook);
 	_update_notebook_buttons_area();
 
-	_ctx->add_global_damage(to_root_position(_allocation));
+	_ctx->schedule_repaint();
 	queue_redraw();
 }
 
@@ -967,36 +966,36 @@ auto notebook_t::button_press(ClutterEvent const * e) -> button_action_e
 }
 
 void notebook_t::_start_client_menu(view_notebook_p c, xcb_button_t button, uint16_t x, uint16_t y, xcb_timestamp_t time) {
-	std::vector<std::shared_ptr<dropdown_menu_t::item_t>> v;
-	for(unsigned k = 0; k < _ctx->get_workspace_count(); ++k) {
-		std::ostringstream os;
-		if(k == _ctx->get_current_workspace()->id()) {
-			os << "[[[ " << _ctx->get_workspace(k)->name() << " ]]]";
-		} else {
-			os << "Send to " << _ctx->get_workspace(k)->name();
-		}
-		auto func =
-			[this, c, k] (xcb_timestamp_t t) {
-				if (k != this->_ctx->get_current_workspace()->id()) {
-					c->_client->set_current_workspace(k);
-					c->remove_this_view();
-					_ctx->get_workspace(k)->insert_as_notebook(c->_client, t);
-				}
-			};
-		v.push_back(std::make_shared<dropdown_menu_t::item_t>(nullptr, os.str(), func));
-	}
-
-	{
-		auto func = [this, c] (xcb_timestamp_t t) {
-			int selected = _ctx->create_workspace();
-			c->_client->set_current_workspace(selected);
-			c->remove_this_view();
-			_ctx->get_workspace(selected)->insert_as_notebook(c->_client, t);
-		};
-		v.push_back(std::make_shared<dropdown_menu_t::item_t>(nullptr, "To new workspace", func));
-	}
-
-	_ctx->grab_start(make_shared<dropdown_menu_t>(this, v, button, x, y+4, 300, rect{x-10, y-10, 20, 20}), time);
+//	std::vector<std::shared_ptr<dropdown_menu_t::item_t>> v;
+//	for(unsigned k = 0; k < _ctx->get_workspace_count(); ++k) {
+//		std::ostringstream os;
+//		if(k == _ctx->get_current_workspace()->id()) {
+//			os << "[[[ " << _ctx->get_workspace(k)->name() << " ]]]";
+//		} else {
+//			os << "Send to " << _ctx->get_workspace(k)->name();
+//		}
+//		auto func =
+//			[this, c, k] (xcb_timestamp_t t) {
+//				if (k != this->_ctx->get_current_workspace()->id()) {
+//					//c->_client->set_current_workspace(k);
+//					c->remove_this_view();
+//					_ctx->get_workspace(k)->insert_as_notebook(c->_client, t);
+//				}
+//			};
+//		v.push_back(std::make_shared<dropdown_menu_t::item_t>(nullptr, os.str(), func));
+//	}
+//
+//	{
+//		auto func = [this, c] (xcb_timestamp_t t) {
+//			int selected = _ctx->create_workspace();
+//			//c->_client->set_current_workspace(selected);
+//			c->remove_this_view();
+//			_ctx->get_workspace(selected)->insert_as_notebook(c->_client, t);
+//		};
+//		v.push_back(std::make_shared<dropdown_menu_t::item_t>(nullptr, "To new workspace", func));
+//	}
+//
+//	_ctx->grab_start(make_shared<dropdown_menu_t>(this, v, button, x, y+4, 300, rect{x-10, y-10, 20, 20}), time);
 
 }
 

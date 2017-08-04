@@ -275,9 +275,9 @@ void tree_t::trigger_redraw()
 /**
  * return the root top level xid or XCB_WINDOW_NONE if not applicable.
  **/
-xcb_window_t tree_t::get_toplevel_xid() const {
-	return XCB_WINDOW_NONE;
-}
+//xcb_window_t tree_t::get_toplevel_xid() const {
+//	return XCB_WINDOW_NONE;
+//}
 
 rect tree_t::get_window_position() const {
 	if (_parent != nullptr)
@@ -407,21 +407,6 @@ void tree_t::add_transition(shared_ptr<transition_t> t) {
 rect tree_t::to_root_position(rect const & r) const {
 	return rect { r.x + get_window_position().x, r.y + get_window_position().y,
 			r.w, r.h };
-}
-
-__attribute__((deprecated)) auto tree_t::get_opaque_region() -> region
-{
-	return region{};
-}
-
-__attribute__((deprecated)) auto tree_t::get_visible_region() -> region
-{
-	return region{};
-}
-
-__attribute__((deprecated)) auto tree_t::get_damaged() -> region
-{
-	return region{};
 }
 
 }

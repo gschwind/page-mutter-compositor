@@ -98,8 +98,8 @@ class page_t:
 
 	mainloop_t _mainloop;
 
-	unsigned int _current_workspace;
-	vector<shared_ptr<workspace_t>> _workspace_list;
+	workspace_p _current_workspace;
+	vector<workspace_p> _workspace_list;
 
 	weak_ptr<client_managed_t> _net_active_window;
 
@@ -130,9 +130,6 @@ public:
 	ClutterActor * _overlay_group;
 
 	page_configuration_t configuration;
-
-	bool _need_restack;
-	bool _need_update_client_list;
 
 	config_handler_t _conf;
 
@@ -226,23 +223,23 @@ public:
 
 	// Plugin API
 
-	void start();
-	void minimize(MetaWindowActor * actor);
-	void unminimize(MetaWindowActor * actor);
-	void size_change(MetaWindowActor * window_actor, MetaSizeChange which_change, MetaRectangle * old_frame_rect, MetaRectangle * old_buffer_rect);
-	void xmap(MetaWindowActor * window_actor);
-	void destroy(MetaWindowActor * actor);
-	void switch_workspace(gint from, gint to, MetaMotionDirection direction);
-	void show_tile_preview(MetaWindow * window, MetaRectangle *tile_rect, int tile_monitor_number);
-	void hide_tile_preview();
-	void show_window_menu(MetaWindow * window, MetaWindowMenuType menu, int x, int y);
-	void show_window_menu_for_rect(MetaWindow * window, MetaWindowMenuType menu, MetaRectangle * rect);
-	void kill_window_effects(MetaWindowActor * actor);
-	void kill_switch_workspace();
-	auto xevent_filter(XEvent * event) -> gboolean;
-	auto keybinding_filter(MetaKeyBinding * binding) -> gboolean;
-	void confirm_display_change();
-	auto plugin_info() -> MetaPluginInfo const *;
+	void _handler_plugin_start();
+	void _handler_plugin_minimize(MetaWindowActor * actor);
+	void _handler_plugin_unminimize(MetaWindowActor * actor);
+	void _handler_plugin_size_change(MetaWindowActor * window_actor, MetaSizeChange which_change, MetaRectangle * old_frame_rect, MetaRectangle * old_buffer_rect);
+	void _handler_plugin_map(MetaWindowActor * window_actor);
+	void _handler_plugin_destroy(MetaWindowActor * actor);
+	void _handler_plugin_switch_workspace(gint from, gint to, MetaMotionDirection direction);
+	void _handler_plugin_show_tile_preview(MetaWindow * window, MetaRectangle *tile_rect, int tile_monitor_number);
+	void _handler_plugin_hide_tile_preview();
+	void _handler_plugin_show_window_menu(MetaWindow * window, MetaWindowMenuType menu, int x, int y);
+	void _handler_plugin_show_window_menu_for_rect(MetaWindow * window, MetaWindowMenuType menu, MetaRectangle * rect);
+	void _handler_plugin_kill_window_effects(MetaWindowActor * actor);
+	void _handler_plugin_kill_switch_workspace();
+	auto _handler_plugin_xevent_filter(XEvent * event) -> gboolean;
+	auto _handler_plugin_keybinding_filter(MetaKeyBinding * binding) -> gboolean;
+	void _handler_plugin_confirm_display_change();
+	auto _handler_plugin_plugin_info() -> MetaPluginInfo const *;
 
 
 	/* scan current root window status, finding mapped windows */
@@ -391,8 +388,8 @@ public:
 	void update_page_areas();
 	void set_workspace_geometry(long width, long height);
 
-	auto lookup_client_managed_with_meta_window(MetaWindow * w) const -> client_managed_p;
-	auto lookup_client_managed_with_meta_window_actor(MetaWindowActor * actor) const -> client_managed_p;
+	auto lookup_client_managed_with(MetaWindow * w) const -> client_managed_p;
+	auto lookup_client_managed_with(MetaWindowActor * actor) const -> client_managed_p;
 	auto lookup_workspace(MetaWorkspace * w) const -> workspace_p;
 
 	void raise_child(shared_ptr<tree_t> t);
@@ -422,7 +419,7 @@ public:
 	/** debug function that try to print the state of page in stdout **/
 	void print_state() const;
 	void switch_to_workspace(unsigned int workspace, xcb_timestamp_t time);
-	void start_switch_to_workspace_animation(unsigned int workspace);
+	void start_switch_to_workspace_animation(workspace_p workspace);
 	void update_fullscreen_clients_position();
 	void update_workspace_visibility(xcb_timestamp_t time);
 	void process_error(xcb_generic_event_t const * e);
@@ -458,12 +455,11 @@ public:
 	auto theme() const -> theme_t const *;
 	auto dpy() const -> MetaDisplay *;
 	void overlay_add(shared_ptr<tree_t> x);
-	void add_global_damage(region const & r);
-	auto find_mouse_viewport(int x, int y) const -> shared_ptr<viewport_t>;
-	auto get_current_workspace() const -> shared_ptr<workspace_t> const &;
-	auto get_workspace(int id) const -> shared_ptr<workspace_t> const &;
+	auto find_mouse_viewport(int x, int y) const -> viewport_p;
+	auto current_workspace() const -> workspace_p const &;
+	auto get_workspace(int id) const -> workspace_p const &;
 	int  get_workspace_count() const;
-	int  create_workspace();
+	void create_workspace();
 	void grab_start(shared_ptr<grab_handler_t> handler, guint32 time);
 	void grab_stop(guint32 time);
 	void insert_window_in_notebook(shared_ptr<client_managed_t> x, shared_ptr<notebook_t> n, bool prefer_activate);

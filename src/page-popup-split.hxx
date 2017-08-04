@@ -19,8 +19,6 @@ namespace page {
 struct popup_split_t : public tree_t {
 	static int const border_width = 6;
 
-	tree_t * _parent;
-
 	page_t * _ctx;
 	double _current_split;
 
@@ -28,9 +26,6 @@ struct popup_split_t : public tree_t {
 
 	rect _position;
 	bool _exposed;
-
-	region _damaged;
-	region _visible_region;
 
 	ClutterActor * _actor[2];
 
@@ -59,10 +54,6 @@ public:
 	//virtual void reconfigure(); // used to place all windows taking in account the current tree state
 	//virtual void on_workspace_enable();
 	//virtual void on_workspace_disable();
-
-	virtual auto get_opaque_region() -> region override;
-	virtual auto get_visible_region() -> region override;
-	virtual auto get_damaged() -> region override;
 
 	//virtual auto button_press(xcb_button_press_event_t const * ev) -> button_action_e;
 	//virtual bool button_release(xcb_button_release_event_t const * ev);

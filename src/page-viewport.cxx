@@ -216,9 +216,9 @@ region viewport_t::get_damaged() {
 	return _damaged;
 }
 
-xcb_window_t viewport_t::get_toplevel_xid() const {
-	return 0;
-}
+//xcb_window_t viewport_t::get_toplevel_xid() const {
+//	return 0;
+//}
 
 gboolean viewport_t::wrapper_draw_callback(ClutterCanvas *canvas, cairo_t *cr, int width,
 		int height, gpointer user_data)

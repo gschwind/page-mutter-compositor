@@ -110,7 +110,7 @@ public:
 	virtual void expose(xcb_expose_event_t const * ev);
 	virtual void trigger_redraw();
 
-	virtual auto get_toplevel_xid() const -> xcb_window_t;
+	//virtual auto get_toplevel_xid() const -> xcb_window_t;
 	virtual rect get_window_position() const;
 	virtual void queue_redraw();
 

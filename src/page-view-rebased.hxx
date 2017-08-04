@@ -61,20 +61,15 @@ public:
 	auto shared_from_this() -> view_rebased_p;
 	void _create_base_windows();
 	void _reconfigure_windows();
-	void _update_visible_region();
-	void _ungrab_button_unsafe();
-	void _grab_button_unsafe();
-	void _ungrab_all_button_unsafe();
 	void _on_focus_change(client_managed_t * c);
 	/**
 	 * view_t API
 	 **/
 
-	virtual auto create_surface() -> client_view_p override;
 	using view_t::xxactivate;
 	using view_t::remove_this_view;
-	virtual void acquire_client() override;
-	virtual void release_client() override;
+	using view_t::acquire_client;
+	using view_t::release_client;
 	virtual void set_focus_state(bool is_focused) override;
 
 	/**
@@ -92,10 +87,6 @@ public:
 	virtual void on_workspace_enable() override;
 	virtual void on_workspace_disable() override;
 
-	using view_t::get_opaque_region;
-	using view_t::get_visible_region;
-	using view_t::get_damaged;
-
 	//virtual auto button_press(xcb_button_press_event_t const * ev) -> button_action_e override;
 	//virtual bool button_release(xcb_button_release_event_t const * ev);
 	//virtual bool button_motion(xcb_motion_notify_event_t const * ev);
@@ -104,7 +95,7 @@ public:
 	//virtual void expose(xcb_expose_event_t const * ev);
 	//virtual void trigger_redraw();
 
-	virtual auto get_toplevel_xid() const -> xcb_window_t override;
+	//virtual auto get_toplevel_xid() const -> xcb_window_t override;
 	//virtual rect get_window_position() const;
 	//virtual void queue_redraw();
 

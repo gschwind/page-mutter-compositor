@@ -41,7 +41,7 @@ renderable_thumbnail_t::renderable_thumbnail_t(tree_t * ref, view_p c, rect cons
 }
 
 renderable_thumbnail_t::~renderable_thumbnail_t() {
-	_ctx->add_global_damage(get_real_position());
+	_ctx->schedule_repaint();
 }
 
 /** @return scale factor */
@@ -105,26 +105,6 @@ void renderable_thumbnail_t::render(cairo_t * cr, region const & area) {
 //	}
 //	cairo_restore(cr);
 
-}
-
-/**
- * Derived class must return opaque region for this object,
- * If unknown it's safe to leave this empty.
- **/
-region renderable_thumbnail_t::get_opaque_region() {
-	return region{};
-}
-
-/**
- * Derived class must return visible region,
- * If unknow the whole screen can be returned, but draw will be called each time.
- **/
-region renderable_thumbnail_t::get_visible_region() {
-	return get_real_position();
-}
-
-region renderable_thumbnail_t::get_damaged() {
-	return _damaged_cache;
 }
 
 rect renderable_thumbnail_t::get_real_position() {
@@ -215,14 +195,14 @@ void renderable_thumbnail_t::update_layout(time64_t const time) {
 
 void renderable_thumbnail_t::show() {
 	tree_t::show();
-	if (not _c.expired() and _client_view == nullptr) {
-		_client_view = _c.lock()->create_surface();
-	}
+//	if (not _c.expired() and _client_view == nullptr) {
+//		_client_view = _c.lock()->create_surface();
+//	}
 }
 
 void renderable_thumbnail_t::hide() {
 	tree_t::hide();
-	_ctx->add_global_damage(get_real_position());
+	_ctx->schedule_repaint();
 	_client_view = nullptr;
 	_tt.pix = nullptr;
 	_tt.title = nullptr;

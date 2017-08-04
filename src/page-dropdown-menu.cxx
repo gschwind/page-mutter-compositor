@@ -144,37 +144,6 @@ void dropdown_menu_overlay_t::render(cairo_t * cr, region const & area)
 
 }
 
-/**
- * Derived class must return opaque region for this object,
- * If unknown it's safe to leave this empty.
- **/
-region dropdown_menu_overlay_t::get_opaque_region()
-{
-	return region{_position};
-}
-
-/**
- * Derived class must return visible region,
- * If unknow the whole screen can be returned, but draw will be called each time.
- **/
-region dropdown_menu_overlay_t::get_visible_region()
-{
-	return region{_position};
-}
-
-/**
- * return currently damaged area (absolute)
- **/
-region dropdown_menu_overlay_t::get_damaged()
-{
-	if(_is_durty) {
-		_is_durty = false;
-		return region{_position};
-	} else {
-		return region{};
-	}
-}
-
 void dropdown_menu_overlay_t::expose(xcb_expose_event_t const * ev)
 {
 	if(ev->window != _wid)
@@ -214,7 +183,7 @@ dropdown_menu_t::dropdown_menu_t(tree_t * ref,
 
 dropdown_menu_t::~dropdown_menu_t()
 {
-	_ctx->add_global_damage(pop->get_visible_region());
+	_ctx->schedule_repaint();
 	pop->detach_myself();
 }
 

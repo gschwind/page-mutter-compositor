@@ -54,19 +54,6 @@ public:
 	static double fit_to(double target_width, double target_height, double src_width, double src_height);
 	virtual void render(cairo_t * cr, region const & area) override;
 
-	/**
-	 * Derived class must return opaque region for this object,
-	 * If unknown it's safe to leave this empty.
-	 **/
-	virtual region get_opaque_region() override;
-
-	/**
-	 * Derived class must return visible region,
-	 * If unknow the whole screen can be returned, but draw will be called each time.
-	 **/
-	virtual region get_visible_region() override;
-	virtual region get_damaged() override;
-
 	rect get_real_position();
 	void set_mouse_over(bool x);
 	void update_title();

@@ -64,9 +64,6 @@ struct dropdown_menu_overlay_t : public tree_t {
 	void expose(region const & r);
 
 	virtual void render(cairo_t * cr, region const & area) override;
-	virtual region get_opaque_region() override;
-	virtual region get_visible_region() override;
-	virtual region get_damaged() override;
 	virtual void expose(xcb_expose_event_t const * ev) override;
 
 };

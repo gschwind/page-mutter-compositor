@@ -27,7 +27,7 @@ namespace page {
 xcb_window_t page_component_t::get_component_xid()
 {
 	auto v = page_t::find_viewport_of(shared_from_this());
-	return v->get_toplevel_xid();
+	return XCB_WINDOW_NONE;
 }
 
 }

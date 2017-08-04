@@ -38,7 +38,6 @@ struct view_dock_t : public view_t {
 	/**
 	 * view_t API
 	 **/
-	using view_t::create_surface;
 	using view_t::xxactivate;
 	virtual void remove_this_view() override;
 	using view_t::acquire_client;
@@ -71,7 +70,7 @@ struct view_dock_t : public view_t {
 	//virtual void expose(xcb_expose_event_t const * ev);
 	//virtual void trigger_redraw();
 
-	using view_t::get_toplevel_xid;
+//	using view_t::get_toplevel_xid;
 	//virtual rect get_window_position() const;
 	//virtual void queue_redraw();
 

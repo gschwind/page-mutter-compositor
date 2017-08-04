@@ -75,7 +75,7 @@ grab_split_t::grab_split_t(page_t * ctx, shared_ptr<split_t> s) : grab_default_t
 
 grab_split_t::~grab_split_t() {
 	if(_ps != nullptr) {
-		_ctx->add_global_damage(_ps->get_visible_region());
+		_ctx->schedule_repaint();
 		_ps->detach_myself();
 	}
 }
@@ -352,7 +352,7 @@ grab_bind_view_floating_t::grab_bind_view_floating_t(page_t * ctx, view_floating
 
 grab_bind_view_floating_t::~grab_bind_view_floating_t() {
 	if(pn0 != nullptr) {
-		_ctx->add_global_damage(pn0->get_visible_region());
+		_ctx->schedule_repaint();
 		pn0->detach_myself();
 	}
 }
@@ -364,7 +364,7 @@ void grab_bind_view_floating_t::_find_target_notebook(int x, int y,
 	zone = NOTEBOOK_AREA_NONE;
 
 	/* place the popup */
-	auto ln = _ctx->get_current_workspace()->gather_children_root_first<notebook_t>();
+	auto ln = _ctx->current_workspace()->gather_children_root_first<notebook_t>();
 	for (auto i : ln) {
 		if (i->_area.tab.is_inside(x, y)) {
 			zone = NOTEBOOK_AREA_TAB;
@@ -530,7 +530,7 @@ grab_floating_move_t::grab_floating_move_t(page_t * ctx, view_floating_p f, unsi
 
 grab_floating_move_t::~grab_floating_move_t() {
 	if(pfm != nullptr) {
-		_ctx->add_global_damage(pfm->get_visible_region());
+		_ctx->schedule_repaint();
 		pfm->detach_myself();
 	}
 }
@@ -662,7 +662,7 @@ grab_floating_resize_t::grab_floating_resize_t(page_t * ctx, view_floating_p f, 
 
 grab_floating_resize_t::~grab_floating_resize_t() {
 	if(pfm != nullptr) {
-		_ctx->add_global_damage(pfm->get_visible_region());
+		_ctx->schedule_repaint();
 		pfm->detach_myself();
 	}
 }
@@ -820,7 +820,7 @@ grab_fullscreen_client_t::grab_fullscreen_client_t(page_t * ctx, view_fullscreen
 
 grab_fullscreen_client_t::~grab_fullscreen_client_t() {
 	if(pn0 != nullptr) {
-		_ctx->add_global_damage(pn0->get_visible_region());
+		_ctx->schedule_repaint();
 		pn0->detach_myself();
 	}
 }
@@ -891,7 +891,7 @@ void grab_alt_tab_t::_destroy_client(client_managed_t * c) {
 grab_alt_tab_t::grab_alt_tab_t(page_t * ctx, list<view_p> managed_window, xcb_timestamp_t time) : grab_default_t{ctx} {
 	_client_list = weak(managed_window);
 
-	auto viewport_list = _ctx->get_current_workspace()->get_viewports();
+	auto viewport_list = _ctx->current_workspace()->get_viewports();
 
 	for(auto v: viewport_list) {
 		auto pat = popup_alt_tab_t::create(v.get(), managed_window, v);
@@ -910,7 +910,7 @@ grab_alt_tab_t::grab_alt_tab_t(page_t * ctx, list<view_p> managed_window, xcb_ti
 
 grab_alt_tab_t::~grab_alt_tab_t() {
 	for(auto x: _popup_list) {
-		_ctx->add_global_damage(x->get_visible_region());
+		_ctx->schedule_repaint();
 		x->detach_myself();
 	}
 }

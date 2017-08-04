@@ -213,10 +213,6 @@ public:
 	virtual void on_workspace_enable();
 	virtual void on_workspace_disable();
 
-	virtual auto get_opaque_region() -> region;
-	virtual auto get_visible_region() -> region;
-	virtual auto get_damaged() -> region;
-
 	virtual auto button_press(ClutterEvent const * ev) -> button_action_e;
 	virtual bool button_release(ClutterEvent const * ev);
 	virtual bool button_motion(ClutterEvent const * ev);
@@ -225,7 +221,7 @@ public:
 
 	virtual void expose(xcb_expose_event_t const * ev);
 
-	virtual auto get_toplevel_xid() const -> xcb_window_t;
+	//virtual auto get_toplevel_xid() const -> xcb_window_t;
 	virtual rect get_window_position() const;
 	virtual void queue_redraw();
 

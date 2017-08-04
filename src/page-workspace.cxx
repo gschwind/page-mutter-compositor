@@ -62,7 +62,6 @@ workspace_t::workspace_t(page_t * ctx, MetaWorkspace * workspace) :
 	_default_pop{},
 	_workarea{},
 	_primary_viewport{},
-	_id{meta_workspace_index(workspace)},
 	_switch_direction{WORKSPACE_SWITCH_LEFT},
 	_is_enable{false},
 	_meta_workspace{workspace}
@@ -149,7 +148,7 @@ void workspace_t::update_viewports_layout()
 	_viewport_outputs.clear();
 	/** for each not overlaped rectangle **/
 	for (unsigned i = 0; i < viewport_allocation.size(); ++i) {
-		log::printf("%d: found viewport (%d,%d,%d,%d)\n", id(),
+		log::printf("%p: found viewport (%d,%d,%d,%d)\n", _meta_workspace,
 				viewport_allocation[i].x, viewport_allocation[i].y,
 				viewport_allocation[i].w, viewport_allocation[i].h);
 		viewport_p vp;
@@ -172,9 +171,9 @@ void workspace_t::update_viewports_layout()
 
 	_primary_viewport = _viewport_outputs[0];
 
-	for (auto x: _viewport_outputs) {
-		_ctx->compute_viewport_allocation(shared_from_this(), x);
-	}
+//	for (auto x: _viewport_outputs) {
+//		_ctx->compute_viewport_allocation(shared_from_this(), x);
+//	}
 
 	_fix_view_floating_position();
 
@@ -231,7 +230,6 @@ void workspace_t::set_default_pop(notebook_p n) {
 auto workspace_t::ensure_default_notebook() -> notebook_p {
 	auto notebooks = gather_children_root_first<notebook_t>();
 	assert(notebooks.size() > 0); // workspace must have at less one notebook.
-
 
 	if(_default_pop.expired()) {
 		_default_pop = notebooks[0];
@@ -332,14 +330,6 @@ void workspace_t::insert_as_popup(client_managed_p c, xcb_timestamp_t time)
 
 void workspace_t::insert_as_dock(client_managed_p c, xcb_timestamp_t time)
 {
-	//printf("call %s\n", __PRETTY_FUNCTION__);
-	c->set_managed_type(MANAGED_DOCK);
-
-	auto wid = c->ensure_workspace();
-	if(wid != ALL_DESKTOP) {
-		//c->set_net_wm_desktop(_id);
-	}
-
 	auto fv = make_shared<view_dock_t>(this, c);
 	if(is_enable())
 		fv->acquire_client();
@@ -353,7 +343,7 @@ void workspace_t::insert_as_dock(client_managed_p c, xcb_timestamp_t time)
 		set_focus(fv, XCB_CURRENT_TIME);
 
 	_ctx->update_workarea();
-	_ctx->_need_restack = true;
+	_ctx->sync_tree_view();
 }
 
 void workspace_t::insert_as_floating(client_managed_p c, xcb_timestamp_t time)
@@ -392,7 +382,7 @@ void workspace_t::insert_as_notebook(client_managed_p mw, xcb_timestamp_t time)
 //			}
 //		}
 //	}
-
+//
 	if(activate and time == XCB_CURRENT_TIME) {
 		_ctx->get_safe_net_wm_user_time(mw, time);
 	}
@@ -405,10 +395,6 @@ void workspace_t::insert_as_notebook(client_managed_p mw, xcb_timestamp_t time)
 void workspace_t::insert_as_fullscreen(shared_ptr<client_managed_t> mw, shared_ptr<viewport_t> v) {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
 	assert(v != nullptr);
-
-	if(mw->is(MANAGED_FULLSCREEN))
-		return;
-	mw->set_managed_type(MANAGED_FULLSCREEN);
 
 	auto fv = make_shared<view_fullscreen_t>(mw, v);
 	if(is_enable())
@@ -428,12 +414,12 @@ void workspace_t::insert_as_fullscreen(shared_ptr<client_managed_t> mw, shared_p
 
 	/* hide the viewport because he is covered by the fullscreen client */
 	v->hide();
-	_ctx->_need_restack = true;
+	_ctx->sync_tree_view();
 }
 
 void workspace_t::switch_view_to_fullscreen(view_p v, xcb_timestamp_t time)
 {
-	//printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	auto vx = dynamic_pointer_cast<view_floating_t>(v);
 	if(vx) {
 		switch_floating_to_fullscreen(vx, time);
@@ -490,7 +476,7 @@ void workspace_t::switch_notebook_to_floating(view_notebook_p vn, xcb_timestamp_
 
 void workspace_t::switch_notebook_to_fullscreen(view_notebook_p vn, xcb_timestamp_t time)
 {
-	//printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	auto v = _find_viewport_of(vn);
 	auto nbk = vn->parent_notebook();
 	assert(nbk != nullptr);
@@ -505,7 +491,7 @@ void workspace_t::switch_notebook_to_fullscreen(view_notebook_p vn, xcb_timestam
 
 void workspace_t::switch_floating_to_fullscreen(view_floating_p vx, xcb_timestamp_t time)
 {
-	//printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	auto viewport = get_any_viewport();
 	vx->remove_this_view();
 	auto vf = make_shared<view_fullscreen_t>(vx.get(), viewport);
@@ -529,7 +515,7 @@ void workspace_t::switch_fullscreen_to_floating(view_fullscreen_p view, xcb_time
 		view->_viewport.lock()->show();
 	}
 
-	meta_window_unmake_fullscreen(view->_client->_meta_window);
+	//meta_window_unmake_fullscreen(view->_client->_meta_window);
 	auto fv = make_shared<view_floating_t>(view.get());
 	_insert_view_floating(fv, time);
 }
@@ -547,15 +533,15 @@ void workspace_t::switch_fullscreen_to_notebook(view_fullscreen_p view, xcb_time
 		n = view->revert_notebook.lock();
 	}
 
-	meta_window_unmake_fullscreen(view->_client->_meta_window);
-	view->_client->set_managed_type(MANAGED_NOTEBOOK);
+	//meta_window_unmake_fullscreen(view->_client->_meta_window);
 	n->add_client_from_view(view, time);
-	_ctx->_need_restack = true;
+	_ctx->sync_tree_view();
 }
 
 /* switch a fullscreened and managed window into floating or notebook window */
 void workspace_t::switch_fullscreen_to_prefered_view_mode(view_p c, xcb_timestamp_t time)
 {
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	auto vf = dynamic_pointer_cast<view_fullscreen_t>(c);
 	if(vf)
 		switch_fullscreen_to_prefered_view_mode(vf, time);
@@ -565,21 +551,24 @@ void workspace_t::switch_fullscreen_to_prefered_view_mode(view_fullscreen_p view
 {
 	view->remove_this_view();
 
+	for(auto v: gather_children_root_first<viewport_t>()) {
+		v->show();
+	}
+
 	if (view->revert_type == MANAGED_NOTEBOOK) {
 		auto n = ensure_default_notebook();
 		if(not view->revert_notebook.expired()) {
 			n = view->revert_notebook.lock();
 		}
-		meta_window_unmake_fullscreen(view->_client->_meta_window);
-		view->_client->set_managed_type(MANAGED_NOTEBOOK);
+		//meta_window_unmake_fullscreen(view->_client->_meta_window);
 		n->add_client_from_view(view, time);
 	} else {
-		meta_window_unmake_fullscreen(view->_client->_meta_window);
+		//meta_window_unmake_fullscreen(view->_client->_meta_window);
 		auto vf = make_shared<view_floating_t>(view.get());
 		_insert_view_floating(vf, time);
 	}
 
-	_ctx->_need_restack = true;
+	_ctx->sync_tree_view();
 }
 
 
@@ -628,7 +617,7 @@ auto workspace_t::name() -> string const & {
 
 void workspace_t::set_to_default_name() {
 	std::ostringstream os;
-	os << "Workspace #" << _id;
+	os << "Workspace #" << meta_workspace_index(_meta_workspace);
 	_name = os.str();
 }
 
@@ -648,10 +637,6 @@ void workspace_t::set_primary_viewport(shared_ptr<viewport_t> v) {
 
 shared_ptr<viewport_t> workspace_t::primary_viewport() const {
 	return _primary_viewport.lock();
-}
-
-int workspace_t::id() {
-	return _id;
 }
 
 void workspace_t::start_switch(workspace_switch_direction_e direction) {
@@ -786,26 +771,25 @@ void workspace_t::_insert_view_fullscreen(view_fullscreen_p vf, xcb_timestamp_t 
 	auto workspace = viewport->workspace();
 
 	// unfullscreen client that already use this viewport
-	for (auto &x : workspace->gather_children_root_first<view_fullscreen_t>()) {
-		if(x->_viewport.lock() == viewport)
-			switch_fullscreen_to_prefered_view_mode(x, XCB_CURRENT_TIME);
-	}
+//	for (auto &x : workspace->gather_children_root_first<view_fullscreen_t>()) {
+//		if(x->_viewport.lock() == viewport)
+//			switch_fullscreen_to_prefered_view_mode(x, XCB_CURRENT_TIME);
+//	}
 
-	vf->_client->set_managed_type(MANAGED_FULLSCREEN);
+	//meta_window_make_fullscreen(vf->_client->meta_window());
 	workspace->add_fullscreen(vf);
-	vf->show();
+	//vf->show();
 
 	/* hide the viewport because he is covered by the fullscreen client */
-	viewport->hide();
+	//viewport->hide();
 
-	workspace->set_focus(vf, time);
-	_ctx->_need_restack = true;
+	//workspace->set_focus(vf, time);
+	_ctx->sync_tree_view();
 }
 
 void workspace_t::_insert_view_floating(view_floating_p fv, xcb_timestamp_t time)
 {
 	auto c = fv->_client;
-	c->set_managed_type(MANAGED_FLOATING);
 
 //	auto wid = c->ensure_workspace();
 //	if (wid != ALL_DESKTOP) {
@@ -829,7 +813,7 @@ void workspace_t::_insert_view_floating(view_floating_p fv, xcb_timestamp_t time
 	fv->raise();
 	fv->show();
 	set_focus(fv, time);
-	_ctx->_need_restack = true;
+	_ctx->sync_tree_view();
 }
 
 }

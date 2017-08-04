@@ -31,20 +31,6 @@ namespace page {
 view_notebook_t::view_notebook_t(tree_t * ref, client_managed_p client) :
 	view_rebased_t{ref, client}
 {
-
-	connect(_client->on_configure_request, this, &view_notebook_t::_on_configure_request);
-
-	_client->set_managed_type(MANAGED_NOTEBOOK);
-//	_client->_client_proxy->net_wm_allowed_actions_set(std::list<atom_e>{
-//		_NET_WM_ACTION_MOVE,
-//		_NET_WM_ACTION_MINIMIZE,
-//		_NET_WM_ACTION_SHADE,
-//		_NET_WM_ACTION_STICK,
-//		_NET_WM_ACTION_FULLSCREEN,
-//		_NET_WM_ACTION_CHANGE_DESKTOP,
-//		_NET_WM_ACTION_CLOSE
-//	});
-
 	// disable move/resizes.
 	g_connect(_client->meta_window(), "position-changed", &view_notebook_t::_handler_position_changed);
 	g_connect(_client->meta_window(), "size-changed", &view_notebook_t::_handler_size_changed);
@@ -57,27 +43,11 @@ view_notebook_t::view_notebook_t(tree_t * ref, client_managed_p client) :
 view_notebook_t::view_notebook_t(view_rebased_t * src) :
 	view_rebased_t{src}
 {
-	connect(_client->on_configure_request, this, &view_notebook_t::_on_configure_request);
-
-
-	_client->set_managed_type(MANAGED_NOTEBOOK);
-//	_client->_client_proxy->net_wm_allowed_actions_set(std::list<atom_e>{
-//		_NET_WM_ACTION_MOVE,
-//		_NET_WM_ACTION_MINIMIZE,
-//		_NET_WM_ACTION_SHADE,
-//		_NET_WM_ACTION_STICK,
-//		_NET_WM_ACTION_FULLSCREEN,
-//		_NET_WM_ACTION_CHANGE_DESKTOP,
-//		_NET_WM_ACTION_CLOSE
-//	});
-
 	// disable move/resizes.
 	g_connect(_client->meta_window(), "position-changed", &view_notebook_t::_handler_position_changed);
 	g_connect(_client->meta_window(), "size-changed", &view_notebook_t::_handler_size_changed);
 
 	g_object_set(G_OBJECT(_client->meta_window_actor()), "no-shadow", TRUE, NULL);
-
-//	meta_window_maximize(_client->meta_window(), META_MAXIMIZE_BOTH);
 
 }
 
@@ -98,7 +68,7 @@ bool view_notebook_t::is_iconic() const
 
 bool view_notebook_t::has_focus() const
 {
-	return _client->_has_focus;
+	return meta_window_has_focus(_client->meta_window());
 }
 
 auto view_notebook_t::title() const -> string const &
@@ -122,22 +92,18 @@ auto view_notebook_t::parent_notebook() -> notebook_p
 	return dynamic_pointer_cast<notebook_t>(_parent->parent()->shared_from_this());
 }
 
-void view_notebook_t::_on_configure_request(client_managed_t * c, xcb_configure_request_event_t const * e)
-{
-	if(_root->is_enable())
-		reconfigure();
-}
-
 void view_notebook_t::_handler_position_changed(MetaWindow * window)
 {
 	/* disable frame move */
-	meta_window_move_frame(window, FALSE, _client->_absolute_position.x, _client->_absolute_position.y);
+	if (_is_client_owner())
+		meta_window_move_frame(window, FALSE, _client->_absolute_position.x, _client->_absolute_position.y);
 }
 
 void view_notebook_t::_handler_size_changed(MetaWindow * window)
 {
 	/* disable frame resize */
-	meta_window_move_resize_frame(window, FALSE, _client->_absolute_position.x, _client->_absolute_position.y, _client->_absolute_position.w, _client->_absolute_position.h);
+	if (_is_client_owner())
+		meta_window_move_resize_frame(window, FALSE, _client->_absolute_position.x, _client->_absolute_position.y, _client->_absolute_position.w, _client->_absolute_position.h);
 }
 
 void view_notebook_t::xxactivate(xcb_timestamp_t time)
@@ -163,8 +129,6 @@ void view_notebook_t::reconfigure()
 	auto _ctx = _root->_ctx;
 	auto _dpy = _root->_ctx->dpy();
 
-	_damage_cache += get_visible_region();
-
 	_base_position.x = _client->_absolute_position.x;
 	_base_position.y = _client->_absolute_position.y;
 	_base_position.w = _client->_absolute_position.w;
@@ -177,9 +141,6 @@ void view_notebook_t::reconfigure()
 
 	_reconfigure_windows();
 
-	_update_opaque_region();
-	_update_visible_region();
-	_damage_cache += get_visible_region();
 }
 
 //auto view_notebook_t::button_press(xcb_button_press_event_t const * e) -> button_action_e {

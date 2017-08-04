@@ -212,9 +212,9 @@ void popup_notebook0_t::_paint_exposed() {
 
 }
 
-xcb_window_t popup_notebook0_t::get_toplevel_xid() const {
-	return _wid;
-}
+//xcb_window_t popup_notebook0_t::get_toplevel_xid() const {
+//	return _wid;
+//}
 
 void popup_notebook0_t::expose(xcb_expose_event_t const * ev) {
 	if(ev->window == _wid)
