@@ -88,6 +88,7 @@ void view_t::move_all_window()
 				_client->_absolute_position.x, _client->_absolute_position.y,
 				_client->_absolute_position.w, _client->_absolute_position.h);
 	} else {
+		log::printf("minimize %p\n", _client->meta_window());
 		meta_window_minimize(_client->_meta_window);
 	}
 
@@ -158,7 +159,7 @@ void view_t::on_workspace_enable()
 void view_t::on_workspace_disable()
 {
 	if (_is_client_owner()) {
-		clutter_actor_hide(CLUTTER_ACTOR(_client->meta_window_actor()));
+		log::printf("minimize %p\n", _client->meta_window());
 		meta_window_minimize(_client->meta_window());
 	}
 }

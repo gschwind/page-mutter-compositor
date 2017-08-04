@@ -91,26 +91,6 @@ void page_t::set_keybinding_custom_helper(char const * name, key_handler_func fu
 	meta_keybindings_set_custom_handler(name, &page_t::_handler_key_binding::call, tranpoline, [](gpointer userdata) { delete reinterpret_cast<_handler_key_binding*>(userdata); });
 }
 
-void page_t::_handler_key_switch_to_workspace_down(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
-{
-	log::printf("call %s\n", __PRETTY_FUNCTION__);
-	auto from = current_workspace()->_meta_workspace;
-	auto to = meta_workspace_get_neighbor(from, META_MOTION_LEFT);
-	if (to != NULL) {
-		meta_compositor_switch_workspace(meta_display_get_compositor(_display), from, to, META_MOTION_DOWN);
-	}
-}
-
-void page_t::_handler_key_switch_to_workspace_up(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
-{
-	log::printf("call %s\n", __PRETTY_FUNCTION__);
-	auto from = current_workspace()->_meta_workspace;
-	auto to = meta_workspace_get_neighbor(from, META_MOTION_RIGHT);
-	if (to != NULL) {
-		meta_compositor_switch_workspace(meta_display_get_compositor(_display), from, to, META_MOTION_DOWN);
-	}
-}
-
 void page_t::_handler_key_make_notebook_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
@@ -379,7 +359,7 @@ void page_t::_handler_plugin_start()
 		meta_workspace_get_work_area_all_monitors(meta_workspace, &area);
 	}
 
-	_current_workspace = _workspace_list[0];
+	_current_workspace = lookup_workspace(meta_screen_get_active_workspace(_screen));
 
 	_theme->update(area.width, area.height);
 
@@ -426,9 +406,6 @@ void page_t::_handler_plugin_start()
 //	g_signal_connect(rect, "button-press-event", G_CALLBACK(on_button_press_event), NULL);
 //	g_signal_connect(rect, "button-release-event", G_CALLBACK(on_button_release_event), NULL);
 
-	set_keybinding_custom_helper("switch-to-workspace-down", &page_t::_handler_key_switch_to_workspace_down);
-	set_keybinding_custom_helper("switch-to-workspace-up", &page_t::_handler_key_switch_to_workspace_up);
-
 	GSettings * setting_keybindings = g_settings_new("net.hzog.page.keybindings");
 	add_keybinding_helper(setting_keybindings, "make-notebook-window", &page_t::_handler_key_make_notebook_window);
 	add_keybinding_helper(setting_keybindings, "make-fullscreen-window", &page_t::_handler_key_make_fullscreen_window);
@@ -462,6 +439,7 @@ void page_t::_handler_plugin_start()
 
 
 	update_viewport_layout();
+	update_workspace_visibility(0);
 	sync_tree_view();
 
 }
@@ -469,6 +447,7 @@ void page_t::_handler_plugin_start()
 void page_t::_handler_plugin_minimize(MetaWindowActor * actor)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
+	log::printf("meta_window = %p\n", meta_window_actor_get_meta_window(actor));
 
 	auto mw = lookup_client_managed_with(actor);
 	if (not mw) {
@@ -499,7 +478,7 @@ void page_t::_handler_plugin_size_change(MetaWindowActor * window_actor, MetaSiz
 
 	log::printf("olf_frame_rect x=%d, y=%d, w=%d, h=%d\n", old_frame_rect->x, old_frame_rect->y, old_frame_rect->width, old_frame_rect->height);
 	log::printf("old_buffer_rect x=%d, y=%d, w=%d, h=%d\n", old_buffer_rect->x, old_buffer_rect->y, old_buffer_rect->width, old_buffer_rect->height);
-
+	log::printf("meta_window = %p\n", meta_window_actor_get_meta_window(window_actor));
 	switch(which_change) {
 	case META_SIZE_CHANGE_MAXIMIZE:
 		log::printf("META_SIZE_CHANGE_MAXIMIZE\n");

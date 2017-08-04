@@ -192,8 +192,6 @@ private:
 	void add_keybinding_helper(GSettings * settings, char const * name, key_handler_func func);
 	void set_keybinding_custom_helper(char const * name, key_handler_func func);
 
-	void _handler_key_switch_to_workspace_down(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
-	void _handler_key_switch_to_workspace_up(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
 	void _handler_key_make_notebook_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
 	void _handler_key_make_fullscreen_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);
 	void _handler_key_make_floating_window(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding);

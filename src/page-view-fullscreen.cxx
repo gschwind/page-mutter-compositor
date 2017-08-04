@@ -95,9 +95,9 @@ void view_fullscreen_t::reconfigure()
 	if (_root->is_enable() and _is_visible) {
 		if (not meta_window_is_fullscreen(_client->meta_window()))
 			meta_window_make_fullscreen(_client->meta_window());
-		clutter_actor_show(CLUTTER_ACTOR(_client->meta_window_actor()));
 	} else {
-
+		log::printf("minimize %p\n", _client->meta_window());
+		meta_window_minimize(_client->meta_window());
 	}
 
 }

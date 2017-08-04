@@ -480,12 +480,13 @@ void workspace_t::switch_notebook_to_fullscreen(view_notebook_p vn, xcb_timestam
 	auto v = _find_viewport_of(vn);
 	auto nbk = vn->parent_notebook();
 	assert(nbk != nullptr);
-	nbk->remove_view_notebook(vn);
 	auto vf = make_shared<view_fullscreen_t>(vn.get(), v);
-	vf->revert_type = MANAGED_NOTEBOOK;
-	vf->revert_notebook = nbk;
 	if(v->_root->is_enable())
 		vf->acquire_client();
+
+	nbk->remove_view_notebook(vn);
+	vf->revert_type = MANAGED_NOTEBOOK;
+	vf->revert_notebook = nbk;
 	_insert_view_fullscreen(vf, time);
 }
 

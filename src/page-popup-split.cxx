@@ -92,8 +92,9 @@ popup_split_t::~popup_split_t() {
 	clutter_actor_remove_child(_ctx->_overlay_group, _actor[0]);
 	clutter_actor_remove_child(_ctx->_overlay_group, _actor[1]);
 
-	g_object_unref(_actor[0]);
-	g_object_unref(_actor[1]);
+	// Not needed ??
+	//clutter_actor_destroy(_actor[0]);
+	//clutter_actor_destroy(_actor[1]);
 }
 
 void popup_split_t::update_layout() {

@@ -131,6 +131,7 @@ void view_rebased_t::_reconfigure_windows()
 		//clutter_actor_show(CLUTTER_ACTOR(_client->meta_window_actor()));
 		log::printf("%s\n", _client->_absolute_position.to_string().c_str());
 	} else {
+		log::printf("minimize %p\n", _client->meta_window());
 		meta_window_minimize(_client->meta_window());
 	}
 
@@ -199,6 +200,7 @@ void view_rebased_t::on_workspace_disable()
 	auto _ctx = _root->_ctx;
 	auto _dpy = _root->_ctx->dpy();
 	if (_is_client_owner()) {
+		log::printf("minimize %p\n", _client->meta_window());
 		meta_window_minimize(_client->meta_window());
 	}
 }
