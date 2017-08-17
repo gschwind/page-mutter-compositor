@@ -160,6 +160,11 @@ struct i_rect_t {
 		return ret;
 	}
 
+	operator MetaRectangle() {
+		MetaRectangle ret = {x, y, w, h};
+		return ret;
+	}
+
 };
 
 //typedef i_rect_t<double> i_rect;

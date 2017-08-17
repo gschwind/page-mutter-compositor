@@ -37,6 +37,8 @@ view_notebook_t::view_notebook_t(tree_t * ref, client_managed_p client) :
 
 	g_object_set(G_OBJECT(_client->meta_window_actor()), "no-shadow", TRUE, NULL);
 //	meta_window_maximize(_client->meta_window(), META_MAXIMIZE_BOTH);
+	MetaRectangle rect = _client->_absolute_position;
+	meta_window_make_tiled(_client->meta_window(), &rect);
 
 }
 
