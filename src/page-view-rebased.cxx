@@ -124,7 +124,7 @@ void view_rebased_t::_reconfigure_windows()
 		return;
 
 	if (_is_visible and _root->is_enable()) {
-		if(meta_window_is_fullscreen(_client->meta_window()))
+		if (meta_window_is_fullscreen(_client->meta_window()))
 			meta_window_unmake_fullscreen(_client->meta_window());
 		meta_window_unminimize(_client->meta_window());
 		meta_window_move_resize_frame(_client->_meta_window, FALSE, _client->_absolute_position.x, _client->_absolute_position.y, _client->_absolute_position.w, _client->_absolute_position.h);

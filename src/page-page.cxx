@@ -1,7 +1,7 @@
 /*
  * page.cxx
  *
- * copyright (2010-2015) Benoit Gschwind
+ * copyright (2010-2017) Benoit Gschwind
  *
  * This code is licensed under the GPLv3. see COPYING file for more details.
  *
@@ -436,6 +436,7 @@ void page_t::_handler_plugin_start()
 	g_connect(_display, "modifiers-accelerator-activated", &page_t::_handler_meta_display_modifiers_accelerator_activated);
 	g_connect(_display, "overlay-key", &page_t::_handler_meta_display_overlay_key);
 	g_connect(_display, "restart", &page_t::_handler_meta_display_restart);
+	g_connect(_display, "window-created", &page_t::_handler_meta_display_window_created);
 
 
 	update_viewport_layout();
@@ -472,13 +473,22 @@ void page_t::_handler_plugin_unminimize(MetaWindowActor * actor)
 	meta_plugin_unminimize_completed(_plugin, actor);
 }
 
-void page_t::_handler_plugin_size_change(MetaWindowActor * window_actor, MetaSizeChange which_change, MetaRectangle * old_frame_rect, MetaRectangle * old_buffer_rect)
+void page_t::_handler_plugin_size_changed(MetaWindowActor * window_actor)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+}
+
+void page_t::_handler_plugin_size_change(MetaWindowActor * window_actor, MetaSizeChange const which_change, MetaRectangle * old_frame_rect, MetaRectangle * old_buffer_rect)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
+	auto meta_window = meta_window_actor_get_meta_window(window_actor);
 	log::printf("olf_frame_rect x=%d, y=%d, w=%d, h=%d\n", old_frame_rect->x, old_frame_rect->y, old_frame_rect->width, old_frame_rect->height);
 	log::printf("old_buffer_rect x=%d, y=%d, w=%d, h=%d\n", old_buffer_rect->x, old_buffer_rect->y, old_buffer_rect->width, old_buffer_rect->height);
-	log::printf("meta_window = %p\n", meta_window_actor_get_meta_window(window_actor));
+	log::printf("meta_window = %p\n", meta_window);
+	MetaRectangle new_rect;
+	meta_window_get_frame_rect(meta_window, &new_rect);
+	log::printf("new_frame_rect x=%d, y=%d, w=%d, h=%d\n", new_rect.x, new_rect.y, new_rect.width, new_rect.height);
 	switch(which_change) {
 	case META_SIZE_CHANGE_MAXIMIZE:
 		log::printf("META_SIZE_CHANGE_MAXIMIZE\n");
@@ -513,6 +523,7 @@ void page_t::_handler_plugin_size_change(MetaWindowActor * window_actor, MetaSiz
 	}
 		break;
 	default:
+		log::printf("UNKKNOWN %d\n", static_cast<int>(which_change));
 		break;
 	}
 
@@ -623,6 +634,18 @@ auto page_t::_handler_plugin_plugin_info() -> MetaPluginInfo const *
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	PagePluginPrivate *priv = PAGE_PLUGIN(_plugin)->priv;
 	return &priv->info;
+}
+
+auto page_t::_handler_plugin_create_close_dialog(MetaWindow * window) -> MetaCloseDialog *
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+	return NULL;
+}
+
+auto page_t::_handler_plugin_create_inhibit_shortcuts_dialog(MetaWindow * window) -> MetaInhibitShortcutsDialog *
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+	return NULL;
 }
 
 auto page_t::_handler_stage_button_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean
@@ -814,6 +837,11 @@ auto page_t::_handler_meta_display_restart(MetaDisplay * display) -> gboolean
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	return FALSE;
+}
+
+void page_t::_handler_meta_display_window_created(MetaDisplay * display, MetaWindow * window)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 void page_t::unmanage(client_managed_p mw)
@@ -3611,6 +3639,7 @@ void page_t::sync_tree_view()
 	for(auto x: children) {
 		log::printf("raise %p\n", x->_client->meta_window());
 		meta_window_raise(x->_client->meta_window());
+		meta_window_actor_sync_visibility(x->_client->meta_window_actor());
 	}
 
 	guard = false;

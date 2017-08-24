@@ -143,6 +143,8 @@ void view_floating_t::reconfigure() {
 		_orig_position.h = _client->_absolute_position.h;
 	}
 
+	if (meta_window_is_tiled_with_custom_position(_client->meta_window()))
+		meta_window_unmake_tiled_with_custom_position(_client->meta_window());
 	_reconfigure_windows();
 
 }

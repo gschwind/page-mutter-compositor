@@ -972,7 +972,7 @@ struct log {
 	}
 
 	static void printf(char const * str) {
-		std::fprintf(log_file, str);
+		std::fprintf(log_file, "%s", str);
 		std::fflush(log_file);
 	}
 

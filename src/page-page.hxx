@@ -224,7 +224,8 @@ public:
 	void _handler_plugin_start();
 	void _handler_plugin_minimize(MetaWindowActor * actor);
 	void _handler_plugin_unminimize(MetaWindowActor * actor);
-	void _handler_plugin_size_change(MetaWindowActor * window_actor, MetaSizeChange which_change, MetaRectangle * old_frame_rect, MetaRectangle * old_buffer_rect);
+	void _handler_plugin_size_changed(MetaWindowActor * window_actor);
+	void _handler_plugin_size_change(MetaWindowActor * window_actor, MetaSizeChange const which_change, MetaRectangle * old_frame_rect, MetaRectangle * old_buffer_rect);
 	void _handler_plugin_map(MetaWindowActor * window_actor);
 	void _handler_plugin_destroy(MetaWindowActor * actor);
 	void _handler_plugin_switch_workspace(gint from, gint to, MetaMotionDirection direction);
@@ -238,6 +239,8 @@ public:
 	auto _handler_plugin_keybinding_filter(MetaKeyBinding * binding) -> gboolean;
 	void _handler_plugin_confirm_display_change();
 	auto _handler_plugin_plugin_info() -> MetaPluginInfo const *;
+	auto _handler_plugin_create_close_dialog(MetaWindow * window) -> MetaCloseDialog *;
+	auto _handler_plugin_create_inhibit_shortcuts_dialog(MetaWindow * window) -> MetaInhibitShortcutsDialog *;
 
 
 	/* scan current root window status, finding mapped windows */
@@ -269,6 +272,7 @@ public:
 	auto _handler_meta_display_modifiers_accelerator_activated(MetaDisplay * display) -> gboolean;
 	void _handler_meta_display_overlay_key(MetaDisplay * display);
 	auto _handler_meta_display_restart(MetaDisplay * display) -> gboolean;
+	void _handler_meta_display_window_created(MetaDisplay * display, MetaWindow * window);
 
 
 

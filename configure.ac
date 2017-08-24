@@ -18,7 +18,7 @@ dnl Check for libs
 GLIB_GSETTINGS
 
 PKG_CHECK_MODULES(MUTTER, [
-	libmutter >= 3.22.4
+	libmutter-1 >= 3.22.4
 ])
 AC_SUBST(MUTTER_CFLAGS)
 AC_SUBST(MUTTER_LIBS)
@@ -37,7 +37,7 @@ PKG_CHECK_MODULES(PANGO, pangocairo >= 0.28)
 AC_SUBST(PANGO_CFLAGS)
 AC_SUBST(PANGO_LIBS)
 
-MUTTER_TYPELIB_DIR=`$PKG_CONFIG --variable=typelibdir libmutter`
+MUTTER_TYPELIB_DIR=`$PKG_CONFIG --variable=typelibdir libmutter-1`
 AC_SUBST(MUTTER_TYPELIB_DIR)
 
 AC_CONFIG_FILES([
