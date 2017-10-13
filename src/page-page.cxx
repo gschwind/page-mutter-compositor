@@ -31,6 +31,7 @@
 
 extern "C" {
 #include <meta/keybindings.h>
+#include <meta/main.h>
 }
 
 #include "page-plugin.hxx"
@@ -135,6 +136,7 @@ void page_t::_handler_key_make_floating_window(MetaDisplay * display, MetaScreen
 void page_t::_handler_key_page_quit(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
+	meta_quit(META_EXIT_SUCCESS);
 }
 
 void page_t::_handler_key_toggle_fullscreen(MetaDisplay * display, MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event, MetaKeyBinding * binding)
@@ -420,6 +422,7 @@ void page_t::_handler_plugin_start()
 	add_keybinding_helper(setting_keybindings, "run-cmd-2", &page_t::_handler_key_run_cmd_2);
 	add_keybinding_helper(setting_keybindings, "run-cmd-3", &page_t::_handler_key_run_cmd_3);
 	add_keybinding_helper(setting_keybindings, "run-cmd-4", &page_t::_handler_key_run_cmd_4);
+	add_keybinding_helper(setting_keybindings, "page-quit", &page_t::_handler_key_page_quit);
 
 	clutter_actor_show(stage);
 
