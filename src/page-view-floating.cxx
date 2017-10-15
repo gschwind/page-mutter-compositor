@@ -54,6 +54,8 @@ void view_floating_t::_init()
 
 	auto _ctx = _root->_ctx;
 
+	g_object_set(G_OBJECT(_client->meta_window_actor()), "no-shadow", FALSE, NULL);
+
 	MetaRectangle xrect;
 	meta_window_get_frame_rect(_client->_meta_window, &xrect);
 	_client->_floating_wished_position = rect(xrect.x, xrect.y, xrect.width,
