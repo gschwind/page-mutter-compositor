@@ -15,7 +15,7 @@
 		<default><![CDATA[['<Super>f']]]></default>
 	</key>
 	
-		<key name="page-quit" type="as">
+	<key name="page-quit" type="as">
 		<default><![CDATA[['<Super>q']]]></default>
 	</key>
 

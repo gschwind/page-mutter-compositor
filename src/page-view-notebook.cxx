@@ -51,6 +51,9 @@ view_notebook_t::view_notebook_t(view_rebased_t * src) :
 
 	g_object_set(G_OBJECT(_client->meta_window_actor()), "no-shadow", TRUE, NULL);
 
+	MetaRectangle rect = _client->_absolute_position;
+	meta_window_make_tiled_with_custom_position(_client->meta_window(), &rect);
+
 }
 
 view_notebook_t::~view_notebook_t()
