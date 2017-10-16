@@ -429,6 +429,8 @@ void page_t::_handler_plugin_start()
 	g_connect(stage, "button-press-event", &page_t::_handler_stage_button_press_event);
 	g_connect(stage, "button-release-event", &page_t::_handler_stage_button_release_event);
 	g_connect(stage, "motion-event", &page_t::_handler_stage_motion_event);
+	g_connect(stage, "key-press-event", &page_t::_handler_stage_key_press_event);
+	g_connect(stage, "key-release-event", &page_t::_handler_stage_key_release_event);
 
 	g_connect(_screen, "monitors-changed", &page_t::_handler_screen_monitors_changed);
 	g_connect(_screen, "workareas-changed", &page_t::_handler_screen_workareas_changed);

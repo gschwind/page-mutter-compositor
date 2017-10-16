@@ -300,6 +300,8 @@ void dropdown_menu_t::key_release(ClutterEvent const * ev) {
 	auto key = clutter_event_get_key_symbol(ev);
 	auto time = clutter_event_get_time(ev);
 
+	log::printf("key release = %d, %d\n", key, XK_Escape);
+
 	if (key == XK_Escape) {
 		_ctx->grab_stop(time);
 	}
