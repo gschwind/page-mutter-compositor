@@ -54,42 +54,46 @@ dropdown_menu_overlay_t::dropdown_menu_overlay_t(tree_t * ref, rect position) :
 {
 	_is_durty = true;
 
-//	xcb_colormap_t cmap = xcb_generate_id(_ctx->dpy()->xcb());
-//	xcb_create_colormap(_ctx->dpy()->xcb(), XCB_COLORMAP_ALLOC_NONE, cmap, _ctx->dpy()->root(), _ctx->dpy()->root_visual()->visual_id);
-//
-//	uint32_t value_mask = 0;
-//	uint32_t value[5];
-//
-//	value_mask |= XCB_CW_BACK_PIXEL;
-//	value[0] = _ctx->dpy()->xcb_screen()->black_pixel;
-//
-//	value_mask |= XCB_CW_BORDER_PIXEL;
-//	value[1] = _ctx->dpy()->xcb_screen()->black_pixel;
-//
-//	value_mask |= XCB_CW_OVERRIDE_REDIRECT;
-//	value[2] = True;
-//
-//	value_mask |= XCB_CW_EVENT_MASK;
-//	value[3] = XCB_EVENT_MASK_EXPOSURE;
-//
-//	value_mask |= XCB_CW_COLORMAP;
-//	value[4] = cmap;
-//
-//	_wid = xcb_generate_id(_ctx->dpy()->xcb());
-//	xcb_create_window(_ctx->dpy()->xcb(), _ctx->dpy()->root_depth(), _wid, _ctx->dpy()->root(), _position.x, _position.y, _position.w, _position.h, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT, _ctx->dpy()->root_visual()->visual_id, value_mask, value);
-//
-//
-//	_pix = xcb_generate_id(_ctx->dpy()->xcb());
-//	xcb_create_pixmap(_ctx->dpy()->xcb(), _ctx->dpy()->root_depth(), _pix, _wid, _position.w, _position.h);
-//	_surf = cairo_xcb_surface_create(_ctx->dpy()->xcb(), _pix, _ctx->dpy()->root_visual(), _position.w, _position.h);
+	_canvas = clutter_canvas_new();
+	g_object_ref_sink(_canvas);
+	clutter_canvas_set_size(CLUTTER_CANVAS(_canvas), _position.w, _position.h);
+
+	_default_view = clutter_actor_new();
+	g_object_ref_sink(_default_view);
+	clutter_actor_set_content(_default_view, _canvas);
+	clutter_actor_set_content_scaling_filters(_default_view,
+			CLUTTER_SCALING_FILTER_NEAREST, CLUTTER_SCALING_FILTER_NEAREST);
+	clutter_actor_set_reactive (_default_view, TRUE);
+
+	g_connect(CLUTTER_CANVAS(_canvas), "draw", &dropdown_menu_overlay_t::draw);
+//	g_connect(CLUTTER_ACTOR(_default_view), "button-press-event", &dropdown_menu_overlay_t::_handler_button_press_event);
+//	g_connect(CLUTTER_ACTOR(_default_view), "button-release-event", &dropdown_menu_overlay_t::_handler_button_release_event);
+//	g_connect(CLUTTER_ACTOR(_default_view), "motion-event", &dropdown_menu_overlay_t::_handler_motion_event);
+//	g_connect(CLUTTER_ACTOR(_default_view), "enter-event", &dropdown_menu_overlay_t::_handler_enter_event);
+//	g_connect(CLUTTER_ACTOR(_default_view), "leave-event", &dropdown_menu_overlay_t::_handler_leave_event);
+
+	clutter_content_invalidate(_canvas);
+	clutter_actor_set_position(_default_view, _position.x, _position.y);
+	clutter_actor_set_size(_default_view, _position.w, _position.h);
+	clutter_actor_add_child(_ctx->_overlay_group, _default_view);
+	clutter_actor_show(_default_view);
+	_ctx->schedule_repaint();
 
 }
 
 dropdown_menu_overlay_t::~dropdown_menu_overlay_t()
 {
-//	cairo_surface_destroy(_surf);
-//	xcb_free_pixmap(_ctx->dpy()->xcb(), _pix);
-//	xcb_destroy_window(_ctx->dpy()->xcb(), _wid);
+	clutter_actor_remove_child(_ctx->_overlay_group, _default_view);
+	g_object_unref(_canvas);
+	g_object_unref(_default_view);
+}
+
+gboolean dropdown_menu_overlay_t::wrapper_draw_callback(ClutterCanvas *canvas, cairo_t *cr, int width,
+		int height, gpointer user_data)
+{
+	auto dropdown_menu = reinterpret_cast<dropdown_menu_overlay_t*>(user_data);
+	dropdown_menu->draw(canvas, cr, width, height);
+	return FALSE;
 }
 
 void dropdown_menu_overlay_t::map()
@@ -100,11 +104,6 @@ void dropdown_menu_overlay_t::map()
 rect const & dropdown_menu_overlay_t::position()
 {
 	return _position;
-}
-
-xcb_window_t dropdown_menu_overlay_t::id() const
-{
-	return _wid;
 }
 
 void dropdown_menu_overlay_t::expose()
@@ -122,6 +121,21 @@ void dropdown_menu_overlay_t::expose()
 
 void dropdown_menu_overlay_t::expose(region const & r)
 {
+	clutter_content_invalidate(_canvas);
+}
+
+void dropdown_menu_overlay_t::draw(ClutterCanvas * canvas, cairo_t * cr, int width, int height)
+{
+	on_draw.signal(canvas, cr, width, height);
+}
+
+/**
+ * draw the area of a renderable to the destination surface
+ * @param cr the destination surface context
+ * @param area the area to redraw
+ **/
+void dropdown_menu_overlay_t::render(cairo_t * cr, region const & area)
+{
 //	cairo_surface_t * surf = cairo_xcb_surface_create(_ctx->dpy()->xcb(), _wid, _ctx->dpy()->root_visual(), _position.w, _position.h);
 //	cairo_t * cr = cairo_create(surf);
 //	for(auto a: r.rects()) {
@@ -134,25 +148,17 @@ void dropdown_menu_overlay_t::expose(region const & r)
 //	cairo_surface_destroy(surf);
 }
 
-/**
- * draw the area of a renderable to the destination surface
- * @param cr the destination surface context
- * @param area the area to redraw
- **/
-void dropdown_menu_overlay_t::render(cairo_t * cr, region const & area)
-{
-
-}
-
 void dropdown_menu_overlay_t::expose(xcb_expose_event_t const * ev)
 {
-	if(ev->window != _wid)
-		return;
-	expose(region(ev->x, ev->y, ev->width, ev->height));
+//	if(ev->window != _wid)
+//		return;
+//	expose(region(ev->x, ev->y, ev->width, ev->height));
 }
 
-
-
+auto dropdown_menu_overlay_t::get_default_view() const -> ClutterActor *
+{
+	return _default_view;
+}
 
 dropdown_menu_t::dropdown_menu_t(tree_t * ref,
 		vector<shared_ptr<item_t>> items, xcb_button_t button, int x, int y,
@@ -174,17 +180,18 @@ dropdown_menu_t::dropdown_menu_t(tree_t * ref,
 	_position.h = 24*_items.size();
 
 	pop = make_shared<dropdown_menu_overlay_t>(ref, _position);
-	update_backbuffer();
+	connect(pop->on_draw, this, &dropdown_menu_t::draw);
 	pop->map();
 
-	_ctx->overlay_add(pop);
+	//_ctx->overlay_add(pop);
 
 }
 
 dropdown_menu_t::~dropdown_menu_t()
 {
 	_ctx->schedule_repaint();
-	pop->detach_myself();
+	//pop->detach_myself();
+	pop = nullptr;
 }
 
 int dropdown_menu_t::selected()
@@ -200,16 +207,24 @@ xcb_timestamp_t dropdown_menu_t::time()
 void dropdown_menu_t::update_backbuffer()
 {
 
-	cairo_t * cr = cairo_create(pop->_surf);
+//	cairo_t * cr = cairo_create(pop->_surf);
+//
+//	for (unsigned k = 0; k < _items.size(); ++k) {
+//		update_items_back_buffer(cr, k);
+//	}
+//
+//	cairo_destroy(cr);
+//
+//	pop->expose(rect(0,0,pop->_position.w,pop->_position.h));
 
+}
+
+void dropdown_menu_t::draw(ClutterCanvas * canvas, cairo_t * cr, int width, int height)
+{
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	for (unsigned k = 0; k < _items.size(); ++k) {
 		update_items_back_buffer(cr, k);
 	}
-
-	cairo_destroy(cr);
-
-	pop->expose(rect(0,0,pop->_position.w,pop->_position.h));
-
 }
 
 void dropdown_menu_t::update_items_back_buffer(cairo_t * cr, int n)
@@ -224,14 +239,13 @@ void dropdown_menu_t::set_selected(int s)
 {
 	if(s >= 0 and s < _items.size() and s != _selected) {
 		std::swap(_selected, s);
-		cairo_t * cr = cairo_create(pop->_surf);
-		update_items_back_buffer(cr, _selected);
-		update_items_back_buffer(cr, s);
-		cairo_destroy(cr);
-		pop->_is_durty = true;
-
+//		cairo_t * cr = cairo_create(pop->_surf);
+//		update_items_back_buffer(cr, _selected);
+//		update_items_back_buffer(cr, s);
+//		cairo_destroy(cr);
+//		pop->_is_durty = true;
+//
 		pop->expose(rect(0,0,pop->_position.w,pop->_position.h));
-
 	}
 }
 
@@ -245,12 +259,13 @@ void dropdown_menu_t::update_cursor_position(int x, int y)
 
 void dropdown_menu_t::button_press(ClutterEvent const * e)
 {
-
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 }
 
 
 void dropdown_menu_t::button_motion(ClutterEvent const * e)
 {
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	gfloat x, y;
 	clutter_event_get_coords(e, &x, &y);
 	update_cursor_position(x, y);
@@ -258,29 +273,38 @@ void dropdown_menu_t::button_motion(ClutterEvent const * e)
 
 void dropdown_menu_t::button_release(ClutterEvent const * e)
 {
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
 	gfloat x, y;
 	clutter_event_get_coords(e, &x, &y);
 	auto button = clutter_event_get_button(e);
 	auto time = clutter_event_get_time(e);
 
-	if (button == 3 or button == 1) {
-		if(not pop->_position.is_inside(x, y)) {
-			if(has_been_released) {
-				_ctx->grab_stop(time);
-			} else {
-				has_been_released = true;
-			}
-		} else {
-			update_cursor_position(x, y);
-			_time = time;
-			_items[_selected]->_on_click(time);
+	log::printf("button=%d\n", button);
+
+	if(not pop->_position.is_inside(x, y)) {
+		if(has_been_released) {
 			_ctx->grab_stop(time);
+		} else {
+			has_been_released = true;
 		}
+	} else {
+		update_cursor_position(x, y);
+		_time = time;
+		_items[_selected]->_on_click(time);
+		_ctx->grab_stop(time);
 	}
 }
 
 void dropdown_menu_t::key_press(ClutterEvent const * ev) { }
-void dropdown_menu_t::key_release(ClutterEvent const * ev) { }
+void dropdown_menu_t::key_release(ClutterEvent const * ev) {
+	auto key = clutter_event_get_key_symbol(ev);
+	auto time = clutter_event_get_time(ev);
+
+	if (key == XK_Escape) {
+		_ctx->grab_stop(time);
+	}
+
+}
 
 
 

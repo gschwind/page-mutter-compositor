@@ -485,6 +485,8 @@ public:
 	void activate(view_p c, xcb_timestamp_t time);
 	void sync_tree_view();
 
+	bool has_grab_handler();
+
 };
 
 

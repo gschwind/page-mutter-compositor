@@ -3649,5 +3649,10 @@ void page_t::sync_tree_view()
 
 }
 
+bool page_t::has_grab_handler()
+{
+	return (_grab_handler != nullptr);
+}
+
 }
 

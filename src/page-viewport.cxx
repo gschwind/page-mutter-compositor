@@ -232,7 +232,8 @@ auto viewport_t::_handler_button_press_event(ClutterActor * actor, ClutterEvent 
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
-	broadcast_button_press(event);
+	if (not _root->_ctx->has_grab_handler())
+		broadcast_button_press(event);
 
 	return FALSE;
 }
@@ -241,7 +242,8 @@ auto viewport_t::_handler_button_release_event(ClutterActor * actor, ClutterEven
 {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
 
-	broadcast_button_release(event);
+	if (not _root->_ctx->has_grab_handler())
+		broadcast_button_release(event);
 
 	return FALSE;
 }

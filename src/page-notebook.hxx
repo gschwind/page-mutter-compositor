@@ -155,7 +155,7 @@ class notebook_t : public page_component_t {
 
 	void _update_exposay();
 	void _stop_exposay();
-	void _start_client_menu(view_notebook_p c, xcb_button_t button, uint16_t x, uint16_t y, xcb_timestamp_t time);
+	void _start_client_menu(view_notebook_p c, xcb_button_t button, gfloat x, gfloat y, xcb_timestamp_t time);
 
 	void _scroll_left(int x);
 	void _scroll_right(int x);

@@ -48,14 +48,19 @@ public:
 
 struct dropdown_menu_overlay_t : public tree_t {
 	page_t * _ctx;
-	xcb_pixmap_t _pix;
-	cairo_surface_t * _surf;
 	rect _position;
-	xcb_window_t _wid;
 	bool _is_durty;
+
+	ClutterContent * _canvas;
+	ClutterActor * _default_view;
+
+	signal_t<ClutterCanvas *, cairo_t *, int, int> on_draw;
 
 	dropdown_menu_overlay_t(tree_t * root, rect position);
 	~dropdown_menu_overlay_t();
+
+	static gboolean wrapper_draw_callback(ClutterCanvas *canvas, cairo_t *cr, int width, int height, gpointer user_data);
+
 	void map();
 	rect const & position();
 	xcb_window_t id() const;
@@ -63,16 +68,16 @@ struct dropdown_menu_overlay_t : public tree_t {
 	void expose();
 	void expose(region const & r);
 
+	void draw(ClutterCanvas * canvas, cairo_t * cr, int width, int height);
+
 	virtual void render(cairo_t * cr, region const & area) override;
 	virtual void expose(xcb_expose_event_t const * ev) override;
 
+	virtual auto get_default_view() const -> ClutterActor * override;
+
 };
 
-class dropdown_menu_t : public grab_handler_t {
-	static uint32_t const DEFAULT_BUTTON_EVENT_MASK =
-			 XCB_EVENT_MASK_BUTTON_PRESS
-			|XCB_EVENT_MASK_BUTTON_RELEASE
-			|XCB_EVENT_MASK_BUTTON_MOTION;
+class dropdown_menu_t : public grab_handler_t, public connectable_t {
 
 public:
 	using item_t = dropdown_menu_entry_t;
@@ -97,6 +102,8 @@ public:
 	xcb_timestamp_t time();
 
 	void update_backbuffer();
+	void draw(ClutterCanvas * canvas, cairo_t * cr, int width, int height);
+
 	void update_items_back_buffer(cairo_t * cr, int n);
 	void set_selected(int s);
 	void update_cursor_position(int x, int y);
