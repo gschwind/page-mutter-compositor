@@ -1,7 +1,7 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = src gschemas
+SUBDIRS = gschemas mutter src
 
 applicationsdatadir = $(datadir)/applications
 

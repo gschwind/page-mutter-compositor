@@ -2,8 +2,45 @@ bin_PROGRAMS = page-mutter-compositor
 
 AM_CXXFLAGS =  \
 	-fpermissive \
-	-Ipage/ \
-	@MUTTER_CFLAGS@
+	-Ipage \
+	@CAIRO_CFLAGS@ \
+	@MUTTER_CFLAGS@ \
+	-DCLUTTER_ENABLE_COMPOSITOR_API					\
+	-DCLUTTER_ENABLE_EXPERIMENTAL_API				\
+	-DCOGL_ENABLE_EXPERIMENTAL_API					\
+	-DCOGL_ENABLE_EXPERIMENTAL_2_0_API                              \
+	-DCOGL_ENABLE_MUTTER_API					\
+	-DCLUTTER_DISABLE_DEPRECATION_WARNINGS				\
+	-DCOGL_DISABLE_DEPRECATION_WARNINGS				\
+	$(MUTTER_CFLAGS)						\
+	$(MUTTER_NATIVE_BACKEND_CFLAGS)					\
+	-I$(builddir)							\
+	-I$(srcdir)/mutter							\
+	-I$(srcdir)/mutter/backends						\
+	-I$(srcdir)/mutter/core						\
+	-I$(srcdir)/mutter/ui							\
+	-I$(srcdir)/mutter/compositor						\
+	-I$(top_srcdir)/mutter/src						\
+	-I$(top_srcdir)/mutter/cogl						\
+	-I$(top_srcdir)/mutter/cogl/cogl					\
+	-I$(top_srcdir)/mutter/cogl/cogl/winsys				\
+	-I$(top_builddir)/mutter/cogl/cogl					\
+	-I$(top_builddir)/mutter/cogl						\
+	-I$(top_srcdir)/mutter/clutter						\
+	-I$(top_srcdir)/mutter/clutter/clutter					\
+	-I$(top_builddir)/mutter/clutter					\
+	-I$(top_builddir)/mutter/clutter/clutter				\
+	-DMUTTER_LIBEXECDIR=\"$(libexecdir)\"				\
+	-DMUTTER_LOCALEDIR=\"$(localedir)\"				\
+	-DMUTTER_PKGDATADIR=\"$(pkgdatadir)\"				\
+	-DMUTTER_DATADIR=\"$(datadir)\"					\
+	-DG_LOG_DOMAIN=\"pxmutter\"					\
+	-DSN_API_NOT_YET_FROZEN=1					\
+	-DMUTTER_PKGLIBDIR=\"$(pkglibdir)\"				\
+	-DMUTTER_PLUGIN_DIR=\"$(MUTTER_PLUGIN_DIR)\"			\
+	-DGETTEXT_PACKAGE=\"$(GETTEXT_PACKAGE)\"			\
+	-DXWAYLAND_PATH=\"$(XWAYLAND_PATH)\"				\
+	$(NULL)
 
 page_mutter_compositor_SOURCES = \
 	page-client-managed.hxx \
@@ -70,6 +107,8 @@ page_mutter_compositor_SOURCES = \
 	main.cxx 
 
 page_mutter_compositor_LDADD = \
+	$(top_builddir)/mutter/src/libpxmutter-@LIBMUTTER_API_VERSION@.la
+	@CAIRO_LIBS@ \
 	@MUTTER_LIBS@
 page_mutter_compositor_LDFLAGS = \
 	-rpath @MUTTER_TYPELIB_DIR@ 
