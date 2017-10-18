@@ -1,0 +1,3 @@
+[submodule "mutter"]
+	path = mutter
+	url = git@github.com:gschwind/mutter.git
