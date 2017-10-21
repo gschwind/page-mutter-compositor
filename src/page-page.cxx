@@ -3603,7 +3603,7 @@ void page_t::schedule_repaint(int64_t timeout)
 //		_dpy->change_alarm_delay(frame_alarm, 32);
 //	}
 
-	auto stage = meta_get_window_group_for_screen(_screen);
+	auto stage = meta_get_stage_for_screen(_screen);
 	clutter_actor_queue_redraw(stage);
 }
 

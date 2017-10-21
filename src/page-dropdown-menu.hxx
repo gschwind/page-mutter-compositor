@@ -59,8 +59,6 @@ struct dropdown_menu_overlay_t : public tree_t {
 	dropdown_menu_overlay_t(tree_t * root, rect position);
 	~dropdown_menu_overlay_t();
 
-	static gboolean wrapper_draw_callback(ClutterCanvas *canvas, cairo_t *cr, int width, int height, gpointer user_data);
-
 	void map();
 	rect const & position();
 	xcb_window_t id() const;

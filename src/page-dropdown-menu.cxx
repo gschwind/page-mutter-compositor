@@ -57,6 +57,7 @@ dropdown_menu_overlay_t::dropdown_menu_overlay_t(tree_t * ref, rect position) :
 	_canvas = clutter_canvas_new();
 	g_object_ref_sink(_canvas);
 	clutter_canvas_set_size(CLUTTER_CANVAS(_canvas), _position.w, _position.h);
+	g_connect(CLUTTER_CANVAS(_canvas), "draw", &dropdown_menu_overlay_t::draw);
 
 	_default_view = clutter_actor_new();
 	g_object_ref_sink(_default_view);
@@ -65,19 +66,10 @@ dropdown_menu_overlay_t::dropdown_menu_overlay_t(tree_t * ref, rect position) :
 			CLUTTER_SCALING_FILTER_NEAREST, CLUTTER_SCALING_FILTER_NEAREST);
 	clutter_actor_set_reactive (_default_view, TRUE);
 
-	g_connect(CLUTTER_CANVAS(_canvas), "draw", &dropdown_menu_overlay_t::draw);
-//	g_connect(CLUTTER_ACTOR(_default_view), "button-press-event", &dropdown_menu_overlay_t::_handler_button_press_event);
-//	g_connect(CLUTTER_ACTOR(_default_view), "button-release-event", &dropdown_menu_overlay_t::_handler_button_release_event);
-//	g_connect(CLUTTER_ACTOR(_default_view), "motion-event", &dropdown_menu_overlay_t::_handler_motion_event);
-//	g_connect(CLUTTER_ACTOR(_default_view), "enter-event", &dropdown_menu_overlay_t::_handler_enter_event);
-//	g_connect(CLUTTER_ACTOR(_default_view), "leave-event", &dropdown_menu_overlay_t::_handler_leave_event);
-
-	clutter_content_invalidate(_canvas);
 	clutter_actor_set_position(_default_view, _position.x, _position.y);
 	clutter_actor_set_size(_default_view, _position.w, _position.h);
 	clutter_actor_add_child(_ctx->_overlay_group, _default_view);
 	clutter_actor_show(_default_view);
-	_ctx->schedule_repaint();
 
 }
 
@@ -86,14 +78,6 @@ dropdown_menu_overlay_t::~dropdown_menu_overlay_t()
 	clutter_actor_remove_child(_ctx->_overlay_group, _default_view);
 	g_object_unref(_canvas);
 	g_object_unref(_default_view);
-}
-
-gboolean dropdown_menu_overlay_t::wrapper_draw_callback(ClutterCanvas *canvas, cairo_t *cr, int width,
-		int height, gpointer user_data)
-{
-	auto dropdown_menu = reinterpret_cast<dropdown_menu_overlay_t*>(user_data);
-	dropdown_menu->draw(canvas, cr, width, height);
-	return FALSE;
 }
 
 void dropdown_menu_overlay_t::map()
@@ -181,16 +165,18 @@ dropdown_menu_t::dropdown_menu_t(tree_t * ref,
 
 	pop = make_shared<dropdown_menu_overlay_t>(ref, _position);
 	connect(pop->on_draw, this, &dropdown_menu_t::draw);
-	pop->map();
+//	pop->map();
 
+//	_ctx->schedule_repaint();
+	pop->expose(rect(0,0,pop->_position.w,pop->_position.h));
 	//_ctx->overlay_add(pop);
 
 }
 
 dropdown_menu_t::~dropdown_menu_t()
 {
-	_ctx->schedule_repaint();
-	//pop->detach_myself();
+//	_ctx->schedule_repaint();
+//	//pop->detach_myself();
 	pop = nullptr;
 }
 
