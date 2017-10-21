@@ -66,11 +66,13 @@ private:
 	bool _is_enable;
 
 	void _fix_view_floating_position();
+	void _init();
 
 public:
 	view_w _net_active_window;
 
 	workspace_t(page_t * ctx, MetaWorkspace * workspace);
+	workspace_t(page_t * ctx, guint time);
 	workspace_t(workspace_t const & v) = delete;
 	workspace_t & operator= (workspace_t const &) = delete;
 

@@ -988,7 +988,7 @@ void notebook_t::_start_client_menu(view_notebook_p c, xcb_button_t button, gflo
 
 	{
 		auto func = [this, c] (xcb_timestamp_t t) {
-			_ctx->create_workspace();
+			_ctx->create_workspace(t);
 			auto selected = _ctx->get_workspace_count()-1;
 			//c->_client->set_current_workspace(selected);
 			c->remove_this_view();

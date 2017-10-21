@@ -461,7 +461,7 @@ public:
 	auto current_workspace() const -> workspace_p const &;
 	auto get_workspace(int id) const -> workspace_p const &;
 	int  get_workspace_count() const;
-	void create_workspace();
+	void create_workspace(guint time);
 	void grab_start(shared_ptr<grab_handler_t> handler, guint32 time);
 	void grab_stop(guint32 time);
 	void insert_window_in_notebook(shared_ptr<client_managed_t> x, shared_ptr<notebook_t> n, bool prefer_activate);

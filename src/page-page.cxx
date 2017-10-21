@@ -3495,8 +3495,8 @@ int page_t::get_workspace_count() const {
 	return _workspace_list.size();
 }
 
-void page_t::create_workspace() {
-	auto d = make_shared<workspace_t>(this, _workspace_list.size());
+void page_t::create_workspace(guint time) {
+	auto d = make_shared<workspace_t>(this, time);
 	_workspace_list.push_back(d);
 	d->disable();
 	d->show();

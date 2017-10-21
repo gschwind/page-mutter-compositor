@@ -54,19 +54,8 @@ void workspace_t::_fix_view_floating_position()
 		}
 	}
 }
-
-workspace_t::workspace_t(page_t * ctx, MetaWorkspace * workspace) :
-	tree_t{this},
-	_ctx{ctx},
-	//_allocation{},
-	_default_pop{},
-	_workarea{},
-	_primary_viewport{},
-	_switch_direction{WORKSPACE_SWITCH_LEFT},
-	_is_enable{false},
-	_meta_workspace{workspace}
+void workspace_t::_init()
 {
-
 	_stack_is_locked = true;
 
 	_viewport_layer = make_shared<tree_t>(this);
@@ -89,7 +78,35 @@ workspace_t::workspace_t(page_t * ctx, MetaWorkspace * workspace) :
 	push_back(_unknown_layer);
 
 	set_to_default_name();
+}
 
+workspace_t::workspace_t(page_t * ctx, MetaWorkspace * workspace) :
+	tree_t{this},
+	_ctx{ctx},
+	//_allocation{},
+	_default_pop{},
+	_workarea{},
+	_primary_viewport{},
+	_switch_direction{WORKSPACE_SWITCH_LEFT},
+	_is_enable{false},
+	_meta_workspace{workspace}
+{
+	_init();
+}
+
+workspace_t::workspace_t(page_t * ctx, guint32 time) :
+	tree_t{this},
+	_ctx{ctx},
+	//_allocation{},
+	_default_pop{},
+	_workarea{},
+	_primary_viewport{},
+	_switch_direction{WORKSPACE_SWITCH_LEFT},
+	_is_enable{false},
+	_meta_workspace{nullptr}
+{
+	_meta_workspace = meta_screen_append_new_workspace(ctx->_screen, FALSE, time);
+	_init();
 }
 
 workspace_t::~workspace_t()
