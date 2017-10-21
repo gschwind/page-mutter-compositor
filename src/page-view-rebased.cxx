@@ -123,6 +123,8 @@ void view_rebased_t::_reconfigure_windows()
 	if(not _is_client_owner())
 		return;
 
+	meta_window_change_workspace(_client->meta_window(), _root->_meta_workspace);
+
 	if (_is_visible and _root->is_enable()) {
 		if (meta_window_is_fullscreen(_client->meta_window()))
 			meta_window_unmake_fullscreen(_client->meta_window());
