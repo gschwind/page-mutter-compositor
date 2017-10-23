@@ -97,16 +97,18 @@ auto view_notebook_t::parent_notebook() -> notebook_p
 
 void view_notebook_t::_handler_position_changed(MetaWindow * window)
 {
-	/* disable frame move */
-	if (_is_client_owner())
-		meta_window_move_frame(window, FALSE, _client->_absolute_position.x, _client->_absolute_position.y);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+//	/* disable frame move */
+//	if (_is_client_owner())
+//		meta_window_move_frame(window, FALSE, _client->_absolute_position.x, _client->_absolute_position.y);
 }
 
 void view_notebook_t::_handler_size_changed(MetaWindow * window)
 {
-	/* disable frame resize */
-	if (_is_client_owner())
-		meta_window_move_resize_frame(window, FALSE, _client->_absolute_position.x, _client->_absolute_position.y, _client->_absolute_position.w, _client->_absolute_position.h);
+	log::printf("call %s\n", __PRETTY_FUNCTION__);
+//	/* disable frame resize */
+//	if (_is_client_owner())
+//		meta_window_move_resize_frame(window, FALSE, _client->_absolute_position.x, _client->_absolute_position.y, _client->_absolute_position.w, _client->_absolute_position.h);
 }
 
 void view_notebook_t::xxactivate(xcb_timestamp_t time)
