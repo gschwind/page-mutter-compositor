@@ -89,11 +89,6 @@ class page_t:
 	/** define callback function type for event handler **/
 	using callback_event_t = void (page_t::*) (xcb_generic_event_t const *);
 
-	map<int, callback_event_t> _event_handlers;
-
-	void _event_handler_bind(int type, callback_event_t f);
-	void _bind_all_default_event();
-
 	workspace_p _current_workspace;
 	vector<workspace_p> _workspace_list;
 
@@ -259,7 +254,7 @@ public:
 	void _handler_screen_workspace_switched(MetaScreen * screen, gint arg1, gint arg2, MetaMotionDirection arg3);
 
 	void _handler_meta_window_focus(MetaWindow * window);
-	void _handler_unmanaged(MetaWindow * window);
+	void _handler_window_unmanaged(MetaWindow * window);
 
 	void _handler_meta_display_accelerator_activated(MetaDisplay * metadisplay, guint arg1, guint arg2, guint arg3);
 	void _handler_meta_display_grab_op_begin(MetaDisplay * metadisplay, MetaScreen * arg1, MetaWindow * arg2, MetaGrabOp arg3);
@@ -327,9 +322,6 @@ public:
 	/* unmanage a managed window */
 	void unmanage(client_managed_p mw);
 
-	/* update viewport and childs allocation */
-	void update_workarea();
-
 	void _insert_view_fullscreen(view_fullscreen_p vf, xcb_timestamp_t time);
 
 	/* toggle fullscreen */
@@ -350,8 +342,6 @@ public:
 	void process_net_vm_state_client_message(xcb_window_t c, long type, xcb_atom_t state_properties);
 
 
-	void insert_as_popup(client_managed_p c, xcb_timestamp_t time = XCB_CURRENT_TIME);
-	void insert_as_dock(client_managed_p c, xcb_timestamp_t time = XCB_CURRENT_TIME);
 	void insert_as_floating(client_managed_p c, xcb_timestamp_t time = XCB_CURRENT_TIME);
 	void insert_as_fullscreen(client_managed_p c, xcb_timestamp_t time = XCB_CURRENT_TIME);
 	void insert_as_notebook(client_managed_p c, xcb_timestamp_t time = XCB_CURRENT_TIME);
@@ -373,15 +363,11 @@ public:
 	static shared_ptr<viewport_t> find_viewport_of(shared_ptr<tree_t> n);
 	static shared_ptr<workspace_t> find_workspace_of(shared_ptr<tree_t> n);
 	void set_window_cursor(xcb_window_t w, xcb_cursor_t c);
-	void update_windows_stack();
 	void update_viewport_layout();
 	void remove_viewport(shared_ptr<workspace_t> d, shared_ptr<viewport_t> v);
-	//void onmap(xcb_window_t w);
-	//void create_managed_window(client_proxy_p proxy);
-	void manage_client(MetaWindow * window);
+
 	void ackwoledge_configure_request(xcb_configure_request_event_t const * e);
 	//void create_unmanaged_window(client_proxy_p proxy);
-	bool get_safe_net_wm_user_time(client_managed_p c, xcb_timestamp_t & time);
 	void update_page_areas();
 	void set_workspace_geometry(long width, long height);
 
@@ -394,18 +380,11 @@ public:
 
 	void check_x11_extension();
 
-	void create_identity_window();
-	void register_wm();
-	void register_cm();
-
 	void render(cairo_t * cr, time64_t time);
 	bool need_render(time64_t time);
 
 	bool check_for_managed_window(xcb_window_t w);
 	bool check_for_destroyed_window(xcb_window_t w);
-
-	void update_keymap();
-	void update_grabkey();
 
 	shared_ptr<client_managed_t> find_hidden_client_with(xcb_window_t w);
 
@@ -423,9 +402,6 @@ public:
 	void start_compositor();
 	void stop_compositor();
 	void run_cmd(string const & cmd_with_args);
-	void update_workspace_names();
-	void update_number_of_workspace(int n);
-	void move_client_to_workspace(shared_ptr<client_managed_t> mw, unsigned workspace);
 
 	void start_alt_tab(xcb_timestamp_t time);
 
@@ -441,8 +417,6 @@ public:
 	void global_focus_history_remove(view_p in);
 	void global_focus_history_move_front(view_p in);
 	bool global_focus_history_is_empty();
-
-	auto find_client_managed_with(xcb_window_t w) -> shared_ptr<client_managed_t>;
 
 	/**
 	 * page_t virtual API
@@ -473,7 +447,7 @@ public:
 	auto net_client_list() -> list<client_managed_p> const &;
 	auto create_view(xcb_window_t w) -> shared_ptr<client_view_t>;
 	void make_surface_stats(int & size, int & count);
-	void schedule_repaint(int64_t timeout = 1000000000L/120L);
+	void schedule_repaint();
 	void damage_all();
 
 	void activate(view_p c, xcb_timestamp_t time);

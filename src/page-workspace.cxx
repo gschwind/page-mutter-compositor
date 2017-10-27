@@ -359,7 +359,6 @@ void workspace_t::insert_as_dock(client_managed_p c, xcb_timestamp_t time)
 	if(is_enable())
 		set_focus(fv, XCB_CURRENT_TIME);
 
-	_ctx->update_workarea();
 	_ctx->sync_tree_view();
 }
 
@@ -379,31 +378,8 @@ void workspace_t::insert_as_fullscreen(client_managed_p mw, xcb_timestamp_t time
 void workspace_t::insert_as_notebook(client_managed_p mw, xcb_timestamp_t time)
 {
 	//printf("call %s\n", __PRETTY_FUNCTION__);
-
 	/** select if the client want to appear mapped or iconic **/
 	bool activate = true;
-
-	/**
-	 * first try if previous vm has put this window in IconicState, then
-	 * Check if the client have a preferred initial state.
-	 **/
-//	if (mw->get<p_wm_state>() != nullptr) {
-//		if (mw->get<p_wm_state>()->state == IconicState) {
-//			activate = false;
-//		}
-//	} else {
-//		if (mw->_wm_hints != nullptr) {
-//			if ((mw->_wm_hints->flags & StateHint)
-//					and (mw->_wm_hints->initial_state == IconicState)) {
-//				activate = false;
-//			}
-//		}
-//	}
-//
-	if(activate and time == XCB_CURRENT_TIME) {
-		_ctx->get_safe_net_wm_user_time(mw, time);
-	}
-
 	ensure_default_notebook()->add_client(mw, time);
 	_ctx->sync_tree_view();
 
