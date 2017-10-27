@@ -68,9 +68,6 @@ struct dropdown_menu_overlay_t : public tree_t {
 
 	void draw(ClutterCanvas * canvas, cairo_t * cr, int width, int height);
 
-	virtual void render(cairo_t * cr, region const & area) override;
-	virtual void expose(xcb_expose_event_t const * ev) override;
-
 	virtual auto get_default_view() const -> ClutterActor * override;
 
 };

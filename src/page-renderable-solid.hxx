@@ -10,8 +10,8 @@
 
 #include "page-tree.hxx"
 #include "page-utils.hxx"
-#include "page-renderable.hxx"
 #include "page-color.hxx"
+#include "page-region.hxx"
 
 namespace page {
 

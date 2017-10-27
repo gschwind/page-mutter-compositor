@@ -62,17 +62,9 @@ class view_rebased_t;
 using view_rebased_p = shared_ptr<view_rebased_t>;
 using view_rebased_w = weak_ptr<view_rebased_t>;
 
-class view_dock_t;
-using view_dock_p = shared_ptr<view_dock_t>;
-using view_dock_w = weak_ptr<view_dock_t>;
-
 class view_popup_t;
 using view_popup_p = shared_ptr<view_popup_t>;
 using view_popup_w = weak_ptr<view_popup_t>;
-
-class xdg_shell_client_t;
-using xdg_shell_client_p = shared_ptr<xdg_shell_client_t>;
-using xdg_shell_client_w = weak_ptr<xdg_shell_client_t>;
 
 class client_proxy_t;
 using client_proxy_p = shared_ptr<client_proxy_t>;

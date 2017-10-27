@@ -61,58 +61,6 @@ double renderable_thumbnail_t::fit_to(double target_width, double target_height,
 	}
 }
 
-
-void renderable_thumbnail_t::render(cairo_t * cr, region const & area) {
-//	if(_c.expired() or _tt.pix == nullptr)
-//		return;
-//
-//	{
-//		region r = area & _thumbnail_position;
-//		for (auto &i : r.rects()) {
-//			cairo_save(cr);
-//			cairo_reset_clip(cr);
-//			cairo_clip(cr, i);
-//			cairo_translate(cr, _thumbnail_position.x,
-//					_thumbnail_position.y);
-//			cairo_scale(cr, _ratio, _ratio);
-//			cairo_set_source_surface(cr, _tt.pix->get_cairo_surface(),
-//					0.0, 0.0);
-//			cairo_pattern_set_filter(cairo_get_source(cr),
-//					CAIRO_FILTER_NEAREST);
-//			cairo_paint(cr);;
-//			cairo_restore(cr);
-//		}
-//	}
-//
-//	if (_title_width != _thumbnail_position.w or _tt.title == nullptr) {
-//		_title_width = _thumbnail_position.w;
-//		update_title();
-//	}
-//
-//	cairo_save(cr);
-//	region r =  area & get_real_position();
-//	for (auto &i : r.rects()) {
-//		cairo_reset_clip(cr);
-//		cairo_clip(cr, i);
-//		cairo_set_source_surface(cr, _tt.title->get_cairo_surface(),
-//				_thumbnail_position.x, _thumbnail_position.y+_thumbnail_position.h);
-//		cairo_paint(cr);
-//
-//		if (_is_mouse_over) {
-//			cairo_identity_matrix(cr);
-//			cairo_set_line_width(cr, 2.0);
-//			cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
-//			cairo_rectangle(cr, _thumbnail_position.x+1,
-//					_thumbnail_position.y+1, _thumbnail_position.w-2.0,
-//					_thumbnail_position.h+20-2.0);
-//			cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
-//			cairo_stroke(cr);
-//		}
-//	}
-//	cairo_restore(cr);
-
-}
-
 auto renderable_thumbnail_t::target_position() -> rect const &
 {
 	return _target_position;
@@ -138,10 +86,6 @@ void renderable_thumbnail_t::move_to(rect const & target_position) {
 	_target_position = target_position;
 	clutter_actor_set_position(_client_view, target_position.x, target_position.y);
 	update_title();
-}
-
-void renderable_thumbnail_t::render_finished() {
-
 }
 
 void renderable_thumbnail_t::update_layout() {

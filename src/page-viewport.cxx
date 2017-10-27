@@ -109,14 +109,6 @@ string viewport_t::get_node_name() const {
 	return _get_node_name<'V'>();
 }
 
-void viewport_t::update_layout(time64_t const time) {
-
-}
-
-void viewport_t::render_finished() {
-	_damaged.clear();
-}
-
 void viewport_t::reconfigure()
 {
 	if(not _root->is_enable())
@@ -183,19 +175,7 @@ void viewport_t::draw(ClutterCanvas * _, cairo_t * cr, int width, int height) {
 
 	_is_durty = false;
 	_exposed = true;
-	_damaged += _effective_area;
 
-}
-
-void viewport_t::_redraw_back_buffer() {
-	if(_canvas)
-		clutter_content_invalidate(_canvas);
-}
-
-void viewport_t::trigger_redraw() {
-	/** redraw all child **/
-	tree_t::trigger_redraw();
-	_redraw_back_buffer();
 }
 
 /* mark renderable_page for redraw */
@@ -210,10 +190,6 @@ void viewport_t::queue_redraw()
 auto viewport_t::get_default_view() const -> ClutterActor *
 {
 	return _default_view;
-}
-
-region viewport_t::get_damaged() {
-	return _damaged;
 }
 
 //xcb_window_t viewport_t::get_toplevel_xid() const {
@@ -278,18 +254,6 @@ auto viewport_t::_handler_leave_event(ClutterActor * actor, ClutterEvent * event
 
 rect viewport_t::get_window_position() const {
 	return _effective_area;
-}
-
-void viewport_t::expose(xcb_expose_event_t const * e) {
-
-}
-
-auto viewport_t::get_visible_region() -> region {
-	return region{_effective_area};
-}
-
-auto viewport_t::get_opaque_region() -> region {
-	return region{_effective_area};
 }
 
 void viewport_t::get_min_allocation(int & width, int & height) const {

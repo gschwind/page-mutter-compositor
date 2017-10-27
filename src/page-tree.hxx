@@ -19,7 +19,6 @@
 
 #include "page-page-types.hxx"
 #include "page-utils.hxx"
-#include "page-renderable.hxx"
 #include "page-time.hxx"
 
 enum button_action_e {
@@ -164,17 +163,12 @@ public:
 		return ret;
 	}
 
-	void broadcast_trigger_redraw();
-
 	auto broadcast_button_press(ClutterEvent const * ev) -> button_action_e;
 	bool broadcast_button_release(ClutterEvent const * ev);
 	bool broadcast_button_motion(ClutterEvent const * ev);
 	bool broadcast_leave(ClutterEvent const * ev);
 	bool broadcast_enter(ClutterEvent const * ev);
 
-	void broadcast_expose(xcb_expose_event_t const * ev);
-	void broadcast_update_layout(time64_t const time);
-	void broadcast_render_finished();
 	void broadcast_on_workspace_enable();
 	void broadcast_on_workspace_disable();
 
@@ -200,10 +194,6 @@ public:
 	virtual void remove(tree_p t);
 	virtual void clear();
 
-	virtual void update_layout(time64_t const time);
-	virtual void render(cairo_t * cr, region const & area);
-	virtual void trigger_redraw();
-	virtual void render_finished();
 	virtual void reconfigure(); // used to place all windows taking in account the current tree state
 	virtual void on_workspace_enable();
 	virtual void on_workspace_disable();
@@ -214,9 +204,6 @@ public:
 	virtual bool leave(ClutterEvent const * ev);
 	virtual bool enter(ClutterEvent const * ev);
 
-	virtual void expose(xcb_expose_event_t const * ev);
-
-	//virtual auto get_toplevel_xid() const -> xcb_window_t;
 	virtual rect get_window_position() const;
 	virtual void queue_redraw();
 

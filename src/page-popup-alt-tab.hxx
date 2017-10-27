@@ -15,7 +15,6 @@
 
 #include <memory>
 
-#include "page-renderable.hxx"
 #include "page-viewport.hxx"
 #include "page-icon-handler.hxx"
 #include "page-renderable-thumbnail.hxx"
@@ -104,15 +103,6 @@ public:
 	virtual void show() override;
 	virtual auto get_node_name() const -> string;
 	// virtual void remove(shared_ptr<tree_t> t);
-
-	virtual void update_layout(time64_t const time);
-	virtual void render(cairo_t * cr, region const & area);
-	virtual void trigger_redraw();
-	virtual void render_finished();
-
-	virtual auto get_opaque_region() -> region;
-	virtual auto get_visible_region() -> region;
-	virtual auto get_damaged() -> region;
 
 	//virtual bool button_press(xcb_button_press_event_t const * ev);
 	//virtual bool button_release(xcb_button_release_event_t const * ev);

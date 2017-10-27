@@ -138,27 +138,6 @@ auto tree_t::gather_children(vector<tree_p> & out) const -> void
 	out.insert(out.end(), _children.begin(), _children.end());
 }
 
-/**
- * return the list of renderable object to draw this tree ordered and recursively
- **/
-auto tree_t::update_layout(time64_t const time) -> void
-{
-
-}
-
-/**
- * draw the area of a renderable to the destination surface
- * @param cr the destination surface context
- * @param area the area to redraw
- **/
-void tree_t::render(cairo_t * cr, region const & area) {
-	/* by default tree_t do not render any thing */
-}
-
-void tree_t::render_finished() {
-
-}
-
 void tree_t::reconfigure()
 {
 
@@ -256,21 +235,6 @@ bool tree_t::enter(ClutterEvent const * ev)
 	return false;
 }
 
-void tree_t::expose(xcb_expose_event_t const * ev)
-{
-}
-
-void tree_t::trigger_redraw()
-{
-}
-
-/**
- * return the root top level xid or XCB_WINDOW_NONE if not applicable.
- **/
-//xcb_window_t tree_t::get_toplevel_xid() const {
-//	return XCB_WINDOW_NONE;
-//}
-
 rect tree_t::get_window_position() const {
 	if (_parent != nullptr)
 		return _parent->get_window_position();
@@ -348,10 +312,6 @@ auto tree_t::get_all_children_root_first() const  -> vector<tree_p>
 	return ret;
 }
 
-void tree_t::broadcast_trigger_redraw() {
-	_broadcast_deep_first(&tree_t::trigger_redraw);
-}
-
 auto tree_t::broadcast_button_press(ClutterEvent const * ev) -> button_action_e {
 	return _broadcast_deep_first(&tree_t::button_press, ev);
 }
@@ -370,18 +330,6 @@ bool tree_t::broadcast_leave(ClutterEvent const * ev) {
 
 bool tree_t::broadcast_enter(ClutterEvent const * ev) {
 	return _broadcast_deep_first(&tree_t::enter, ev);
-}
-
-void tree_t::broadcast_expose(xcb_expose_event_t const * ev) {
-	_broadcast_deep_first(&tree_t::expose, ev);
-}
-
-void tree_t::broadcast_update_layout(time64_t const time) {
-	_broadcast_root_first(&tree_t::update_layout, time);
-}
-
-void tree_t::broadcast_render_finished() {
-	_broadcast_root_first(&tree_t::render_finished);
 }
 
 void tree_t::broadcast_on_workspace_enable() {

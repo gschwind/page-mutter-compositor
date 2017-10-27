@@ -16,7 +16,6 @@
 #include <memory>
 
 #include "page-theme.hxx"
-#include "page-renderable-empty.hxx"
 
 #include "page-page-component.hxx"
 #include "page-client-managed.hxx"
@@ -182,21 +181,15 @@ public:
 	using tree_t::remove;
 	using tree_t::hide;
 	virtual void show() override;
-	virtual void update_layout(time64_t const time);
 
 	virtual auto button_press(ClutterEvent const * ev)  -> button_action_e override;
 	virtual bool button_motion(ClutterEvent const * ev) override;
 	virtual bool leave(ClutterEvent const * ev) override;
 
-	virtual void render(cairo_t * cr, region const & area);
-	virtual void render_finished();
 	using tree_t::reconfigure;
 	virtual void on_workspace_enable() override;
 	virtual void on_workspace_disable() override;
 
-	virtual region get_opaque_region();
-	virtual region get_visible_region();
-	virtual region get_damaged();
 	virtual void queue_redraw();
 
 	/**

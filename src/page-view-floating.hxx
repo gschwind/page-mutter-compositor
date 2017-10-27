@@ -60,8 +60,6 @@ struct view_floating_t : public view_rebased_t {
 	//virtual auto get_node_name() const -> string;
 	//virtual void remove(shared_ptr<tree_t> t);
 
-	using view_rebased_t::update_layout;
-	using view_rebased_t::render;
 	virtual void reconfigure() override;
 	using view_rebased_t::on_workspace_enable;
 	using view_rebased_t::on_workspace_disable;

@@ -18,7 +18,6 @@
 #include "page-view-fullscreen.hxx"
 #include "page-view-floating.hxx"
 #include "page-view-notebook.hxx"
-#include "page-view-dock.hxx"
 
 namespace page {
 
@@ -85,7 +84,6 @@ workspace_t::workspace_t(page_t * ctx, MetaWorkspace * workspace) :
 	_ctx{ctx},
 	//_allocation{},
 	_default_pop{},
-	_workarea{},
 	_primary_viewport{},
 	_switch_direction{WORKSPACE_SWITCH_LEFT},
 	_is_enable{false},
@@ -99,7 +97,6 @@ workspace_t::workspace_t(page_t * ctx, guint32 time) :
 	_ctx{ctx},
 	//_allocation{},
 	_default_pop{},
-	_workarea{},
 	_primary_viewport{},
 	_switch_direction{WORKSPACE_SWITCH_LEFT},
 	_is_enable{false},
@@ -128,12 +125,6 @@ auto workspace_t::shared_from_this() -> workspace_p
 
 string workspace_t::get_node_name() const {
 	return _get_node_name<'D'>();
-}
-
-void workspace_t::update_layout(time64_t const time) {
-	if(not _is_visible)
-		return;
-
 }
 
 auto workspace_t::get_viewport_map() const -> vector<viewport_p> {
@@ -343,23 +334,6 @@ void workspace_t::insert_as_popup(client_managed_p c, xcb_timestamp_t time)
 //	_ctx->add_global_damage(fv->get_visible_region());
 //	_ctx->schedule_repaint(0L);
 
-}
-
-void workspace_t::insert_as_dock(client_managed_p c, xcb_timestamp_t time)
-{
-	auto fv = make_shared<view_dock_t>(this, c);
-	if(is_enable())
-		fv->acquire_client();
-
-	add_dock(fv);
-
-	fv->raise();
-	fv->show();
-
-	if(is_enable())
-		set_focus(fv, XCB_CURRENT_TIME);
-
-	_ctx->sync_tree_view();
 }
 
 void workspace_t::insert_as_floating(client_managed_p c, xcb_timestamp_t time)
@@ -615,14 +589,6 @@ void workspace_t::set_to_default_name() {
 	_name = os.str();
 }
 
-void workspace_t::set_workarea(rect const & r) {
-	_workarea = r;
-}
-
-rect const & workspace_t::workarea() {
-	return _workarea;
-}
-
 void workspace_t::set_primary_viewport(shared_ptr<viewport_t> v) {
 	if(not has_key(_viewport_outputs, v))
 		throw exception_t("invalid primary viewport");
@@ -631,25 +597,6 @@ void workspace_t::set_primary_viewport(shared_ptr<viewport_t> v) {
 
 shared_ptr<viewport_t> workspace_t::primary_viewport() const {
 	return _primary_viewport.lock();
-}
-
-void workspace_t::start_switch(workspace_switch_direction_e direction) {
-
-//	if(_switch_renderable != nullptr) {
-//		remove(_switch_renderable);
-//		_switch_renderable = nullptr;
-//	}
-//
-//	_switch_direction = direction;
-//	_switch_start_time.update_to_current_time();
-//	//_switch_screenshot = _ctx->cmp()->create_screenshot();
-//	_switch_screenshot = _ctx->theme()->workspace_switch_popup(_name);
-//	_switch_renderable = make_shared<renderable_pixmap_t>(this,
-//			_switch_screenshot,
-//			(_ctx->left_most_border() - _switch_screenshot->witdh()) / 2.0,
-//			_ctx->top_most_border());
-//	push_back(_switch_renderable);
-//	_switch_renderable->show();
 }
 
 auto workspace_t::get_visible_region() -> region {
@@ -665,10 +612,6 @@ auto workspace_t::get_opaque_region() -> region {
 auto workspace_t::get_damaged() -> region {
 	/** workspace do not render any thing **/
 	return region{};
-}
-
-void workspace_t::render(cairo_t * cr, region const & area) {
-
 }
 
 auto workspace_t::client_focus_history() -> list<view_w>

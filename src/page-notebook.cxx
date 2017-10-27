@@ -407,23 +407,6 @@ void notebook_t::render_legacy(cairo_t * cr) {
 
 }
 
-void notebook_t::update_layout(time64_t const time) {
-	tree_t::update_layout(time);
-
-//	if (fading_notebook != nullptr and time >= (_swap_start + animation_duration)) {
-//		/** animation is terminated **/
-//		_fading_notebook_layer->remove(fading_notebook);
-//		fading_notebook.reset();
-//		_ctx->add_global_damage(to_root_position(_allocation));
-//	}
-//
-//	if (fading_notebook != nullptr) {
-//		double ratio = (static_cast<double>(time - _swap_start) / static_cast<double const>(animation_duration));
-//		fading_notebook->set_ratio(ratio);
-//		_ctx->schedule_repaint();
-//	}
-}
-
 rect notebook_t::_compute_notebook_bookmark_position() const {
 	return rect(
 		_allocation.x + _allocation.w
@@ -1200,15 +1183,6 @@ bool notebook_t::_has_client(client_managed_p c) {
 	return false;
 }
 
-void notebook_t::render(cairo_t * cr, region const & area) {
-
-}
-
-void notebook_t::render_finished()
-{
-
-}
-
 void notebook_t::on_workspace_enable()
 {
 	for(auto & x: _clients_tab_order) {
@@ -1224,18 +1198,6 @@ void notebook_t::on_workspace_enable()
 void notebook_t::on_workspace_disable()
 {
 
-}
-
-region notebook_t::get_opaque_region() {
-	return region{};
-}
-
-region notebook_t::get_visible_region() {
-	return region{};
-}
-
-region notebook_t::get_damaged() {
-	return region{};
 }
 
 auto notebook_t::shared_from_this() -> notebook_p {

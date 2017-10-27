@@ -71,10 +71,6 @@ struct view_t : public tree_t {
 	virtual auto get_node_name() const -> string;
 	// virtual void remove(shared_ptr<tree_t> t);
 
-	// virtual void children(vector<shared_ptr<tree_t>> & out) const;
-	virtual void update_layout(time64_t const time) override;
-	virtual void render(cairo_t * cr, region const & area) override;
-	virtual void render_finished() override;
 	virtual void reconfigure() override;
 	virtual void on_workspace_enable() override;
 	virtual void on_workspace_disable() override;

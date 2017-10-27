@@ -21,7 +21,6 @@
 #include "page-simple2-theme.hxx"
 #include "page-color.hxx"
 #include "page-config-handler.hxx"
-#include "page-renderable.hxx"
 
 namespace page {
 

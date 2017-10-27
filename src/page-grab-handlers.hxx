@@ -11,7 +11,6 @@
 #include "page-split.hxx"
 #include "page-workspace.hxx"
 #include "page-popup-split.hxx"
-#include "page-popup-notebook0.hxx"
 #include "page-popup-alt-tab.hxx"
 
 
@@ -92,7 +91,6 @@ class grab_bind_view_floating_t : public grab_default_t {
 	xcb_button_t _button;
 	notebook_area_e zone;
 	notebook_w target_notebook;
-	shared_ptr<popup_notebook0_t> pn0;
 
 	void _find_target_notebook(int x, int y, notebook_p & target, notebook_area_e & zone);
 
@@ -148,8 +146,6 @@ struct grab_floating_move_t : public grab_default_t {
 	rect final_position;
 	unsigned int button;
 
-	shared_ptr<popup_notebook0_t> pfm;
-
 	grab_floating_move_t(page_t * ctx, view_floating_p f, unsigned int button, int x, int y);
 
 	virtual ~grab_floating_move_t();
@@ -170,8 +166,6 @@ struct grab_floating_resize_t : public grab_default_t {
 	rect final_position;
 	xcb_button_t button;
 
-	shared_ptr<popup_notebook0_t> pfm;
-
 	xcb_cursor_t _get_cursor();
 
 public:
@@ -190,7 +184,6 @@ public:
 struct grab_fullscreen_client_t : public grab_default_t {
 	view_fullscreen_w mw;
 	weak_ptr<viewport_t> v;
-	shared_ptr<popup_notebook0_t> pn0;
 	xcb_button_t button;
 
 public:

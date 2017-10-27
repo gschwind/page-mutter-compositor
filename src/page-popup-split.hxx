@@ -29,8 +29,6 @@ struct popup_split_t : public tree_t {
 
 	ClutterActor * _actor[2];
 
-	void _paint_exposed();
-
 public:
 
 	rect const & position();
@@ -47,10 +45,6 @@ public:
 	//virtual void remove(tree_p t);
 	//virtual void clear();
 
-	//virtual void update_layout(time64_t const time);
-	virtual void render(cairo_t * cr, region const & area) override;
-	virtual void trigger_redraw() override;
-	virtual void render_finished() override;
 	//virtual void reconfigure(); // used to place all windows taking in account the current tree state
 	//virtual void on_workspace_enable();
 	//virtual void on_workspace_disable();

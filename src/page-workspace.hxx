@@ -34,9 +34,6 @@ struct workspace_t: public tree_t {
 
 private:
 
-	//rect _allocation;
-	rect _workarea;
-
 	string _name;
 
 	/* list of viewports in creation order, to make a sane reconfiguration */
@@ -80,16 +77,13 @@ public:
 
 	auto shared_from_this() -> workspace_p;
 
-	auto get_any_viewport() const -> shared_ptr<viewport_t>;
+	auto get_any_viewport() const -> viewport_p;
 	void set_default_pop(notebook_p n);
-	auto primary_viewport() const -> shared_ptr<viewport_t>;
-	void start_switch(workspace_switch_direction_e direction);
-	void set_workarea(rect const & r);
-	auto workarea() -> rect const &;
-	auto get_viewports() const -> vector<shared_ptr<viewport_t>> ;
+	auto primary_viewport() const -> viewport_p;
+	auto get_viewports() const -> vector<viewport_p> ;
 	auto ensure_default_notebook() -> notebook_p;
-	auto get_viewport_map() const -> vector<shared_ptr<viewport_t>>;
-	void set_primary_viewport(shared_ptr<viewport_t> v);
+	auto get_viewport_map() const -> vector<viewport_p>;
+	void set_primary_viewport(viewport_p v);
 	void update_viewports_layout();
 	void remove_viewport(viewport_p v);
 	void attach(shared_ptr<client_managed_t> c) __attribute__((deprecated));
@@ -99,7 +93,6 @@ public:
 	bool is_enable();
 
 	void insert_as_popup(client_managed_p c, xcb_timestamp_t time);
-	void insert_as_dock(client_managed_p c, xcb_timestamp_t time);
 	void insert_as_floating(client_managed_p c, xcb_timestamp_t time);
 	void insert_as_fullscreen(client_managed_p c, xcb_timestamp_t time);
 	void insert_as_notebook(client_managed_p c, xcb_timestamp_t time);
@@ -160,8 +153,6 @@ public:
 	virtual auto get_node_name() const -> string;
 	//virtual void remove(shared_ptr<tree_t> t);
 
-	virtual void update_layout(time64_t const time);
-	virtual void render(cairo_t * cr, region const & area);
 	using tree_t::reconfigure;
 	using tree_t::on_workspace_enable;
 	using tree_t::on_workspace_disable;

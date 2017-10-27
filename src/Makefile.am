@@ -47,8 +47,6 @@ page_mutter_compositor_SOURCES = \
 	page-client-managed.cxx \
 	page-dropdown-menu.hxx \
 	page-dropdown-menu.cxx \
-	page-popup-notebook0.hxx \
-	page-popup-notebook0.cxx \
 	page-popup-split.hxx \
 	page-popup-split.cxx \
 	page-renderable-thumbnail.hxx \
@@ -63,8 +61,6 @@ page_mutter_compositor_SOURCES = \
 	page-view-notebook.cxx \
 	page-view-fullscreen.hxx \
 	page-view-fullscreen.cxx \
-	page-view-dock.hxx \
-	page-view-dock.cxx \
 	page-view-floating.hxx \
 	page-view-floating.cxx \
 	page-view-popup.hxx \

@@ -73,13 +73,6 @@ public:
 	virtual auto get_node_name() const -> string;
 	virtual void remove(tree_p t) override;
 
-	virtual void update_layout(time64_t const time);
-	virtual void render(cairo_t * cr, region const & area);
-
-	virtual auto get_opaque_region() -> region;
-	virtual auto get_visible_region() -> region;
-	virtual auto get_damaged() -> region;
-
 	virtual auto button_press(ClutterEvent const * ev) -> button_action_e override;
 	//virtual bool button_release(xcb_button_release_event_t const * ev);
 	virtual bool button_motion(ClutterEvent const * ev) override;

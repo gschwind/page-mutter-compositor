@@ -192,49 +192,6 @@ auto view_t::get_node_name() const -> string {
 	return oss.str();
 }
 
-//auto view_t::get_toplevel_xid() const -> xcb_window_t
-//{
-//	return meta_window_get_xwindow(_client->_meta_window);
-//}
-
-void view_t::update_layout(time64_t const time)
-{
-	if (not _is_visible)
-		return;
-
-//	/** update damage_cache **/
-//	region dmg = _client_view->get_damaged();
-//	dmg.translate(_client->_absolute_position.x, _client->_absolute_position.y);
-//	_damage_cache += dmg;
-//	_client_view->clear_damaged();
-
-}
-
-void view_t::render(cairo_t * cr, region const & area)
-{
-//	auto pix = _client_view->get_pixmap();
-//
-//	if (pix != nullptr) {
-//		cairo_save(cr);
-//		cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
-//		cairo_set_source_surface(cr, pix->get_cairo_surface(),
-//				_client->_absolute_position.x,
-//				_client->_absolute_position.y);
-//		region r = get_visible_region() & area;
-//		for (auto &i : r.rects()) {
-//			cairo_clip(cr, i);
-//			cairo_mask_surface(cr, pix->get_cairo_surface(),
-//					_client->_absolute_position.x,
-//					_client->_absolute_position.y);
-//		}
-//		cairo_restore(cr);
-//	}
-}
-
-void view_t::render_finished()
-{
-
-}
 
 
 } /* namespace page */

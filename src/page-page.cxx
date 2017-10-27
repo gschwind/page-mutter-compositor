@@ -38,7 +38,6 @@ extern "C" {
 #include "page-utils.hxx"
 
 #include "page-page-types.hxx"
-#include "page-renderable.hxx"
 #include "page-key-desc.hxx"
 #include "page-time.hxx"
 #include "page-client-managed.hxx"
@@ -55,7 +54,6 @@ extern "C" {
 #include "page-view-fullscreen.hxx"
 #include "page-view-notebook.hxx"
 #include "page-view-floating.hxx"
-#include "page-view-dock.hxx"
 #include "page-view-popup.hxx"
 
 #include "page-popup-alt-tab.hxx"
@@ -1378,8 +1376,6 @@ void page_t::create_workspace(guint time) {
 					d->insert_as_notebook(x->_client, XCB_CURRENT_TIME);
 				} else if (type == typeid(view_floating_t)) {
 					d->insert_as_floating(x->_client, XCB_CURRENT_TIME);
-				} else if (type == typeid(view_dock_t)) {
-					d->insert_as_dock(x->_client, XCB_CURRENT_TIME);
 				} else if (type == typeid(view_fullscreen_t)) {
 					d->insert_as_fullscreen(x->_client, XCB_CURRENT_TIME);
 				}

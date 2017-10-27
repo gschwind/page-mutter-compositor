@@ -344,17 +344,13 @@ grab_bind_view_floating_t::grab_bind_view_floating_t(page_t * ctx, view_floating
 		start_position{pos},
 		target_notebook{},
 		zone{NOTEBOOK_AREA_NONE},
-		pn0{},
 		_button{button}
 {
-	pn0 = make_shared<popup_notebook0_t>(x.get());
+
 }
 
 grab_bind_view_floating_t::~grab_bind_view_floating_t() {
-	if(pn0 != nullptr) {
-		_ctx->schedule_repaint();
-		pn0->detach_myself();
-	}
+
 }
 
 void grab_bind_view_floating_t::_find_target_notebook(int x, int y,
@@ -410,13 +406,13 @@ void grab_bind_view_floating_t::button_motion(ClutterEvent const * e)
 	}
 
 	/* do not start drag&drop for small move */
-	if (not start_position.is_inside(x, y) and pn0->parent() == nullptr) {
-		_ctx->overlay_add(pn0);
-		pn0->show();
-	}
-
-	if (pn0 == nullptr)
-		return;
+//	if (not start_position.is_inside(x, y) and pn0->parent() == nullptr) {
+//		_ctx->overlay_add(pn0);
+//		pn0->show();
+//	}
+//
+//	if (pn0 == nullptr)
+//		return;
 
 	shared_ptr<notebook_t> new_target;
 	notebook_area_e new_zone;
@@ -427,22 +423,22 @@ void grab_bind_view_floating_t::button_motion(ClutterEvent const * e)
 		zone = new_zone;
 		switch(zone) {
 		case NOTEBOOK_AREA_TAB:
-			pn0->move_resize(new_target->_area.tab);
+//			pn0->move_resize(new_target->_area.tab);
 			break;
 		case NOTEBOOK_AREA_RIGHT:
-			pn0->move_resize(new_target->_area.popup_right);
+//			pn0->move_resize(new_target->_area.popup_right);
 			break;
 		case NOTEBOOK_AREA_TOP:
-			pn0->move_resize(new_target->_area.popup_top);
+//			pn0->move_resize(new_target->_area.popup_top);
 			break;
 		case NOTEBOOK_AREA_BOTTOM:
-			pn0->move_resize(new_target->_area.popup_bottom);
+//			pn0->move_resize(new_target->_area.popup_bottom);
 			break;
 		case NOTEBOOK_AREA_LEFT:
-			pn0->move_resize(new_target->_area.popup_left);
+//			pn0->move_resize(new_target->_area.popup_left);
 			break;
 		case NOTEBOOK_AREA_CENTER:
-			pn0->move_resize(new_target->_area.popup_center);
+//			pn0->move_resize(new_target->_area.popup_center);
 			break;
 		}
 	}
@@ -515,24 +511,16 @@ grab_floating_move_t::grab_floating_move_t(page_t * ctx, view_floating_p f, unsi
 		x_root{x},
 		y_root{y},
 		button{button},
-		popup_original_position{f->_base_position},
-		pfm{}
+		popup_original_position{f->_base_position}
 {
 
 	f->raise();
-	pfm = make_shared<popup_notebook0_t>(f.get());
-	pfm->move_resize(popup_original_position);
-	_ctx->overlay_add(pfm);
-	pfm->show();
 	//_ctx->dpy()->set_window_cursor(f->_base->id(), _ctx->dpy()->xc_fleur);
 	//_ctx->dpy()->set_window_cursor(f->_client->_client_proxy->id(), _ctx->dpy()->xc_fleur);
 }
 
 grab_floating_move_t::~grab_floating_move_t() {
-	if(pfm != nullptr) {
-		_ctx->schedule_repaint();
-		pfm->detach_myself();
-	}
+
 }
 
 void grab_floating_move_t::button_press(ClutterEvent const * e) {
@@ -560,7 +548,6 @@ void grab_floating_move_t::button_motion(ClutterEvent const * e)
 	rect new_popup_position = popup_original_position;
 	new_popup_position.x += x - x_root;
 	new_popup_position.y += y - y_root;
-	pfm->move_resize(new_popup_position);
 	_ctx->schedule_repaint();
 
 }
@@ -637,7 +624,6 @@ grab_floating_resize_t::grab_floating_resize_t(page_t * ctx, view_floating_p f, 
 {
 
 	f->raise();
-	pfm = make_shared<popup_notebook0_t>(f.get());
 
 	rect popup_new_position = original_position;
 	if (false) {
@@ -651,9 +637,9 @@ grab_floating_resize_t::grab_floating_resize_t(page_t * ctx, view_floating_p f, 
 		popup_new_position.h += _ctx->theme()->floating.title_height;
 	}
 
-	pfm->move_resize(popup_new_position);
-	_ctx->overlay_add(pfm);
-	pfm->show();
+//	pfm->move_resize(popup_new_position);
+//	_ctx->overlay_add(pfm);
+//	pfm->show();
 
 
 	//_ctx->dpy()->set_window_cursor(f->_base->id(), _get_cursor());
@@ -661,10 +647,7 @@ grab_floating_resize_t::grab_floating_resize_t(page_t * ctx, view_floating_p f, 
 }
 
 grab_floating_resize_t::~grab_floating_resize_t() {
-	if(pfm != nullptr) {
-		_ctx->schedule_repaint();
-		pfm->detach_myself();
-	}
+
 }
 
 void grab_floating_resize_t::button_press(ClutterEvent const * e) {
@@ -776,8 +759,6 @@ void grab_floating_resize_t::button_motion(ClutterEvent const * e)
 		popup_new_position.h += _ctx->theme()->floating.title_height;
 	}
 
-	pfm->move_resize(popup_new_position);
-
 }
 
 void grab_floating_resize_t::button_release(ClutterEvent const * e)
@@ -807,22 +788,14 @@ void grab_floating_resize_t::button_release(ClutterEvent const * e)
 grab_fullscreen_client_t::grab_fullscreen_client_t(page_t * ctx, view_fullscreen_p mw, xcb_button_t button, int x, int y) :
  grab_default_t{ctx},
  mw{mw},
- pn0{nullptr},
  button{button}
 {
 	v = _ctx->find_mouse_viewport(x, y);
-	pn0 = make_shared<popup_notebook0_t>(mw.get());
-	pn0->move_resize(mw->_client->_absolute_position);
-	_ctx->overlay_add(pn0);
-	pn0->show();
 
 }
 
 grab_fullscreen_client_t::~grab_fullscreen_client_t() {
-	if(pn0 != nullptr) {
-		_ctx->schedule_repaint();
-		pn0->detach_myself();
-	}
+
 }
 
 void grab_fullscreen_client_t::button_press(ClutterEvent const * e) {
@@ -844,7 +817,7 @@ void grab_fullscreen_client_t::button_motion(ClutterEvent const * e)
 
 	if(new_viewport != v.lock()) {
 		if(new_viewport != nullptr) {
-			pn0->move_resize(new_viewport->raw_area());
+//			pn0->move_resize(new_viewport->raw_area());
 			_ctx->schedule_repaint();
 		}
 		v = new_viewport;

@@ -28,7 +28,6 @@
 #include "page-client-managed.hxx"
 
 #include "page-popup-alt-tab.hxx"
-#include "page-popup-notebook0.hxx"
 #include "page-popup-split.hxx"
 
 #include "page-dropdown-menu.hxx"
@@ -38,8 +37,6 @@
 #include "page-split.hxx"
 #include "page-viewport.hxx"
 #include "page-workspace.hxx"
-
-#include "page-page-event.hxx"
 
 #include "page-page.hxx"
 
@@ -264,65 +261,8 @@ public:
 	auto _handler_meta_display_restart(MetaDisplay * display) -> gboolean;
 	void _handler_meta_display_window_created(MetaDisplay * display, MetaWindow * window);
 
-
-
-	/** user inputs **/
-//	void process_key_press_event(xcb_generic_event_t const * e);
-//	void process_key_release_event(xcb_generic_event_t const * e);
-//	void process_button_press_event(xcb_generic_event_t const * e);
-//	void process_motion_notify(xcb_generic_event_t const * _e);
-//	void process_button_release(xcb_generic_event_t const * _e);
-	/* SubstructureNotifyMask */
-	//void process_event(xcb_circulate_notify_event_t const * e);
-//	void process_configure_notify_event(xcb_generic_event_t const * e);
-//	void process_create_notify_event(xcb_generic_event_t const * e);
-//	void process_destroy_notify_event(xcb_generic_event_t const * e);
-//	void process_gravity_notify_event(xcb_generic_event_t const * e);
-//	void process_map_notify_event(xcb_generic_event_t const * e);
-//	void process_reparent_notify_event(xcb_generic_event_t const * e);
-//	void process_unmap_notify_event(xcb_generic_event_t const * e);
-//	void process_fake_unmap_notify_event(xcb_generic_event_t const * e);
-//	void process_mapping_notify_event(xcb_generic_event_t const * e);
-//	void process_selection_clear_event(xcb_generic_event_t const * e);
-//	void process_focus_in_event(xcb_generic_event_t const * e);
-//	void process_focus_out_event(xcb_generic_event_t const * e);
-//	void process_enter_window_event(xcb_generic_event_t const * e);
-//	void process_leave_window_event(xcb_generic_event_t const * e);
-//
-//	void process_expose_event(xcb_generic_event_t const * e);
-//
-//	void process_randr_notify_event(xcb_generic_event_t const * e);
-//	void process_shape_notify_event(xcb_generic_event_t const * e);
-//	void process_counter_notify_event(xcb_generic_event_t const * e);
-//	void process_alarm_notify_event(xcb_generic_event_t const * e);
-
-	/* SubstructureRedirectMask */
-//	void process_circulate_request_event(xcb_generic_event_t const * e);
-//	void process_configure_request_event(xcb_generic_event_t const * e);
-//	void process_map_request_event(xcb_generic_event_t const * e);
-//	void process_fake_configure_request_event(xcb_generic_event_t const * e);
-
-	/* PropertyChangeMask */
-//	void process_property_notify_event(xcb_generic_event_t const * e);
-
-	/* Unmaskable Events */
-//	void process_fake_client_message_event(xcb_generic_event_t const * e);
-
-	/* extension events */
-//	void process_damage_notify_event(xcb_generic_event_t const * ev);
-
-//	void process_event(xcb_generic_event_t const * e);
-
-	/* update _NET_CLIENT_LIST_STACKING and _NET_CLIENT_LIST */
-	//void update_client_list();
-	//void update_client_list_stacking();
-
-	/* update _NET_SUPPORTED */
-
 	/* unmanage a managed window */
 	void unmanage(client_managed_p mw);
-
-	void _insert_view_fullscreen(view_fullscreen_p vf, xcb_timestamp_t time);
 
 	/* toggle fullscreen */
 	void toggle_fullscreen(view_p c, xcb_timestamp_t time);
@@ -341,7 +281,6 @@ public:
 
 	void process_net_vm_state_client_message(xcb_window_t c, long type, xcb_atom_t state_properties);
 
-
 	void insert_as_floating(client_managed_p c, xcb_timestamp_t time = XCB_CURRENT_TIME);
 	void insert_as_fullscreen(client_managed_p c, xcb_timestamp_t time = XCB_CURRENT_TIME);
 	void insert_as_notebook(client_managed_p c, xcb_timestamp_t time = XCB_CURRENT_TIME);
@@ -349,7 +288,7 @@ public:
 	client_managed_p get_transient_for(client_managed_p c);
 	void logical_raise(shared_ptr<client_base_t> c);
 
-	/* TODO: replacec it,
+	/* TODO: replace it,
 	 * temporarly gather all tree_t */
 	vector<shared_ptr<tree_t>> get_all_children() const;
 
@@ -359,9 +298,9 @@ public:
 	/* if grab is linked to a given window remove this grab */
 	void cleanup_grab();
 	/* find a valid notebook, that is in subtree base and that is no nbk */
-	shared_ptr<notebook_t> get_another_notebook(shared_ptr<tree_t> base, shared_ptr<tree_t> nbk);
-	static shared_ptr<viewport_t> find_viewport_of(shared_ptr<tree_t> n);
-	static shared_ptr<workspace_t> find_workspace_of(shared_ptr<tree_t> n);
+	notebook_p get_another_notebook(shared_ptr<tree_t> base, shared_ptr<tree_t> nbk);
+	static viewport_p find_viewport_of(shared_ptr<tree_t> n);
+	static workspace_p find_workspace_of(shared_ptr<tree_t> n);
 	void set_window_cursor(xcb_window_t w, xcb_cursor_t c);
 	void update_viewport_layout();
 	void remove_viewport(shared_ptr<workspace_t> d, shared_ptr<viewport_t> v);
@@ -387,8 +326,6 @@ public:
 	bool check_for_destroyed_window(xcb_window_t w);
 
 	shared_ptr<client_managed_t> find_hidden_client_with(xcb_window_t w);
-
-	vector<page_event_t> compute_page_areas(viewport_t * v) const;
 
 	void render();
 

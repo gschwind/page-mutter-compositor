@@ -213,10 +213,6 @@ void split_t::remove(shared_ptr<tree_t> t) {
 	}
 }
 
-void split_t::update_layout(time64_t const time) {
-
-}
-
 rect split_t::compute_split_bar_location(rect const & bpack0, rect const & bpack1) const {
 	rect ret;
 	if (_type == VERTICAL_SPLIT) {
@@ -262,26 +258,6 @@ auto split_t::get_node_name() const -> string {
 
 rect split_t::allocation() const {
 	return _allocation;
-}
-
-auto split_t::get_visible_region() -> region {
-	/** split do not render any thing **/
-	return region{};
-}
-
-
-auto split_t::get_opaque_region() -> region {
-	/** split do not render any thing **/
-	return region{};
-}
-
-auto split_t::get_damaged() -> region {
-	/** split do not render any thing **/
-	return region{};
-}
-
-void split_t::render(cairo_t * cr, region const & area) {
-
 }
 
 void split_t::get_min_allocation(int & width, int & height) const {

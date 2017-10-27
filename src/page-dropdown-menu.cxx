@@ -113,32 +113,6 @@ void dropdown_menu_overlay_t::draw(ClutterCanvas * canvas, cairo_t * cr, int wid
 	on_draw.signal(canvas, cr, width, height);
 }
 
-/**
- * draw the area of a renderable to the destination surface
- * @param cr the destination surface context
- * @param area the area to redraw
- **/
-void dropdown_menu_overlay_t::render(cairo_t * cr, region const & area)
-{
-//	cairo_surface_t * surf = cairo_xcb_surface_create(_ctx->dpy()->xcb(), _wid, _ctx->dpy()->root_visual(), _position.w, _position.h);
-//	cairo_t * cr = cairo_create(surf);
-//	for(auto a: r.rects()) {
-//		cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
-//		cairo_set_source_surface(cr, _surf, 0.0, 0.0);
-//		cairo_rectangle(cr, a.x, a.y, a.w, a.h);
-//		cairo_fill(cr);
-//	}
-//	cairo_destroy(cr);
-//	cairo_surface_destroy(surf);
-}
-
-void dropdown_menu_overlay_t::expose(xcb_expose_event_t const * ev)
-{
-//	if(ev->window != _wid)
-//		return;
-//	expose(region(ev->x, ev->y, ev->width, ev->height));
-}
-
 auto dropdown_menu_overlay_t::get_default_view() const -> ClutterActor *
 {
 	return _default_view;

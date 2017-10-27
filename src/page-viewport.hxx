@@ -13,7 +13,6 @@
 #include <memory>
 #include <vector>
 
-#include "page-renderable.hxx"
 #include "page-split.hxx"
 #include "page-theme.hxx"
 #include "page-page-component.hxx"
@@ -27,15 +26,6 @@ using namespace std;
 class viewport_t:
 		public page_component_t
 {
-
-	static uint32_t const DEFAULT_BUTTON_EVENT_MASK =
-			 XCB_EVENT_MASK_BUTTON_PRESS
-			|XCB_EVENT_MASK_BUTTON_RELEASE
-			|XCB_EVENT_MASK_BUTTON_MOTION
-			|XCB_EVENT_MASK_POINTER_MOTION;
-
-	region _damaged;
-
 	bool _is_durty;
 	bool _exposed;
 
@@ -60,7 +50,6 @@ class viewport_t:
 	auto page_area() const -> rect const &;
 
 	void update_renderable();
-	void _redraw_back_buffer();
 	void draw(ClutterCanvas * _, cairo_t * cr, int width, int height);
 	void paint_expose();
 
@@ -91,24 +80,15 @@ public:
 	virtual auto get_node_name() const -> string override;
 	virtual void remove(tree_p t) override;
 
-	virtual void update_layout(time64_t const time);
-	//virtual void render(cairo_t * cr, region const & area);
-	virtual void render_finished();
 	virtual void reconfigure() override;
 	virtual void on_workspace_enable() override;
 	virtual void on_workspace_disable() override;
-
-	virtual auto get_opaque_region() -> region;
-	virtual auto get_visible_region() -> region;
-	virtual auto get_damaged() -> region;
 
 	//virtual bool button_press(xcb_button_press_event_t const * ev);
 	//virtual bool button_release(xcb_button_release_event_t const * ev);
 	//virtual bool button_motion(xcb_motion_notify_event_t const * ev);
 	//virtual bool leave(xcb_leave_notify_event_t const * ev);
 	//virtual bool enter(xcb_enter_notify_event_t const * ev);
-	virtual void expose(xcb_expose_event_t const * ev);
-	virtual void trigger_redraw();
 
 	//virtual auto get_toplevel_xid() const -> xcb_window_t;
 	virtual rect get_window_position() const;

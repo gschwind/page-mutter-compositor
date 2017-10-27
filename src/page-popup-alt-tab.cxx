@@ -221,41 +221,6 @@ void popup_alt_tab_t::paint_exposed() {
 
 }
 
-region popup_alt_tab_t::get_damaged() {
-	if(_damaged) {
-		return region{_position_extern};
-	} else {
-		return region{};
-	}
-}
-
-region popup_alt_tab_t::get_opaque_region() {
-	return region{};
-}
-
-region popup_alt_tab_t::get_visible_region() {
-	return region{_position_extern};
-}
-
-void popup_alt_tab_t::render(cairo_t * cr, region const & area) {
-	cairo_save(cr);
-	cairo_new_path(cr);
-	cairo_rectangle_arc_corner(cr, _position_extern, 30.0, CAIRO_CORNER_ALL);
-	auto path = cairo_copy_path_flat(cr);
-	cairo_new_path(cr);
-
-	cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
-	cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 0.5);
-	region r = area & _position_extern;
-	for (auto & r : area.rects()) {
-		cairo_clip(cr, r);
-		cairo_new_path(cr);
-		cairo_append_path(cr, path);
-		cairo_fill(cr);
-	}
-	cairo_restore(cr);
-}
-
 void popup_alt_tab_t::destroy_client(client_managed_t * c) {
 	if(_selected != _client_list.end()) {
 		if((*_selected).client.expired()) {
@@ -269,22 +234,6 @@ void popup_alt_tab_t::destroy_client(client_managed_t * c) {
 
 string popup_alt_tab_t::get_node_name() const {
 	return string{"popup_alt_tab_t"};
-}
-
-void popup_alt_tab_t::trigger_redraw() {
-	if(_exposed) {
-		_exposed = false;
-		update_backbuffer();
-		paint_exposed();
-	}
-}
-
-void popup_alt_tab_t::render_finished() {
-	_damaged = false;
-}
-
-void popup_alt_tab_t::update_layout(time64_t const time) {
-	update_backbuffer();
 }
 
 void popup_alt_tab_t::expose(xcb_expose_event_t const * ev) {

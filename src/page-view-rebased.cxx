@@ -160,37 +160,6 @@ void view_rebased_t::set_focus_state(bool is_focused)
 //	}
 }
 
-void view_rebased_t::update_layout(time64_t const time)
-{
-	if (not _is_visible)
-		return;
-
-//	/** update damage_cache **/
-//	region dmg = _client_view->get_damaged();
-//	dmg.translate(_base_position.x, _base_position.y);
-//	_damage_cache += dmg;
-//	_client_view->clear_damaged();
-}
-
-void view_rebased_t::render(cairo_t * cr, region const & area)
-{
-//	auto pix = _client_view->get_pixmap();
-//	if(pix == nullptr)
-//		return;
-//
-//	cairo_save(cr);
-//	cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
-//	cairo_set_source_surface(cr, pix->get_cairo_surface(),
-//			_base_position.x, _base_position.y);
-//	region r = get_visible_region() & area;
-//	for (auto &i : r.rects()) {
-//		cairo_clip(cr, i);
-//		cairo_mask_surface(cr, pix->get_cairo_surface(),
-//				_base_position.x, _base_position.y);
-//	}
-//	cairo_restore(cr);
-}
-
 void view_rebased_t::on_workspace_enable()
 {
 	acquire_client();

@@ -26,13 +26,6 @@
 namespace page {
 
 struct view_rebased_t : public view_t {
-	static long const MANAGED_BASE_WINDOW_EVENT_MASK =
-			  XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
-			| XCB_EVENT_MASK_STRUCTURE_NOTIFY
-			| XCB_EVENT_MASK_BUTTON_PRESS
-			| XCB_EVENT_MASK_BUTTON_RELEASE
-			| XCB_EVENT_MASK_ENTER_WINDOW
-			| XCB_EVENT_MASK_LEAVE_WINDOW;
 
 	rect _base_position;
 	rect _orig_position;
@@ -81,8 +74,6 @@ public:
 	using view_t::get_node_name;
 	using view_t::remove;
 
-	virtual void update_layout(time64_t const time) override;
-	virtual void render(cairo_t * cr, region const & area) override;
 	virtual void reconfigure() = 0;
 	virtual void on_workspace_enable() override;
 	virtual void on_workspace_disable() override;

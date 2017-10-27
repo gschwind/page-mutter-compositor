@@ -51,14 +51,12 @@ public:
 
 	/** @return scale factor */
 	static double fit_to(double target_width, double target_height, double src_width, double src_height);
-	virtual void render(cairo_t * cr, region const & area) override;
 
 	auto target_position() -> rect const &;
 	rect get_real_position();
 	void set_mouse_over(bool x);
 	void update_title();
 	void move_to(rect const & target_position);
-	void render_finished();
 
 	virtual void show() override;
 	virtual void hide() override;
