@@ -12,7 +12,6 @@
 #include <cairo-xcb.h>
 
 #include "page-page.hxx"
-#include "page-renderable-floating-outer-gradien.hxx"
 #include "page-client-managed.hxx"
 #include "page-notebook.hxx"
 #include "page-utils.hxx"

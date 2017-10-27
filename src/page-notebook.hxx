@@ -21,7 +21,6 @@
 #include "page-page-component.hxx"
 #include "page-client-managed.hxx"
 #include "page-renderable-thumbnail.hxx"
-#include "page-renderable-unmanaged-gaussian-shadow.hxx"
 #include "page-dropdown-menu.hxx"
 #include "page-page-types.hxx"
 
@@ -115,7 +114,6 @@ class notebook_t : public page_component_t {
 	/* list of tabs and exposay buttons */
 	vector<tuple<rect, view_notebook_w, theme_tab_t *>> _client_buttons;
 	vector<tuple<rect, view_notebook_w, int>> _exposay_buttons;
-	shared_ptr<renderable_unmanaged_gaussian_shadow_t<16>> _exposay_mouse_over;
 
 	void _start_fading();
 

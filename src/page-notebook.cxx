@@ -13,7 +13,6 @@
 #include "page-workspace.hxx"
 #include "page-dropdown-menu.hxx"
 #include "page-grab-handlers.hxx"
-#include "page-renderable-unmanaged-gaussian-shadow.hxx"
 #include "page-view-notebook.hxx"
 
 namespace page {
@@ -775,7 +774,6 @@ void notebook_t::start_exposay() {
 void notebook_t::_update_exposay() {
 	_exposay_buttons.clear();
 	_exposay_thumbnail.clear();
-	_exposay_mouse_over = nullptr;
 
 	_theme_notebook.button_mouse_over = NOTEBOOK_BUTTON_NONE;
 	_mouse_over.tab = nullptr;
@@ -1114,7 +1112,6 @@ void notebook_t::_mouse_over_reset() {
 	_theme_notebook.button_mouse_over = NOTEBOOK_BUTTON_NONE;
 	_mouse_over.tab = nullptr;
 	_mouse_over.exposay = nullptr;
-	_exposay_mouse_over = nullptr;
 
 }
 
@@ -1139,10 +1136,9 @@ void notebook_t::_mouse_over_set() {
 	}
 
 	if(_mouse_over.exposay != nullptr) {
-		_exposay_mouse_over = make_shared<renderable_unmanaged_gaussian_shadow_t<16>>(this, _exposay_thumbnail[std::get<2>(*_mouse_over.exposay)]->get_real_position(), color_t{1.0, 0.0, 0.0, 1.0});
 		_exposay_thumbnail[std::get<2>(*_mouse_over.exposay)]->set_mouse_over(true);
 	} else {
-		_exposay_mouse_over = nullptr;
+
 	}
 }
 
@@ -1282,9 +1278,6 @@ void  notebook_t::_scroll_right(int x) {
 	if(_theme_client_tabs_offset < 0)
 		target_offset = 0;
 
-	auto transition = std::make_shared<transition_linear_t<notebook_t, int>>(this, &notebook_t::_theme_client_tabs_offset, target_offset, time64_t{0.2});
-	add_transition(transition);
-
 	_update_notebook_buttons_area();
 	queue_redraw();
 }
@@ -1307,9 +1300,6 @@ void  notebook_t::_scroll_left(int x) {
 
 	if(_theme_client_tabs_offset < 0)
 		target_offset = 0;
-
-	auto transition = std::make_shared<transition_linear_t<notebook_t, int>>(this, &notebook_t::_theme_client_tabs_offset, target_offset, time64_t{0.2});
-	add_transition(transition);
 
 	_update_notebook_buttons_area();
 	queue_redraw();

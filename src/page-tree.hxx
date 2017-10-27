@@ -21,7 +21,6 @@
 #include "page-utils.hxx"
 #include "page-renderable.hxx"
 #include "page-time.hxx"
-#include "page-transition.hxx"
 
 enum button_action_e {
 	BUTTON_ACTION_CONTINUE,
@@ -130,8 +129,6 @@ protected:
 	bool _is_visible;
 	bool _stack_is_locked; // define wether childdren can be raised.
 
-	map<void *, shared_ptr<transition_t>> _transition;
-
 private:
 	tree_t(tree_t const &) = delete;
 	tree_t & operator=(tree_t const &) = delete;
@@ -180,8 +177,6 @@ public:
 	void broadcast_render_finished();
 	void broadcast_on_workspace_enable();
 	void broadcast_on_workspace_disable();
-
-	void add_transition(shared_ptr<transition_t> t);
 
 	rect to_root_position(rect const & r) const;
 

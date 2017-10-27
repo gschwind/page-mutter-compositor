@@ -23,9 +23,7 @@ extern "C" {
 
 #include "page-icon-handler.hxx"
 #include "page-theme.hxx"
-
-#include "page-floating-event.hxx"
-#include "page-renderable-floating-outer-gradien.hxx"
+#include "page-utils.hxx"
 
 namespace page {
 

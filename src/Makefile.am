@@ -53,8 +53,6 @@ page_mutter_compositor_SOURCES = \
 	page-popup-split.cxx \
 	page-renderable-thumbnail.hxx \
 	page-renderable-thumbnail.cxx \
-	page-renderable-floating-outer-gradien.hxx \
-	page-renderable-floating-outer-gradien.cxx \
 	page-renderable-solid.hxx \
 	page-renderable-solid.cxx \
 	page-view.hxx \
@@ -86,7 +84,6 @@ page_mutter_compositor_SOURCES = \
 	page-tiny-theme.cxx \
 	page-config-handler.cxx \
 	page-popup-alt-tab.cxx \
-	page-blur-image-surface.cxx \
 	page-tree.hxx \
 	page-blur-image-surface.hxx \
 	page-notebook.hxx \

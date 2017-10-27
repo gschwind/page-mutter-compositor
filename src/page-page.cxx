@@ -41,7 +41,6 @@ extern "C" {
 #include "page-renderable.hxx"
 #include "page-key-desc.hxx"
 #include "page-time.hxx"
-#include "page-atoms.hxx"
 #include "page-client-managed.hxx"
 #include "page-grab-handlers.hxx"
 
@@ -69,7 +68,6 @@ extern "C" {
 namespace page {
 
 time64_t const page_t::default_wait{1000000000L / 120L};
-bool mainloop_t::got_sigterm = false;
 
 void page_t::_handler_key_binding::call(MetaDisplay * display,
 		MetaScreen * screen, MetaWindow * window, ClutterKeyEvent * event,
@@ -3589,10 +3587,6 @@ auto page_t::conf() const -> page_configuration_t const & {
 auto page_t::net_client_list() -> list<client_managed_p> const &
 {
 	return _net_client_list;
-}
-
-auto page_t::mainloop() -> mainloop_t * {
-	return &_mainloop;
 }
 
 void page_t::schedule_repaint(int64_t timeout)

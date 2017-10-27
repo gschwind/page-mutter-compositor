@@ -143,15 +143,7 @@ auto tree_t::gather_children(vector<tree_p> & out) const -> void
  **/
 auto tree_t::update_layout(time64_t const time) -> void
 {
-	auto x = _transition.begin();
-	while(x != _transition.end()) {
-		x->second->update(time);
-		if(time > x->second->end()) {
-			x = _transition.erase(x);
-		} else {
-			++x;
-		}
-	}
+
 }
 
 /**
@@ -398,10 +390,6 @@ void tree_t::broadcast_on_workspace_enable() {
 
 void tree_t::broadcast_on_workspace_disable() {
 	_broadcast_root_first(&tree_t::on_workspace_disable);
-}
-
-void tree_t::add_transition(shared_ptr<transition_t> t) {
-	_transition[t->target()] = t;
 }
 
 rect tree_t::to_root_position(rect const & r) const {

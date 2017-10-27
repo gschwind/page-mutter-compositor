@@ -41,8 +41,6 @@
 
 #include "page-page-event.hxx"
 
-#include "page-mainloop.hxx"
-
 #include "page-page.hxx"
 
 namespace page {
@@ -95,8 +93,6 @@ class page_t:
 
 	void _event_handler_bind(int type, callback_event_t f);
 	void _bind_all_default_event();
-
-	mainloop_t _mainloop;
 
 	workspace_p _current_workspace;
 	vector<workspace_p> _workspace_list;
@@ -159,7 +155,6 @@ public:
 
 	array<key_bind_cmd_t, 10> bind_cmd;
 
-	shared_ptr<timeout_t> _scheduled_repaint_timeout;
 	bool _schedule_repaint;
 	uint32_t frame_alarm;
 
@@ -478,7 +473,6 @@ public:
 	auto net_client_list() -> list<client_managed_p> const &;
 	auto create_view(xcb_window_t w) -> shared_ptr<client_view_t>;
 	void make_surface_stats(int & size, int & count);
-	auto mainloop() -> mainloop_t *;
 	void schedule_repaint(int64_t timeout = 1000000000L/120L);
 	void damage_all();
 

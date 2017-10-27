@@ -18,8 +18,6 @@
 #include "page-color.hxx"
 #include "page-utils.hxx"
 
-#include "page-blur-image-surface.hxx"
-
 namespace page {
 
 using namespace std;

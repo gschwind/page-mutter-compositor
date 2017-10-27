@@ -36,7 +36,6 @@
 
 #include "page-color.hxx"
 #include "page-box.hxx"
-#include "page-x11-func-name.hxx"
 #include "page-exception.hxx"
 
 namespace page {
