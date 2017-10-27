@@ -54,7 +54,6 @@ extern "C" {
 #include "page-view-fullscreen.hxx"
 #include "page-view-notebook.hxx"
 #include "page-view-floating.hxx"
-#include "page-view-popup.hxx"
 
 #include "page-popup-alt-tab.hxx"
 

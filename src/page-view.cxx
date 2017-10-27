@@ -25,7 +25,6 @@
 #include "page-workspace.hxx"
 #include "page-page.hxx"
 #include "page-view-floating.hxx"
-#include "page-view-popup.hxx"
 
 namespace page {
 
@@ -37,12 +36,6 @@ view_t::view_t(tree_t * ref, client_managed_p client) :
 
 	_stack_is_locked = true;
 
-	_popup = make_shared<tree_t>(_root);
-	_transiant = make_shared<tree_t>(_root);
-
-	push_back(_popup);
-	push_back(_transiant);
-
 //	_client->net_wm_state_remove(_NET_WM_STATE_FOCUSED);
 	//_grab_button_unfocused_unsafe();
 
@@ -51,8 +44,6 @@ view_t::view_t(tree_t * ref, client_managed_p client) :
 view_t::~view_t()
 {
 	release_client();
-	_popup.reset();
-	_transiant.reset();
 }
 
 auto view_t::shared_from_this() -> view_p
@@ -62,16 +53,6 @@ auto view_t::shared_from_this() -> view_p
 
 void view_t::focus(xcb_timestamp_t t) {
 	_client->focus(t);
-}
-
-void view_t::add_transient(view_floating_p v)
-{
-	_transiant->push_back(v);
-}
-
-void view_t::add_popup(view_popup_p v)
-{
-	_popup->push_back(v);
 }
 
 void view_t::move_all_window()
@@ -92,16 +73,6 @@ void view_t::move_all_window()
 		meta_window_minimize(_client->_meta_window);
 	}
 
-}
-
-auto view_t::get_popups() -> vector<view_p>
-{
-	return filter_class<view_t>(_popup->children());
-}
-
-auto view_t::get_transients() -> vector<view_p>
-{
-	return filter_class<view_t>(_transiant->children());
 }
 
 bool view_t::_is_client_owner()

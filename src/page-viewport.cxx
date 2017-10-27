@@ -23,8 +23,6 @@ viewport_t::viewport_t(tree_t * ref, rect const & area) :
 		page_component_t{ref},
 		_raw_aera{area},
 		_effective_area{area},
-		_is_durty{true},
-		_exposed{false},
 		_subtree{nullptr}
 {
 	_page_area = rect{0, 0, _effective_area.w, _effective_area.h};
@@ -153,8 +151,6 @@ void viewport_t::show() {
 
 void viewport_t::draw(ClutterCanvas * _, cairo_t * cr, int width, int height) {
 	log::printf("call %s\n", __PRETTY_FUNCTION__);
-//	if(not _is_durty)
-//		return;
 
 	cairo_save(cr);
 	cairo_identity_matrix(cr);
@@ -173,16 +169,12 @@ void viewport_t::draw(ClutterCanvas * _, cairo_t * cr, int width, int height) {
 
 	cairo_restore(cr);
 
-	_is_durty = false;
-	_exposed = true;
-
 }
 
 /* mark renderable_page for redraw */
 void viewport_t::queue_redraw()
 {
 	_root->_ctx->schedule_repaint();
-	_is_durty = true;
 	if(_canvas)
 		clutter_content_invalidate(_canvas);
 }
@@ -190,18 +182,6 @@ void viewport_t::queue_redraw()
 auto viewport_t::get_default_view() const -> ClutterActor *
 {
 	return _default_view;
-}
-
-//xcb_window_t viewport_t::get_toplevel_xid() const {
-//	return 0;
-//}
-
-gboolean viewport_t::wrapper_draw_callback(ClutterCanvas *canvas, cairo_t *cr, int width,
-		int height, gpointer user_data)
-{
-	auto viewport = reinterpret_cast<viewport_t*>(user_data);
-	viewport->draw(canvas, cr, width, height);
-	return FALSE;
 }
 
 auto viewport_t::_handler_button_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean

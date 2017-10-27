@@ -14,7 +14,6 @@
 #include "page-viewport.hxx"
 #include "page-workspace.hxx"
 #include "page-view.hxx"
-#include "page-view-popup.hxx"
 #include "page-view-fullscreen.hxx"
 #include "page-view-floating.hxx"
 #include "page-view-notebook.hxx"
@@ -671,11 +670,6 @@ void workspace_t::unmanage(client_managed_p mw)
 	/* if managed window have active clients */
 	log(LOG_MANAGE, "unmanaging : 0x%x '%s'\n", 0, mw->title().c_str());
 
-	for (auto c : v->get_transients()) {
-		c->remove_this_view();
-		_ctx->insert_as_floating(c->_client);
-	}
-
 	client_focus_history_remove(v);
 	v->remove_this_view();
 
@@ -736,17 +730,7 @@ void workspace_t::_insert_view_floating(view_floating_p fv, xcb_timestamp_t time
 	if (is_enable())
 		fv->acquire_client();
 
-	view_p v;
-//	auto transient_for = dynamic_pointer_cast<client_managed_t>(_ctx->get_transient_for(c));
-//	if (transient_for != nullptr)
-//		v = lookup_view_for(transient_for);
-
-	if (v != nullptr) {
-		v->add_transient(fv);
-	} else {
-		add_floating(fv);
-	}
-
+	add_floating(fv);
 	fv->raise();
 	fv->show();
 	set_focus(fv, time);

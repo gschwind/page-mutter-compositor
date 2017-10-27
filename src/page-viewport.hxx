@@ -26,8 +26,6 @@ using namespace std;
 class viewport_t:
 		public page_component_t
 {
-	bool _is_durty;
-	bool _exposed;
 
 	/** rendering tabs is time consuming, thus use back buffer **/
 	ClutterContent * _canvas;
@@ -53,15 +51,11 @@ class viewport_t:
 	void draw(ClutterCanvas * _, cairo_t * cr, int width, int height);
 	void paint_expose();
 
-	static gboolean wrapper_draw_callback(ClutterCanvas *canvas, cairo_t *cr, int width, int height, gpointer user_data);
-
-
 	auto _handler_button_press_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
 	auto _handler_button_release_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
 	auto _handler_motion_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
 	auto _handler_enter_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
 	auto _handler_leave_event(ClutterActor * actor, ClutterEvent * event) -> gboolean;
-
 
 public:
 

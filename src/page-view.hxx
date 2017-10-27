@@ -33,21 +33,13 @@ struct view_t : public tree_t {
 
 	client_managed_p _client;
 
-	tree_p _popup;
-	tree_p _transiant;
-
 	view_t(tree_t * ref, client_managed_p client);
 	virtual ~view_t();
 
 	auto shared_from_this() -> view_p;
 
 	void focus(xcb_timestamp_t t);
-	void add_transient(view_floating_p v);
-	void add_popup(view_popup_p v);
 	void move_all_window();
-
-	auto get_popups() -> vector<view_p>;
-	auto get_transients() -> vector<view_p>;
 
 	void _on_focus_change(client_managed_t * c);
 	bool _is_client_owner();

@@ -63,8 +63,6 @@ page_mutter_compositor_SOURCES = \
 	page-view-fullscreen.cxx \
 	page-view-floating.hxx \
 	page-view-floating.cxx \
-	page-view-popup.hxx \
-	page-view-popup.cxx \
 	page-page-component.hxx \
 	page-page-component.cxx \
 	page-icon-handler.hxx \
