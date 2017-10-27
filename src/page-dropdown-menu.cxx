@@ -45,8 +45,6 @@ theme_dropdown_menu_entry_t const & dropdown_menu_entry_t::get_theme_item()
 	return _theme_data;
 }
 
-
-
 dropdown_menu_overlay_t::dropdown_menu_overlay_t(tree_t * ref, rect position) :
 	tree_t{ref->_root},
 	_ctx{ref->_root->_ctx},
@@ -80,30 +78,12 @@ dropdown_menu_overlay_t::~dropdown_menu_overlay_t()
 	g_object_unref(_default_view);
 }
 
-void dropdown_menu_overlay_t::map()
-{
-	//_ctx->dpy()->map(_wid);
-}
-
 rect const & dropdown_menu_overlay_t::position()
 {
 	return _position;
 }
 
-void dropdown_menu_overlay_t::expose()
-{
-//	cairo_surface_t * surf = cairo_xcb_surface_create(_ctx->dpy()->xcb(),
-//			_wid, _ctx->dpy()->root_visual(), _position.w, _position.h);
-//	cairo_t * cr = cairo_create(surf);
-//	cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
-//	cairo_set_source_surface(cr, _surf, 0.0, 0.0);
-//	cairo_rectangle(cr, 0, 0, _position.w, _position.h);
-//	cairo_fill(cr);
-//	cairo_destroy(cr);
-//	cairo_surface_destroy(surf);
-}
-
-void dropdown_menu_overlay_t::expose(region const & r)
+void dropdown_menu_overlay_t::invalidate()
 {
 	clutter_content_invalidate(_canvas);
 }
@@ -111,11 +91,6 @@ void dropdown_menu_overlay_t::expose(region const & r)
 void dropdown_menu_overlay_t::draw(ClutterCanvas * canvas, cairo_t * cr, int width, int height)
 {
 	on_draw.signal(canvas, cr, width, height);
-}
-
-auto dropdown_menu_overlay_t::get_default_view() const -> ClutterActor *
-{
-	return _default_view;
 }
 
 dropdown_menu_t::dropdown_menu_t(tree_t * ref,
@@ -139,11 +114,7 @@ dropdown_menu_t::dropdown_menu_t(tree_t * ref,
 
 	pop = make_shared<dropdown_menu_overlay_t>(ref, _position);
 	connect(pop->on_draw, this, &dropdown_menu_t::draw);
-//	pop->map();
-
-//	_ctx->schedule_repaint();
-	pop->expose(rect(0,0,pop->_position.w,pop->_position.h));
-	//_ctx->overlay_add(pop);
+	pop->invalidate();
 
 }
 
@@ -162,21 +133,6 @@ int dropdown_menu_t::selected()
 xcb_timestamp_t dropdown_menu_t::time()
 {
 	return _time;
-}
-
-void dropdown_menu_t::update_backbuffer()
-{
-
-//	cairo_t * cr = cairo_create(pop->_surf);
-//
-//	for (unsigned k = 0; k < _items.size(); ++k) {
-//		update_items_back_buffer(cr, k);
-//	}
-//
-//	cairo_destroy(cr);
-//
-//	pop->expose(rect(0,0,pop->_position.w,pop->_position.h));
-
 }
 
 void dropdown_menu_t::draw(ClutterCanvas * canvas, cairo_t * cr, int width, int height)
@@ -199,13 +155,7 @@ void dropdown_menu_t::set_selected(int s)
 {
 	if(s >= 0 and s < _items.size() and s != _selected) {
 		std::swap(_selected, s);
-//		cairo_t * cr = cairo_create(pop->_surf);
-//		update_items_back_buffer(cr, _selected);
-//		update_items_back_buffer(cr, s);
-//		cairo_destroy(cr);
-//		pop->_is_durty = true;
-//
-		pop->expose(rect(0,0,pop->_position.w,pop->_position.h));
+		pop->invalidate();
 	}
 }
 

@@ -74,7 +74,7 @@ bool view_notebook_t::has_focus() const
 	return meta_window_has_focus(_client->meta_window());
 }
 
-auto view_notebook_t::title() const -> string const &
+auto view_notebook_t::title() const -> string
 {
 	return _client->title();
 }

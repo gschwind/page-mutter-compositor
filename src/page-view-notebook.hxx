@@ -44,7 +44,7 @@ struct view_notebook_t : public view_rebased_t {
 	auto shared_from_this() -> view_notebook_p;
 	bool is_iconic() const;
 	bool has_focus() const;
-	auto title() const -> string const &;
+	auto title() const -> string;
 	//auto icon() const -> shared_ptr<icon16>;
 	void delete_window(xcb_timestamp_t t);
 

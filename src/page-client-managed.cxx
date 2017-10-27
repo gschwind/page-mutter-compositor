@@ -141,10 +141,9 @@ void client_managed_t::set_demands_attention()
 	meta_window_set_demands_attention(_meta_window);
 }
 
-auto client_managed_t::title() -> string const &
+auto client_managed_t::title() const -> string
 {
-	_title = meta_window_get_title(_meta_window);
-	return _title;
+	return string{meta_window_get_title(_meta_window)};
 }
 
 

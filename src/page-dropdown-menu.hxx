@@ -59,20 +59,18 @@ struct dropdown_menu_overlay_t : public tree_t {
 	dropdown_menu_overlay_t(tree_t * root, rect position);
 	~dropdown_menu_overlay_t();
 
-	void map();
 	rect const & position();
-	xcb_window_t id() const;
 
-	void expose();
-	void expose(region const & r);
+	void invalidate();
 
 	void draw(ClutterCanvas * canvas, cairo_t * cr, int width, int height);
 
-	virtual auto get_default_view() const -> ClutterActor * override;
-
 };
 
-class dropdown_menu_t : public grab_handler_t, public connectable_t {
+class dropdown_menu_t :
+		public grab_handler_t,
+		public connectable_t
+{
 
 public:
 	using item_t = dropdown_menu_entry_t;
@@ -96,7 +94,6 @@ public:
 	int selected();
 	xcb_timestamp_t time();
 
-	void update_backbuffer();
 	void draw(ClutterCanvas * canvas, cairo_t * cr, int width, int height);
 
 	void update_items_back_buffer(cairo_t * cr, int n);

@@ -63,8 +63,6 @@ struct client_managed_t :
 	 **/
 	rect _absolute_position;
 
-	// window title cache
-	string _title;
 	view_t * _current_owner_view;
 
 	/* private to avoid copy */
@@ -75,8 +73,6 @@ struct client_managed_t :
 
 	void set_wished_position(rect const & position);
 	rect const & get_wished_position() const;
-
-	cairo_t * get_cairo_context();
 
 	auto current_owner_view() const -> view_t *;
 	// this two functions is to ensure correct ownership.
@@ -101,7 +97,6 @@ struct client_managed_t :
 	signal_t<client_managed_t *> on_configure_notify;
 	signal_t<client_managed_t *> on_unmanage;
 
-	auto title() -> string const &;
 	auto get_wished_position() -> rect const &;
 	void set_floating_wished_position(rect const & pos);
 	auto get_floating_wished_position() -> rect const & ;
@@ -110,7 +105,7 @@ struct client_managed_t :
 	void delete_window(guint32 t);
 	void focus(guint32 timestamp);
 	void set_demands_attention();
-	auto title() const -> string const &;
+	auto title() const -> string;
 	auto position() -> rect;
 
 };
